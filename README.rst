@@ -60,11 +60,13 @@ Usage
 
 .. code-block:: bash
 
-    root [http://gitlab.yourdomain.com]
+    root [http://gitlab.my.com]
     ├── group1 [/group1]
     │   └── subgroup1 [/group1/subgroup1]
+    │       └── project1 [/group1/subgroup1/project1]
     ├── group2 [/group2]
     │   ├── subgroup1 [/group2/subgroup1]
+    │       └── project2 [/group2/subgroup1/project2]
     │   ├── subgroup2 [/group2/subgroup2]
     │   ├── subgroup3 [/group2/subgroup3]
 
