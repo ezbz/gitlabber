@@ -1,0 +1,26 @@
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "name": "project",
+              "root_path": "/group/subgroup/project",
+              "url": "http://gitlab.my.com/group/subgroup/project/project.git"
+            }
+          ],
+          "name": "subgroup",
+          "root_path": "/group/subgroup",
+          "url": "http://gitlab.my.com/group/subgroup"
+        }
+      ],
+      "name": "group",
+      "root_path": "/group",
+      "url": "http://gitlab.my.com/group"
+    }
+  ],
+  "name": "",
+  "root_path": "",
+  "url": "http://gitlab.my.com/"
+}

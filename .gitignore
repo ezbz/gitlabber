@@ -1,0 +1,10 @@
+.cache
+.coverage
+.vscode
+*.egg-info
+*.eggs
+*.pyc
+__pycache__
+build
+dist
+htmlcov

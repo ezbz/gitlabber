@@ -1,0 +1,4 @@
+root [http://gitlab.my.com/]
+└── group [/group]
+    └── subgroup [/group/subgroup]
+        └── project [/group/subgroup/project]
