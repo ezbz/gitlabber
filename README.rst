@@ -64,13 +64,11 @@ Usage
     ├── group1 [/group1]
     │   └── subgroup1 [/group1/subgroup1]
     │       └── project1 [/group1/subgroup1/project1]
-    ├── group2 [/group2]
-    │   ├── subgroup1 [/group2/subgroup1]
-    │       └── project2 [/group2/subgroup1/project2]
-    │   ├── subgroup2 [/group2/subgroup2]
-    │   ├── subgroup3 [/group2/subgroup3]
-
-
+    └── group2 [/group2]
+        ├── subgroup1 [/group2/subgroup1]
+        │   └── project1 [/group2/subgroup1/project]
+        ├── subgroup2 [/group2/subgroup2]
+        └── subgroup3 [/group2/subgroup3]
 
 * To see how to use glob patterns and regex to filter tree nodes see `globre project page <https://pypi.org/project/globre/>`_ .
 
