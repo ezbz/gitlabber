@@ -66,7 +66,7 @@ Usage
     │       └── project1 [/group1/subgroup1/project1]
     └── group2 [/group2]
         ├── subgroup1 [/group2/subgroup1]
-        │   └── project1 [/group2/subgroup1/project]
+        │   └── project2 [/group2/subgroup1/project2]
         ├── subgroup2 [/group2/subgroup2]
         └── subgroup3 [/group2/subgroup3]
 
