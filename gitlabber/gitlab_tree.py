@@ -5,6 +5,7 @@ from anytree.importer import DictImporter
 from .git import sync_tree
 from .format import PrintFormat
 from .method import CloneMethod
+from .progress import ProgressBar
 import yaml
 import io
 import globre
@@ -23,6 +24,7 @@ class GitlabTree:
         self.gitlab = Gitlab(url, private_token=token)
         self.method = method
         self.in_file = in_file
+        self.progress = ProgressBar()
 
     def is_included(self, node):
         '''
@@ -67,24 +69,31 @@ class GitlabTree:
 
     def get_projects(self, group, parent):
         projects = group.projects.list(as_list=False)
+        self.progress.update_progress_length(len(projects))
         for project in projects:
             project_url = project.ssh_url_to_repo if self.method is CloneMethod.SSH else project.http_url_to_repo
-            self.make_node(project.name, parent, url=project_url)
+            node = self.make_node(project.name, parent, url=project_url)
+            self.progress.show_progress(node.name, 'project')
 
     def get_subgroups(self, group, parent):
         subgroups = group.subgroups.list(as_list=False)
+        self.progress.update_progress_length(len(subgroups))
         for subgroup_def in subgroups:
             subgroup = self.gitlab.groups.get(subgroup_def.id)
             node = self.make_node(subgroup.name, parent, url=subgroup.web_url)
+            self.progress.show_progress(node.name, 'group')
             self.get_subgroups(subgroup, node)
             self.get_projects(subgroup, node)
 
     def load_gitlab_tree(self):
         groups = self.gitlab.groups.list(as_list=False)
+        self.progress.init_progress(len(groups))
         for group in groups:
             node = self.make_node(group.name, self.root, url=group.web_url)
+            self.progress.show_progress(node.name, 'group')
             self.get_subgroups(group, node)
             self.get_projects(group, node)
+        self.progress.finish_progress()
 
     def load_file_tree(self):
         with open(self.in_file, 'r') as stream:

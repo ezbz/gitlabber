@@ -21,7 +21,8 @@ def create_tree():
 @mock.patch('gitlabber.git.os')
 @mock.patch('gitlabber.git.git')
 @mock.patch('gitlabber.git.clone_or_pull_project')
-def test_create_new_user_dir(mock_clone_or_pull_project, mock_git, mock_os):
+@mock.patch('gitlabber.git.progress')
+def test_create_new_user_dir(mock_progress, mock_clone_or_pull_project, mock_git, mock_os):
     # git.git = mock.MagicMock()
     
     mock_os.path.exists.return_value = False
@@ -60,7 +61,7 @@ def test_pull_repo(mock_git):
     repo_instance = mock_git.Repo.return_value
     git.is_git_repo = mock.MagicMock(return_value=True)
 
-    git.clone_or_pull_project(None,"dummy_dir")
+    git.clone_or_pull_project(Node(name="test"),"dummy_dir")
     mock_git.Repo.assert_called_once_with("dummy_dir")
     repo_instance.remotes.origin.pull.assert_called_once()
 
