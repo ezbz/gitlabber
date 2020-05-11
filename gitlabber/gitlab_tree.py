@@ -4,6 +4,7 @@ from anytree.exporter import DictExporter, JsonExporter
 from anytree.importer import DictImporter
 from .git import sync_tree
 from .format import PrintFormat
+from .method import CloneMethod
 import yaml
 import io
 import globre
@@ -11,14 +12,16 @@ import logging
 import os
 log = logging.getLogger(__name__)
 
+
 class GitlabTree:
 
-    def __init__(self, url, token, includes=[], excludes=[], in_file=None):
+    def __init__(self, url, token, method, includes=[], excludes=[], in_file=None):
         self.includes = includes
         self.excludes = excludes
         self.url = url
         self.root = Node("", root_path="", url=url)
         self.gitlab = Gitlab(url, private_token=token)
+        self.method = method
         self.in_file = in_file
 
     def is_included(self, node):
@@ -28,12 +31,12 @@ class GitlabTree:
         if self.includes is not None:
             for include in self.includes:
                 if globre.match(include, node.root_path):
-                    log.debug("Matched include path [%s] to node [%s]", include, node.root_path)
+                    log.debug(
+                        "Matched include path [%s] to node [%s]", include, node.root_path)
                     return True
         else:
             return True
-        
-                    
+
     def is_excluded(self, node):
         '''
         returns True if the node should be excluded 
@@ -41,7 +44,8 @@ class GitlabTree:
         if self.excludes is not None:
             for exclude in self.excludes:
                 if globre.match(exclude, node.root_path):
-                    log.debug("Matched exclude path [%s] to node [%s]", exclude, node.root_path)
+                    log.debug(
+                        "Matched exclude path [%s] to node [%s]", exclude, node.root_path)
                     return True
         return False
 
@@ -57,27 +61,28 @@ class GitlabTree:
         return "/".join([str(n.name) for n in node.path])
 
     def make_node(self, name, parent, url):
-        node= Node(name=name, parent=parent, url=url)
+        node = Node(name=name, parent=parent, url=url)
         node.root_path = self.root_path(node)
         return node
 
     def get_projects(self, group, parent):
-        projects= group.projects.list(as_list=False)
+        projects = group.projects.list(as_list=False)
         for project in projects:
-            self.make_node(project.name, parent, url=project.ssh_url_to_repo)
+            project_url = project.ssh_url_to_repo if self.method is CloneMethod.SSH else project.http_url_to_repo
+            self.make_node(project.name, parent, url=project_url)
 
     def get_subgroups(self, group, parent):
-        subgroups= group.subgroups.list(as_list=False)
+        subgroups = group.subgroups.list(as_list=False)
         for subgroup_def in subgroups:
-            subgroup= self.gitlab.groups.get(subgroup_def.id)
-            node= self.make_node(subgroup.name, parent, url=subgroup.web_url)
+            subgroup = self.gitlab.groups.get(subgroup_def.id)
+            node = self.make_node(subgroup.name, parent, url=subgroup.web_url)
             self.get_subgroups(subgroup, node)
             self.get_projects(subgroup, node)
 
     def load_gitlab_tree(self):
-        groups= self.gitlab.groups.list(as_list=False)
+        groups = self.gitlab.groups.list(as_list=False)
         for group in groups:
-            node= self.make_node(group.name, self.root, url=group.web_url)
+            node = self.make_node(group.name, self.root, url=group.web_url)
             self.get_subgroups(group, node)
             self.get_projects(group, node)
 
@@ -94,7 +99,8 @@ class GitlabTree:
             log.debug("Loading tree gitlab server [%s]", self.url)
             self.load_gitlab_tree()
 
-        log.debug("Fetched root node with [%d] projects" % len(self.root.leaves))
+        log.debug("Fetched root node with [%d] projects" % len(
+            self.root.leaves))
         self.filter_tree(self.root)
 
     def print_tree(self, format=PrintFormat.TREE):
@@ -124,9 +130,8 @@ class GitlabTree:
 
     def sync_tree(self, dest):
         log.debug("Going to clone/pull [%s] groups and [%s] projects" %
-              (len(self.root.descendants) - len(self.root.leaves), len(self.root.leaves)))
+                  (len(self.root.descendants) - len(self.root.leaves), len(self.root.leaves)))
         sync_tree(self.root, dest)
 
     def is_empty(self):
         return self.root.height < 1
-

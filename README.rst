@@ -53,6 +53,8 @@ Usage
     +---------------+---------------+--------------------------+
     | url           | -u            | `GITLAB_URL`             |
     +---------------+---------------+--------------------------+
+    | method        | -m            | `GITLABBER_CLONE_METHOD` |
+    +---------------+---------------+--------------------------+
     | include       | -i            | `GITLABBER_INCLUDE`      |
     +---------------+---------------+--------------------------+
     | exclude       | -x            | `GITLABBER_EXCLUDE`      |
@@ -77,10 +79,9 @@ Usage
 * Printed Usage:
 
 .. code-block:: bash
-
     usage: gitlabber [-h] [-t token] [-u url] [--verbose] [-p]
-                    [--print-format {json,yaml,tree}] [-i csv] [-x csv]
-                    [--version]
+                    [--print-format {json,yaml,tree}] [-m {ssh,https}] [-i csv]
+                    [-x csv] [--version]
                     [dest]
 
     Gitlabber - clones or pulls entire groups/projects tree from gitlab
@@ -93,10 +94,12 @@ Usage
     -t token, --token token
                             gitlab personal access token https://docs.gitlab.com/ee/user/profile/personal_access_tokens.html
     -u url, --url url     gitlab url (e.g.: 'http://gitlab.mycompany.com')
-    --verbose
+    --verbose             print more verbose output
     -p, --print           print the tree without cloning
     --print-format {json,yaml,tree}
                             print format (default: 'tree')
+    -m {ssh,http}, --method {ssh,http}
+                            the method to use for cloning (either "ssh" or "http")
     -i csv, --include csv
                             comma delimited list of glob patterns of paths to projects or groups to clone/pull
     -x csv, --exclude csv
@@ -108,7 +111,7 @@ Usage
         clone an entire gitlab tree using a url and a token:
         gitlabber -t <personal access token> -u <gitlab url>
 
-        only print the gitlab tree (assuming you have a token and url in environment variables):
+        only print the gitlab tree:
         gitlabber -p .
 
         clone only projects under subgroup 'MySubGroup' to location '~/GitlabRoot':

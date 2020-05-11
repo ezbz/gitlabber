@@ -27,6 +27,7 @@ class MockNode:
         self.url = url
         self.web_url = url
         self.ssh_url_to_repo = url
+        self.http_url_to_repo = url
         self.subgroups = subgroups
         self.projects = projects
 
@@ -86,7 +87,7 @@ def validate_tree(root):
 
 def create_test_gitlab(monkeypatch, includes=None, excludes=None, in_file=None):
     gl = gitlab_tree.GitlabTree(
-        URL, TOKEN, includes=includes, excludes=excludes, in_file=in_file)
+        URL, TOKEN, "ssh", includes=includes, excludes=excludes, in_file=in_file)
     projects = Listable(MockNode(2, PROJECT_NAME, PROJECT_URL))
     subgroup_node = MockNode(2, SUBGROUP_NAME, SUBGROUP_URL, projects=projects)
     subgroups = Listable(subgroup_node)
