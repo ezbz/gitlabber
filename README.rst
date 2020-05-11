@@ -79,6 +79,7 @@ Usage
 * Printed Usage:
 
 .. code-block:: bash
+
     usage: gitlabber [-h] [-t token] [-u url] [--verbose] [-p]
                     [--print-format {json,yaml,tree}] [-m {ssh,https}] [-i csv]
                     [-x csv] [--version]
