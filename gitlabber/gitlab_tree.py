@@ -2,7 +2,6 @@ from gitlab import Gitlab
 from anytree import Node, RenderTree
 from anytree.exporter import DictExporter, JsonExporter
 from anytree.importer import DictImporter
-from tqdm import tqdm
 from .git import sync_tree
 from .format import PrintFormat
 import yaml
@@ -11,7 +10,6 @@ import globre
 import logging
 import os
 log = logging.getLogger(__name__)
-
 
 class GitlabTree:
 
@@ -22,26 +20,6 @@ class GitlabTree:
         self.root = Node("", root_path="", url=url)
         self.gitlab = Gitlab(url, private_token=token)
         self.in_file = in_file
-        self.progress = None
-
-    def init_progress(self, total):
-        if self.progress is None:
-            self.progress = tqdm(total=total, unit="projects",
-                                 bar_format="{desc}: {percentage:.1f}%|{bar:100}| {n_fmt}/{total_fmt}{postfix}")
-
-    def update_progress_length(self, added):
-        if self.progress is not None:
-            self.progress.total = self.progress.total + added
-            self.progress.refresh()
-
-    def show_progress(self, text):
-        if self.progress is not None:
-            self.progress.update(1)
-            self.progress.set_postfix({'gitlab': text})
-
-    def finish_progress(self):
-        if self.progress is not None:
-            self.progress.close()
 
     def is_included(self, node):
         '''
@@ -50,12 +28,12 @@ class GitlabTree:
         if self.includes is not None:
             for include in self.includes:
                 if globre.match(include, node.root_path):
-                    log.debug(
-                        "Matched include path [%s] to node [%s]", include, node.root_path)
+                    log.debug("Matched include path [%s] to node [%s]", include, node.root_path)
                     return True
         else:
             return True
-
+        
+                    
     def is_excluded(self, node):
         '''
         returns True if the node should be excluded 
@@ -63,8 +41,7 @@ class GitlabTree:
         if self.excludes is not None:
             for exclude in self.excludes:
                 if globre.match(exclude, node.root_path):
-                    log.debug(
-                        "Matched exclude path [%s] to node [%s]", exclude, node.root_path)
+                    log.debug("Matched exclude path [%s] to node [%s]", exclude, node.root_path)
                     return True
         return False
 
@@ -80,39 +57,29 @@ class GitlabTree:
         return "/".join([str(n.name) for n in node.path])
 
     def make_node(self, name, parent, url):
-        node = Node(name=name, parent=parent, url=url)
+        node= Node(name=name, parent=parent, url=url)
         node.root_path = self.root_path(node)
         return node
 
     def get_projects(self, group, parent):
-        projects = group.projects.list(as_list=False)
-        self.update_progress_length(len(projects))
+        projects= group.projects.list(as_list=False)
         for project in projects:
-            node = self.make_node(project.name, parent,
-                                  url=project.ssh_url_to_repo)
-            self.show_progress(node.name)
+            self.make_node(project.name, parent, url=project.ssh_url_to_repo)
 
     def get_subgroups(self, group, parent):
-        subgroups = group.subgroups.list(as_list=False)
-        self.update_progress_length(len(subgroups))
+        subgroups= group.subgroups.list(as_list=False)
         for subgroup_def in subgroups:
-            subgroup = self.gitlab.groups.get(subgroup_def.id)
-            node = self.make_node(subgroup.name, parent, url=subgroup.web_url)
-            self.show_progress(node.name)
+            subgroup= self.gitlab.groups.get(subgroup_def.id)
+            node= self.make_node(subgroup.name, parent, url=subgroup.web_url)
             self.get_subgroups(subgroup, node)
             self.get_projects(subgroup, node)
 
     def load_gitlab_tree(self):
-        log.info(
-            "Fetching group/project tree structure from Gitlab at [%s]", self.url)
-        groups = self.gitlab.groups.list(as_list=False)
-        self.init_progress(len(groups))
+        groups= self.gitlab.groups.list(as_list=False)
         for group in groups:
-            node = self.make_node(group.name, self.root, url=group.web_url)
-            self.show_progress(node.name)
+            node= self.make_node(group.name, self.root, url=group.web_url)
             self.get_subgroups(group, node)
             self.get_projects(group, node)
-        self.finish_progress()
 
     def load_file_tree(self):
         with open(self.in_file, 'r') as stream:
@@ -127,8 +94,7 @@ class GitlabTree:
             log.debug("Loading tree gitlab server [%s]", self.url)
             self.load_gitlab_tree()
 
-        log.info("Fetched Gitlab tree with [%d] groups and [%s] projects" % (
-            len(self.root.descendants)-len(self.root.leaves), len(self.root.leaves)))
+        log.debug("Fetched root node with [%d] projects" % len(self.root.leaves))
         self.filter_tree(self.root)
 
     def print_tree(self, format=PrintFormat.TREE):
@@ -158,8 +124,9 @@ class GitlabTree:
 
     def sync_tree(self, dest):
         log.debug("Going to clone/pull [%s] groups and [%s] projects" %
-                  (len(self.root.descendants) - len(self.root.leaves), len(self.root.leaves)))
+              (len(self.root.descendants) - len(self.root.leaves), len(self.root.leaves)))
         sync_tree(self.root, dest)
 
     def is_empty(self):
         return self.root.height < 1
+
