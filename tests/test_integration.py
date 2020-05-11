@@ -27,7 +27,7 @@ def test_help():
     assert "Gitlabber - clones or pulls entire groups/projects tree from gitlab" in output
 
 
-def test_help():
+def test_version():
     output = execute(["--version"])
     assert VERSION in output
 
