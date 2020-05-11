@@ -40,6 +40,8 @@ Installation
 
     pip install gitlabber
 
+* You'll need to create an  `access token <https://docs.gitlab.com/ee/user/profile/personal_access_tokens.html>`_ from Gitlab with API scope `read_repository`
+
 Usage
 -----
 
@@ -76,7 +78,7 @@ Usage
 
 .. code-block:: bash
 
-    usage: gitlabber [-h] [-t token] [-u url] [--debug] [-p]
+    usage: gitlabber [-h] [-t token] [-u url] [--verbose] [-p]
                     [--print-format {json,yaml,tree}] [-i csv] [-x csv]
                     [--version]
                     [dest]
@@ -91,7 +93,7 @@ Usage
     -t token, --token token
                             gitlab personal access token https://docs.gitlab.com/ee/user/profile/personal_access_tokens.html
     -u url, --url url     gitlab url (e.g.: 'http://gitlab.mycompany.com')
-    --debug
+    --verbose
     -p, --print           print the tree without cloning
     --print-format {json,yaml,tree}
                             print format (default: 'tree')
@@ -106,7 +108,7 @@ Usage
         clone an entire gitlab tree using a url and a token:
         gitlabber -t <personal access token> -u <gitlab url>
 
-        only print the gitlab tree:
+        only print the gitlab tree (assuming you have a token and url in environment variables):
         gitlabber -p .
 
         clone only projects under subgroup 'MySubGroup' to location '~/GitlabRoot':
