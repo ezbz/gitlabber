@@ -7,7 +7,6 @@ import enum
 from argparse import ArgumentParser, RawTextHelpFormatter, FileType, SUPPRESS
 from .gitlab_tree import GitlabTree
 from .format import PrintFormat
-
 from . import __version__ as VERSION
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -15,7 +14,6 @@ log = logging.getLogger(__name__)
 
 def main():
     args = parse_args(argv=None if sys.argv[1:] else ['--help'])
-
     if args.version:
         print(VERSION)
         sys.exit(0) 
@@ -23,11 +21,12 @@ def main():
     config_logging(args)
     includes=split(args.include)
     excludes=split(args.exclude)
-    tree = GitlabTree(args.url, args.token, includes, excludes, args.file)
+    tree = GitlabTree(args.url, args.token, includes,
+                      excludes, args.file)
     tree.load_tree()
 
     if tree.is_empty():
-        log.error("The tree is empty, check your include/exclude patterns or run with the -v for debugging")
+        log.error("The tree is empty, check your include/exclude patterns or run with more verbosity for debugging")
         sys.exit(1) 
 
     if args.print:
@@ -40,7 +39,8 @@ def split(arg):
     return arg.split(",") if arg != "" else None
 
 def config_logging(args):
-    if args.debug:
+    if args.verbose:
+        log.debug("verbose logging signalled setting logger to DEBUG level")
         handler = logging.StreamHandler(sys.stdout)
         handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
         log.addHandler(handler)
@@ -93,8 +93,9 @@ def parse_args(argv=None):
         default=os.environ.get('GITLAB_URL'),
         help='gitlab url (e.g.: \'http://gitlab.mycompany.com\')')
     parser.add_argument(
-        '--debug',
-        action='store_true')
+        '--verbose',
+        action='store_true',
+        help='print more verbose output')
     parser.add_argument(
         '-f',
         '--file',
@@ -129,7 +130,9 @@ def parse_args(argv=None):
         help='print the version')
 
     args = parser.parse_args(argv)
-   
+    args_print = vars(args).copy()
+    args_print['token'] = 'xxxxx'
+    log.debug("running with args [%s]", args_print)
     return args
 
 def validate_path(value):
