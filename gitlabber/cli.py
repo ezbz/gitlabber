@@ -7,6 +7,7 @@ import enum
 from argparse import ArgumentParser, RawTextHelpFormatter, FileType, SUPPRESS
 from .gitlab_tree import GitlabTree
 from .format import PrintFormat
+from .method import CloneMethod
 from . import __version__ as VERSION
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -21,8 +22,9 @@ def main():
     config_logging(args)
     includes=split(args.include)
     excludes=split(args.exclude)
-    tree = GitlabTree(args.url, args.token, includes,
+    tree = GitlabTree(args.url, args.token, args.method, includes,
                       excludes, args.file)
+    log.info("Reading projects tree from gitlab at [%s]", args.url)
     tree.load_tree()
 
     if tree.is_empty():
@@ -112,6 +114,13 @@ def parse_args(argv=None):
         default=PrintFormat.TREE,
         choices=list(PrintFormat),
         help='print format (default: \'tree\')')
+    parser.add_argument(
+        '-m',
+        '--method',
+        type=CloneMethod.argparse,
+        choices=list(CloneMethod),
+        default=os.environ.get('GITLABBER_CLONE_METHOD', "ssh"),
+        help='the method to use for cloning (either "ssh" or "http")')
     parser.add_argument(
         '-i',
         '--include',
