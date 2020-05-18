@@ -62,8 +62,9 @@ setup(
     setup_requires = [
             'docopt', 
             'anytree', 
-            'globre', 
-            'pyyaml', 
+            'globre',
+            'pyyaml',
+            'tqdm',
             'GitPython', 
             'python-gitlab'
     ],
@@ -72,6 +73,7 @@ setup(
             'anytree', 
             'globre', 
             'pyyaml',
+            'tqdm',
             'GitPython', 
             'python-gitlab'
     ],
