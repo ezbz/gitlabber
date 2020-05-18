@@ -71,7 +71,7 @@ setup(
             'docopt', 
             'anytree', 
             'globre', 
-            'pyyaml', 
+            'pyyaml',
             'GitPython', 
             'python-gitlab'
     ],

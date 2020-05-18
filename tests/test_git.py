@@ -1,6 +1,7 @@
 
 
 from gitlabber import git
+from gitlabber.git import GitAction
 from unittest import mock
 from anytree import Node
 import pytest
@@ -61,7 +62,7 @@ def test_pull_repo(mock_git):
     repo_instance = mock_git.Repo.return_value
     git.is_git_repo = mock.MagicMock(return_value=True)
 
-    git.clone_or_pull_project(Node(name="test"),"dummy_dir")
+    git.clone_or_pull_project(GitAction(Node(name="test"), "dummy_dir"))
     mock_git.Repo.assert_called_once_with("dummy_dir")
     repo_instance.remotes.origin.pull.assert_called_once()
 
@@ -73,7 +74,7 @@ def test_clone_repo(mock_git):
     git.is_git_repo = mock.MagicMock(return_value=False)
 
     git.clone_or_pull_project(
-        Node(name="dummy_url", url="dummy_url"), "dummy_dir")
+        GitAction(Node(name="dummy_url", url="dummy_url"), "dummy_dir"))
 
     mock_git.Repo.clone_from.assert_called_once_with("dummy_url", "dummy_dir")
 
@@ -87,8 +88,8 @@ def test_pull_repo_interrupt(mock_git):
     repo_instance.remotes.origin.pull.side_effect=KeyboardInterrupt('pull test keyboard interrupt')
 
     with pytest.raises(SystemExit):
-        git.clone_or_pull_project(
-            Node(name="dummy_url", url="dummy_url"), "dummy_dir")
+        git.clone_or_pull_project(GitAction(
+            Node(name="dummy_url", url="dummy_url"), "dummy_dir"))
 
     mock_git.Repo.assert_called_once_with("dummy_dir")
     repo_instance.remotes.origin.pull.assert_called_once()
@@ -101,7 +102,7 @@ def test_clone_repo_interrupt(mock_git):
     mock_git.Repo.clone_from.side_effect=KeyboardInterrupt('clone test keyboard interrupt')
 
     with pytest.raises(SystemExit):
-        git.clone_or_pull_project(
-            Node(name="dummy_url", url="dummy_url"), "dummy_dir")
+        git.clone_or_pull_project(GitAction(
+            Node(name="dummy_url", url="dummy_url"), "dummy_dir"))
 
     mock_git.Repo.clone_from.assert_called_once_with("dummy_url", "dummy_dir")

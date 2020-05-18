@@ -23,12 +23,12 @@ def main():
     includes=split(args.include)
     excludes=split(args.exclude)
     tree = GitlabTree(args.url, args.token, args.method, includes,
-                      excludes, args.file)
-    log.info("Reading projects tree from gitlab at [%s]", args.url)
+                      excludes, args.file, args.concurrency, args.verbose)
+    log.debug("Reading projects tree from gitlab at [%s]", args.url)
     tree.load_tree()
 
     if tree.is_empty():
-        log.error("The tree is empty, check your include/exclude patterns or run with more verbosity for debugging")
+        log.fatal("The tree is empty, check your include/exclude patterns or run with more verbosity for debugging")
         sys.exit(1) 
 
     if args.print:
@@ -42,11 +42,13 @@ def split(arg):
 
 def config_logging(args):
     if args.verbose:
-        log.debug("verbose logging signalled setting logger to DEBUG level")
         handler = logging.StreamHandler(sys.stdout)
+        logging.root.handlers = []
         handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
-        log.addHandler(handler)
-        log.setLevel(logging.DEBUG)
+        logging.root.addHandler(handler)
+        level = logging.ERROR if args.print else logging.DEBUG
+        logging.root.setLevel(level)
+        log.debug("verbose=[%s], print=[%s], log level set to [%s] level", args.verbose, args.print, level)
         os.environ["GIT_PYTHON_TRACE"] = 'full'
 
 
@@ -102,6 +104,13 @@ def parse_args(argv=None):
         '-f',
         '--file',
         metavar=('file'),
+        help=SUPPRESS)    
+    parser.add_argument(
+        '-c',
+        '--concurrency',
+        default=os.environ.get('GITLABBER_GIT_CONCURRENCY', 1),
+        type=int,
+        metavar=('concurrency'),
         help=SUPPRESS)
     parser.add_argument(
         '-p',
