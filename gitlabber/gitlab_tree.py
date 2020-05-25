@@ -100,10 +100,11 @@ class GitlabTree:
         groups = self.gitlab.groups.list(as_list=False)
         self.progress.init_progress(len(groups))
         for group in groups:
-            node = self.make_node(group.name, self.root, url=group.web_url)
-            self.progress.show_progress(node.name, 'group')
-            self.get_subgroups(group, node)
-            self.get_projects(group, node)
+            if group.parent_id is None:
+                node = self.make_node(group.name, self.root, url=group.web_url)
+                self.progress.show_progress(node.name, 'group')
+                self.get_subgroups(group, node)
+                self.get_projects(group, node)
         
         elapsed = self.progress.finish_progress()
         log.debug("Loading projects tree from gitlab took [%s]", elapsed)
