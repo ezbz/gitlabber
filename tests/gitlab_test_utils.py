@@ -21,7 +21,7 @@ JSON_TEST_OUTPUT_FILE = "tests/test-output.json"
 TREE_TEST_OUTPUT_FILE = "tests/test-output.tree"
 
 class MockNode:
-    def __init__(self, id, name, url, subgroups=mock.MagicMock(), projects=mock.MagicMock()):
+    def __init__(self, id, name, url, subgroups=mock.MagicMock(), projects=mock.MagicMock(), parent_id=None):
         self.id = id
         self.name = name
         self.url = url
@@ -30,6 +30,7 @@ class MockNode:
         self.http_url_to_repo = url
         self.subgroups = subgroups
         self.projects = projects
+        self.parent_id = parent_id
 
 
 class Listable:
@@ -91,7 +92,14 @@ def create_test_gitlab(monkeypatch, includes=None, excludes=None, in_file=None):
     projects = Listable(MockNode(2, PROJECT_NAME, PROJECT_URL))
     subgroup_node = MockNode(2, SUBGROUP_NAME, SUBGROUP_URL, projects=projects)
     subgroups = Listable(subgroup_node)
-    group = Listable(MockNode(2, GROUP_NAME, GROUP_URL,
+    groups = Listable(MockNode(2, GROUP_NAME, GROUP_URL,
                               subgroups=subgroups), subgroup_node)
-    monkeypatch.setattr(gl.gitlab, "groups", group)
+    monkeypatch.setattr(gl.gitlab, "groups", groups)
+    return gl
+
+def create_test_gitlab_with_toplevel_subgroups(monkeypatch):
+    gl = gitlab_tree.GitlabTree(URL, TOKEN, "ssh")
+    groups = Listable([MockNode(2, GROUP_NAME, GROUP_URL),
+                       MockNode(2, GROUP_NAME, GROUP_URL, parent_id=1)])
+    monkeypatch.setattr(gl.gitlab, "groups", groups)
     return gl
