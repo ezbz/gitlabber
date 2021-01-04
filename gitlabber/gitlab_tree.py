@@ -21,7 +21,7 @@ class GitlabTree:
         self.excludes = excludes
         self.url = url
         self.root = Node("", root_path="", url=url)
-        self.gitlab = Gitlab(url, private_token=token)
+        self.gitlab = Gitlab(url, private_token=token, ssl_verify=os.getenv('REQUESTS_CA_BUNDLE', True))
         self.method = method
         self.in_file = in_file
         self.concurrency = concurrency
