@@ -23,6 +23,16 @@ def test_filter_tree_include_negative(monkeypatch):
     assert len(gl.root.children) == 0
 
 
+def test_filter_tree_include_deep_positive(monkeypatch):
+    gl = gitlab_util.create_test_gitlab(monkeypatch, includes=["/group/subgroup/project"])
+    gl.load_tree()
+    assert gl.root.is_leaf is False
+    assert len(gl.root.children) == 1
+    assert len(gl.root.children[0].children) == 1
+    assert len(gl.root.children[0].children[0].children) == 1
+    assert gl.root.children[0].children[0].children[0].is_leaf is True
+
+
 def test_filter_tree_exclude_positive(monkeypatch):
     gl = gitlab_util.create_test_gitlab(monkeypatch, excludes=["/group**"])
     gl.load_tree()
