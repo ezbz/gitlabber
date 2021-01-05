@@ -95,7 +95,7 @@ Usage
     -h, --help            show this help message and exit
     -t token, --token token
                             gitlab personal access token https://docs.gitlab.com/ee/user/profile/personal_access_tokens.html
-    -u url, --url url     gitlab url (e.g.: 'http://gitlab.mycompany.com')
+    -u url, --url url     base gitlab url (e.g.: 'http://gitlab.mycompany.com')
     --verbose             print more verbose output
     -p, --print           print the tree without cloning
     --print-format {json,yaml,tree}
@@ -110,7 +110,7 @@ Usage
 
     examples:
 
-        clone an entire gitlab tree using a url and a token:
+        clone an entire gitlab tree using a base url and a token:
         gitlabber -t <personal access token> -u <gitlab url>
 
         only print the gitlab tree:
@@ -136,3 +136,7 @@ Debugging
 .. code-block:: bash
 
     export GIT_PYTHON_TRACE='full'
+
+Toubleshooting
+--------------
+* `GitlabHttpError: 503`: make sure you provide the base url to your gitalb installation (e.g., `https://gitlab.my.com` and not `https://gitlab.my.com/some/nested/path`)

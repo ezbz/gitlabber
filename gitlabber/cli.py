@@ -95,7 +95,7 @@ def parse_args(argv=None):
         '--url',
         metavar=('url'),
         default=os.environ.get('GITLAB_URL'),
-        help='gitlab url (e.g.: \'http://gitlab.mycompany.com\')')
+        help='base gitlab url (e.g.: \'http://gitlab.mycompany.com\')')
     parser.add_argument(
         '--verbose',
         action='store_true',
