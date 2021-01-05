@@ -113,6 +113,7 @@ Usage
         clone an entire gitlab tree using a base url and a token:
         gitlabber -t <personal access token> -u <gitlab url>
 
+        # the following examples assume you provided token/url in environment variables so these arguments are omitted
         only print the gitlab tree:
         gitlabber -p .
 
