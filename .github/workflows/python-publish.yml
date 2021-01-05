@@ -5,7 +5,13 @@ name: Upload Python Package
 
 on:
   workflow_dispatch:
-    types: [created]
+    inputs:
+      logLevel:
+        description: 'Log level'     
+        required: true
+        default: 'debug'
+      tags:
+        description: 'pypi'  
 
 jobs:
   deploy:
