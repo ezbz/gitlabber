@@ -67,11 +67,18 @@ class GitlabTree:
 
     def filter_tree(self, parent):
         for child in parent.children:
-            if not self.is_included(child):
-                child.parent = None
-            if self.is_excluded(child):
-                child.parent = None
-            self.filter_tree(child)
+            if not child.is_leaf:
+                self.filter_tree(child)
+                if child.is_leaf:
+                    if not self.is_included(child):
+                        child.parent = None
+                    if self.is_excluded(child):
+                        child.parent = None
+            else:
+                if not self.is_included(child):
+                    child.parent = None
+                if self.is_excluded(child):
+                    child.parent = None
 
     def root_path(self, node):
         return "/".join([str(n.name) for n in node.path])

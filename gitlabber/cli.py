@@ -19,6 +19,14 @@ def main():
         print(VERSION)
         sys.exit(0) 
 
+    if args.token is None:
+        print('Please specify a valid token with the -t flag or the \'GITLAB_TOKEN\' environment variable')
+        sys.exit(1)
+
+    if args.url is None:
+        print('Please specify a valid gitlab base url with the -h flag or the \'GITLAB_URL\' environment variable')
+        sys.exit(1)
+
     config_logging(args)
     includes=split(args.include)
     excludes=split(args.exclude)
@@ -95,7 +103,7 @@ def parse_args(argv=None):
         '--url',
         metavar=('url'),
         default=os.environ.get('GITLAB_URL'),
-        help='gitlab url (e.g.: \'http://gitlab.mycompany.com\')')
+        help='base gitlab url (e.g.: \'http://gitlab.mycompany.com\')')
     parser.add_argument(
         '--verbose',
         action='store_true',

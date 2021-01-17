@@ -32,6 +32,6 @@ def test_version():
     assert VERSION in output
 
 def test_file_input():
-    output = execute(["-f", gitlab_util.YAML_TEST_INPUT_FILE, "-p"])
+    output = execute(["-f", gitlab_util.YAML_TEST_INPUT_FILE, "-p", '-t', 'xxx'])
     with open(gitlab_util.TREE_TEST_OUTPUT_FILE, 'r') as treeFile:
         assert treeFile.read().strip() == output.strip()

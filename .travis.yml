@@ -14,11 +14,3 @@ script:
 
 after_success:
   - bash <(curl -s https://codecov.io/bash)
-
-deploy:
-  provider: pypi
-  user: __token__
-  password:
-    secure: rnIaE4B09OiYxnynCwddduS32zQob5zUGNAq5lkI9qdA+R32f2JHJsYMBbKaMvxjvXKEUi0oTJtaa6l0iBwP4zSbAvEqGcIqIH5RqgIL5sJ27KhQkKr+C2GwrNfoLLYPFOXAWD9SGAdBhtuM59zP0JwzrZHwGIUBq8Vo7iw62/dD0AP4Vy67oGbHWlY7PgQnw6JS2WVcMNak8aLchYy3igJoQ1EEdZJNeyfl6YdOua5dA6P5Y/eRs3iWtH5zGLgT96C1oXWUBPi/tw/8vck+NMrXBfYZbDfbb0fz17ur0MLzv7yXGN0WMLwfqxtIrZ+XdzdQokakEJceaAJ/cauOCkofcIHVpg8lzjW5DfJAwtODQQGtC3GlRbYgbMF5jFp/6Lwqw91vI1YN2s1VOifS25l8MsUqb+TA6KawSZl2kPhfmsGEgZJ5AEy6xq0j15P3NJuho8wB4wyrtS3KPolasaD4LtYiwFtKuVdwNF3HrJINiF/TCh4htsSeTH03NsptYbCGa9OKExqjf5f2Byo6x4p+R8KzKSdsjuwGIVHXjO/wla5GPswEKag4xNdBZ5UeEyf2ksHP0Zd24LGtTnwzzIuJUMyHNGi2OEBmK2BU7RcYddGp51Q9B/ZXjTkD2L+ow9HB+6MUc5ICNLrIBnRLFrmYtPRMmBKtEvykqdbCALM=
-  on:
-    tags: true
