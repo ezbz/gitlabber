@@ -7,7 +7,6 @@ from .format import PrintFormat
 from .method import CloneMethod
 from .progress import ProgressBar
 import yaml
-import io
 import globre
 import logging
 import os
@@ -21,12 +20,21 @@ class GitlabTree:
         self.excludes = excludes
         self.url = url
         self.root = Node("", root_path="", url=url)
-        self.gitlab = Gitlab(url, private_token=token, ssl_verify=os.getenv('REQUESTS_CA_BUNDLE', True))
+        self.gitlab = Gitlab(url, private_token=token, ssl_verify=GitlabTree.get_ca_path())
         self.method = method
         self.in_file = in_file
         self.concurrency = concurrency
         self.disable_progress = disable_progress
         self.progress = ProgressBar('* loading tree', disable_progress)
+
+    @staticmethod
+    def get_ca_path():
+        """
+        returns REQUESTS_CA_BUNDLE, CURL_CA_BUNDLE, or True
+        """
+        return next(item for item in [os.getenv('REQUESTS_CA_BUNDLE', None), os.getenv('CURL_CA_BUNDLE', None), True]
+                    if item is not None)
+
 
     def is_included(self, node):
         '''
