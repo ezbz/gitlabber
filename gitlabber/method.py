@@ -3,7 +3,7 @@ import enum
 
 class CloneMethod(enum.IntEnum):
     SSH = 1
-    HTTP = 2
+    HTTPS = 2
 
     def __str__(self):
         return self.name.lower()

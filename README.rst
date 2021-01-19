@@ -100,8 +100,8 @@ Usage
     -p, --print           print the tree without cloning
     --print-format {json,yaml,tree}
                             print format (default: 'tree')
-    -m {ssh,http}, --method {ssh,http}
-                            the method to use for cloning (either "ssh" or "http")
+    -m {ssh,https}, --method {ssh,https}
+                            the method to use for cloning (either "ssh" or "https")
     -i csv, --include csv
                             comma delimited list of glob patterns of paths to projects or groups to clone/pull
     -x csv, --exclude csv
