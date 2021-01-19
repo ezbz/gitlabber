@@ -31,7 +31,7 @@ def main():
     includes=split(args.include)
     excludes=split(args.exclude)
     tree = GitlabTree(args.url, args.token, args.method, includes,
-                      excludes, args.file, args.concurrency, args.verbose)
+                      excludes, args.file, args.concurrency, args.verbose, args.path)
     log.debug("Reading projects tree from gitlab at [%s]", args.url)
     tree.load_tree()
 
@@ -92,6 +92,11 @@ def parse_args(argv=None):
         nargs='?', 
         type=validate_path,
         help='destination path for the cloned tree (created if doesn\'t exist)')
+    parser.add_argument(
+        '--path',
+        action='store_true',
+        help='use project path instead of project name'
+    )
     parser.add_argument(
         '-t',
         '--token',
@@ -154,6 +159,7 @@ def parse_args(argv=None):
         '--version',
         action='store_true',
         help='print the version')
+
 
     args = parser.parse_args(argv)
     args_print = vars(args).copy()

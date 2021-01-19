@@ -16,17 +16,18 @@ log = logging.getLogger(__name__)
 
 class GitlabTree:
 
-    def __init__(self, url, token, method, includes=[], excludes=[], in_file=None, concurrency=1, disable_progress=False):
+    def __init__(self, url, token, method, includes=[], excludes=[], in_file=None, concurrency=1, disable_progress=False, use_path=False):
         self.includes = includes
         self.excludes = excludes
         self.url = url
-        self.root = Node("", root_path="", url=url)
+        self.root = Node("", root_path="", url=url, dir_path="")
         self.gitlab = Gitlab(url, private_token=token)
         self.method = method
         self.in_file = in_file
         self.concurrency = concurrency
         self.disable_progress = disable_progress
         self.progress = ProgressBar('* loading tree', disable_progress)
+        self.use_path = use_path
 
     def is_included(self, node):
         '''
@@ -73,10 +74,13 @@ class GitlabTree:
                     child.parent = None
 
     def root_path(self, node):
-        return "/".join([str(n.name) for n in node.path])
+        if self.use_path:
+            return "/".join([str(n.dir_path) for n in node.path])
+        else:
+            return "/".join([str(n.name) for n in node.path])
 
-    def make_node(self, name, parent, url):
-        node = Node(name=name, parent=parent, url=url)
+    def make_node(self, name, parent, url, dir_path):
+        node = Node(name=name, parent=parent, url=url, dir_path=dir_path)
         node.root_path = self.root_path(node)
         return node
 
@@ -84,7 +88,7 @@ class GitlabTree:
         for project in projects:
             project_url = project.ssh_url_to_repo if self.method is CloneMethod.SSH else project.http_url_to_repo
             node = self.make_node(project.name, parent,
-                                  url=project_url)
+                                  url=project_url, dir_path=project.path)
             self.progress.show_progress(node.name, 'project')
 
     def get_projects(self, group, parent):
@@ -98,7 +102,7 @@ class GitlabTree:
         self.progress.update_progress_length(len(subgroups))
         for subgroup_def in subgroups:
             subgroup = self.gitlab.groups.get(subgroup_def.id)
-            node = self.make_node(subgroup.name, parent, url=subgroup.web_url)
+            node = self.make_node(subgroup.name, parent, url=subgroup.web_url, dir_path=subgroup.path)
             self.progress.show_progress(node.name, 'group')
             self.get_subgroups(subgroup, node)
             self.get_projects(subgroup, node)
@@ -108,7 +112,7 @@ class GitlabTree:
         self.progress.init_progress(len(groups))
         for group in groups:
             if group.parent_id is None:
-                node = self.make_node(group.name, self.root, url=group.web_url)
+                node = self.make_node(group.name, self.root, url=group.web_url, dir_path=group.path)
                 self.progress.show_progress(node.name, 'group')
                 self.get_subgroups(group, node)
                 self.get_projects(group, node)
