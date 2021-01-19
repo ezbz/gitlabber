@@ -24,6 +24,7 @@ class MockNode:
     def __init__(self, id, name, url, subgroups=mock.MagicMock(), projects=mock.MagicMock(), parent_id=None):
         self.id = id
         self.name = name
+        self.path = name
         self.url = url
         self.web_url = url
         self.ssh_url_to_repo = url

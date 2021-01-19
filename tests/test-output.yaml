@@ -1,15 +1,19 @@
 children:
 - children:
   - children:
-    - name: project
+    - dir_path: project
+      name: project
       root_path: /group/subgroup/project
       url: http://gitlab.my.com/group/subgroup/project/project.git
+    dir_path: subgroup
     name: subgroup
     root_path: /group/subgroup
     url: http://gitlab.my.com/group/subgroup
+  dir_path: group
   name: group
   root_path: /group
   url: http://gitlab.my.com/group
+dir_path: ''
 name: ''
 root_path: ''
 url: http://gitlab.my.com/
