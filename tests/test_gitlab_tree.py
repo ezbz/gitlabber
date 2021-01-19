@@ -79,6 +79,10 @@ def test_print_tree_yaml(monkeypatch):
             output_file = yaml.safe_load(yamlFile)
             assert yaml.dump(output_file) == yaml.dump(output)
 
+def test_tree_use_path(monkeypatch):
+    gl = gitlab_util.create_test_gitlab(monkeypatch, use_path=True)
+    gl.load_tree()
+    gitlab_util.validate_tree(gl.root)
 
 def test_load_tree_from_file(monkeypatch):
     gl = gitlab_util.create_test_gitlab(

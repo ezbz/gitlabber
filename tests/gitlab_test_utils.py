@@ -87,9 +87,9 @@ def validate_tree(root):
     validate_project(root.children[0].children[0].children[0])
 
 
-def create_test_gitlab(monkeypatch, includes=None, excludes=None, in_file=None):
+def create_test_gitlab(monkeypatch, includes=None, excludes=None, in_file=None, use_path=False):
     gl = gitlab_tree.GitlabTree(
-        URL, TOKEN, "ssh", includes=includes, excludes=excludes, in_file=in_file)
+        URL, TOKEN, "ssh", includes=includes, excludes=excludes, in_file=in_file, use_path=use_path)
     projects = Listable(MockNode(2, PROJECT_NAME, PROJECT_URL))
     subgroup_node = MockNode(2, SUBGROUP_NAME, SUBGROUP_URL, projects=projects)
     subgroups = Listable(subgroup_node)
