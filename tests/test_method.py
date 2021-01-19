@@ -5,7 +5,7 @@ def test_method_parse():
     assert CloneMethod.SSH == CloneMethod.argparse("ssh")
 
 def test_method_string():
-    assert "http" == CloneMethod.__str__(CloneMethod.HTTP)
+    assert "https" == CloneMethod.__str__(CloneMethod.HTTPS)
 
 
 def test_method_invalid():
