@@ -81,32 +81,33 @@ Usage
 
 .. code-block:: bash
 
-    usage: gitlabber [-h] [-t token] [-u url] [--verbose] [-p]
-                    [--print-format {json,yaml,tree}] [-m {ssh,https}] [-i csv]
-                    [-x csv] [--version]
+    usage: gitlabber [-h] [--path] [-t token] [-u url] [--verbose] [-p]
+                    [--print-format {json,yaml,tree}] [-m {ssh,https}]
+                    [-i csv] [-x csv] [--version]
                     [dest]
 
     Gitlabber - clones or pulls entire groups/projects tree from gitlab
 
     positional arguments:
-    dest                  destination path for the cloned tree (created if doesn't exist)
+      dest                  destination path for the cloned tree (created if doesn't exist)
 
     optional arguments:
-    -h, --help            show this help message and exit
-    -t token, --token token
+      -h, --help            show this help message and exit
+      --path                use project path instead of project name
+      -t token, --token token
                             gitlab personal access token https://docs.gitlab.com/ee/user/profile/personal_access_tokens.html
-    -u url, --url url     base gitlab url (e.g.: 'http://gitlab.mycompany.com')
-    --verbose             print more verbose output
-    -p, --print           print the tree without cloning
-    --print-format {json,yaml,tree}
+      -u url, --url url     base gitlab url (e.g.: 'http://gitlab.mycompany.com')
+      --verbose             print more verbose output
+      -p, --print           print the tree without cloning
+      --print-format {json,yaml,tree}
                             print format (default: 'tree')
-    -m {ssh,http}, --method {ssh,http}
+      -m {ssh,http}, --method {ssh,http}
                             the method to use for cloning (either "ssh" or "http")
-    -i csv, --include csv
+      -i csv, --include csv
                             comma delimited list of glob patterns of paths to projects or groups to clone/pull
-    -x csv, --exclude csv
+      -x csv, --exclude csv
                             comma delimited list of glob patterns of paths to projects or groups to exclude from clone/pull
-    --version             print the version
+      --version             print the version
 
     examples:
 
@@ -128,6 +129,9 @@ Usage
 
         clone projects that start with a case insensitive 'w' using a regular expression:
         gitlabber -i '/{[w].*}' .
+
+        clone an entire gitlab tree using the project path instead of project name:
+        gitlabber --path .
 
 Debugging 
 ---------
