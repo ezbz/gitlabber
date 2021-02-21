@@ -1,5 +1,4 @@
 
-
 import tests.gitlab_test_utils as gitlab_util
 import tests.output_test_utils as output_util
 
@@ -91,3 +90,23 @@ def test_empty_tree(monkeypatch):
     gl = gitlab_util.create_test_gitlab(monkeypatch, excludes=["/group**"])
     gl.load_tree()
     assert gl.is_empty() is True
+
+
+def test_get_ca_path(monkeypatch):
+    import os
+    from gitlabber import gitlab_tree
+    os.environ["REQUESTS_CA_BUNDLE"] = "/tmp"
+    result = gitlab_tree.GitlabTree.get_ca_path()
+    assert result == "/tmp"
+    del os.environ['REQUESTS_CA_BUNDLE']
+
+    os.environ["CURL_CA_BUNDLE"] = "/tmp2"
+    result = gitlab_tree.GitlabTree.get_ca_path()
+    assert result == "/tmp2"
+    del os.environ['CURL_CA_BUNDLE']
+
+    result = gitlab_tree.GitlabTree.get_ca_path()
+    assert result == True
+
+
+
