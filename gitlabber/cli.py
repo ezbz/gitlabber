@@ -8,6 +8,7 @@ from argparse import ArgumentParser, RawTextHelpFormatter, FileType, SUPPRESS
 from .gitlab_tree import GitlabTree
 from .format import PrintFormat
 from .method import CloneMethod
+from .naming import FolderNaming
 from . import __version__ as VERSION
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -30,7 +31,7 @@ def main():
     config_logging(args)
     includes=split(args.include)
     excludes=split(args.exclude)
-    tree = GitlabTree(args.url, args.token, args.method, includes,
+    tree = GitlabTree(args.url, args.token, args.method, args.naming, includes,
                       excludes, args.file, args.concurrency, args.verbose)
     log.debug("Reading projects tree from gitlab at [%s]", args.url)
     tree.load_tree()
@@ -132,12 +133,19 @@ def parse_args(argv=None):
         choices=list(PrintFormat),
         help='print format (default: \'tree\')')
     parser.add_argument(
+        '-n',
+        '--naming',
+        type=FolderNaming.argparse,
+        choices=list(FolderNaming),
+        default=os.environ.get('GITLABBER_FOLDER_NAMING', "name"),
+        help='the folder naming strategy for projects from the gitlab API attributes (default: "name")')
+    parser.add_argument(
         '-m',
         '--method',
         type=CloneMethod.argparse,
         choices=list(CloneMethod),
         default=os.environ.get('GITLABBER_CLONE_METHOD', "ssh"),
-        help='the method to use for cloning (either "ssh" or "http")')
+        help='the method to use for cloning (default: "ssh")')
     parser.add_argument(
         '-i',
         '--include',

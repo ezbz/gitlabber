@@ -24,6 +24,7 @@ class MockNode:
     def __init__(self, id, name, url, subgroups=mock.MagicMock(), projects=mock.MagicMock(), parent_id=None):
         self.id = id
         self.name = name
+        self.path = name
         self.url = url
         self.web_url = url
         self.ssh_url_to_repo = url
@@ -88,7 +89,7 @@ def validate_tree(root):
 
 def create_test_gitlab(monkeypatch, includes=None, excludes=None, in_file=None):
     gl = gitlab_tree.GitlabTree(
-        URL, TOKEN, "ssh", includes=includes, excludes=excludes, in_file=in_file)
+        URL, TOKEN, "ssh", "name", includes=includes, excludes=excludes, in_file=in_file)
     projects = Listable(MockNode(2, PROJECT_NAME, PROJECT_URL))
     subgroup_node = MockNode(2, SUBGROUP_NAME, SUBGROUP_URL, projects=projects)
     subgroups = Listable(subgroup_node)
@@ -98,7 +99,7 @@ def create_test_gitlab(monkeypatch, includes=None, excludes=None, in_file=None):
     return gl
 
 def create_test_gitlab_with_toplevel_subgroups(monkeypatch):
-    gl = gitlab_tree.GitlabTree(URL, TOKEN, "ssh")
+    gl = gitlab_tree.GitlabTree(URL, TOKEN, "ssh", "path")
     groups = Listable([MockNode(2, GROUP_NAME, GROUP_URL),
                        MockNode(2, GROUP_NAME, GROUP_URL, parent_id=1)])
     monkeypatch.setattr(gl.gitlab, "groups", groups)
