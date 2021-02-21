@@ -47,19 +47,21 @@ Usage
 -----
 
 * Arguments can be provided via the CLI arguments directly or via environment variables::
-    +---------------+---------------+--------------------------+
-    | Argument      | Flag          | Environment Variable     |
-    +===============+===============+==========================+
-    | token         | -t            | `GITLAB_TOKEN`           |
-    +---------------+---------------+--------------------------+
-    | url           | -u            | `GITLAB_URL`             |
-    +---------------+---------------+--------------------------+
-    | method        | -m            | `GITLABBER_CLONE_METHOD` |
-    +---------------+---------------+--------------------------+
-    | include       | -i            | `GITLABBER_INCLUDE`      |
-    +---------------+---------------+--------------------------+
-    | exclude       | -x            | `GITLABBER_EXCLUDE`      |
-    +---------------+---------------+--------------------------+
+    +---------------+---------------+---------------------------+
+    | Argument      | Flag          | Environment Variable      |
+    +===============+===============+===========================+
+    | token         | -t            | `GITLAB_TOKEN`            |
+    +---------------+---------------+---------------------------+
+    | url           | -u            | `GITLAB_URL`              |
+    +---------------+---------------+---------------------------+
+    | method        | -m            | `GITLABBER_CLONE_METHOD`  |
+    +---------------+---------------+---------------------------+
+    | naming        | -n            | `GITLABBER_FOLDER_NAMING` |
+    +---------------+---------------+---------------------------+
+    | include       | -i            | `GITLABBER_INCLUDE`       |
+    +---------------+---------------+---------------------------+
+    | exclude       | -x            | `GITLABBER_EXCLUDE`       |
+    +---------------+---------------+---------------------------+
 
 * To view the tree run the command with your includes/excludes and the `-p` flag it will print your tree like so
 
@@ -100,8 +102,10 @@ Usage
     -p, --print           print the tree without cloning
     --print-format {json,yaml,tree}
                             print format (default: 'tree')
+    -n {name,path}, --naming {name,path}
+                            the folder naming strategy for projects (default: "name")
     -m {ssh,http}, --method {ssh,http}
-                            the method to use for cloning (either "ssh" or "http")
+                            the method to use for cloning (default: "ssh")
     -i csv, --include csv
                             comma delimited list of glob patterns of paths to projects or groups to clone/pull
     -x csv, --exclude csv
@@ -145,5 +149,5 @@ Toubleshooting
 Known Limitations
 -----------------
 * Cloning vs Pulling: when running Gitlabber consecutively with same parameters it will scan the local tree structure, if the project directory exists and is a valid git repository (has .git folder in it) gitlabber will perform a git pull in the directory, otherwise the project directory will be created and the gitlab project will be cloned into it. 
-* Gitlabber doesn't maintain local state and will not rename local projects but rather clone them into new directories
-* Gitlabber uses project / group paths on the server and not their names, Gitlab doesn't impose the same restriction on name duplication of groups / projects as filesystems do with folders.
+* Project Renaming: Gitlabber doesn't maintain local state and will not rename local projects but rather clone them into new directories
+* Folder Naming Strategy: consecutively running gitlabber with different values for the `-n` parameter will produce undesirable results, keep the same value as previous runs or simply don't change it from the default (project name)

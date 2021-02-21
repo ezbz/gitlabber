@@ -5,6 +5,7 @@ from anytree.importer import DictImporter
 from .git import sync_tree
 from .format import PrintFormat
 from .method import CloneMethod
+from .naming import FolderNaming
 from .progress import ProgressBar
 import yaml
 import io
@@ -16,13 +17,14 @@ log = logging.getLogger(__name__)
 
 class GitlabTree:
 
-    def __init__(self, url, token, method, includes=[], excludes=[], in_file=None, concurrency=1, disable_progress=False):
+    def __init__(self, url, token, method, naming, includes=[], excludes=[], in_file=None, concurrency=1, disable_progress=False):
         self.includes = includes
         self.excludes = excludes
         self.url = url
         self.root = Node("", root_path="", url=url)
         self.gitlab = Gitlab(url, private_token=token)
         self.method = method
+        self.naming = naming
         self.in_file = in_file
         self.concurrency = concurrency
         self.disable_progress = disable_progress
@@ -82,8 +84,9 @@ class GitlabTree:
 
     def add_projects(self, parent, projects):
         for project in projects:
+            project_id = project.name if self.method is FolderNaming.NAME else project.path
             project_url = project.ssh_url_to_repo if self.method is CloneMethod.SSH else project.http_url_to_repo
-            node = self.make_node(project.name, parent,
+            node = self.make_node(project_id, parent,
                                   url=project_url)
             self.progress.show_progress(node.name, 'project')
 
