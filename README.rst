@@ -25,11 +25,11 @@ Purpose
 
 When working with large Gitlab setups you typically need a subset of the projects residing in groups of interest.
 
-Gitlabber allows you to clone pull all projects under a subset of groups / subgroups.
+Gitlabber allows you to clone or pull all projects under a subset of groups / subgroups.
 
-Gitlabber builds a tree structure from the Gitlab server and allows you to specify which subset of the tree you want to clone using glob or regex expressions 
+Gitlabber builds a tree structure from the Gitlab server and allows you to specify which subset of the tree you want to clone using glob or regex expressions.
 
-This makes Gitlabber suitable for development environments or backups scenarios
+This makes Gitlabber suitable for development environments or simple backup scenarios
 
 Installation
 ------------
@@ -141,3 +141,9 @@ Debugging
 Toubleshooting
 --------------
 * `GitlabHttpError: 503`: make sure you provide the base url to your gitalb installation (e.g., `https://gitlab.my.com` and not `https://gitlab.my.com/some/nested/path`)
+
+Known Limitations
+-----------------
+* Cloning vs Pulling: when running Gitlabber consecutively with same parameters it will scan the local tree structure, if the project directory exists and is a valid git repository (has .git folder in it) gitlabber will perform a git pull in the directory, otherwise the project directory will be created and the gitlab project will be cloned into it. 
+* Gitlabber doesn't maintain local state and will not rename local projects but rather clone them into new directories
+* Gitlabber uses project / group paths on the server and not their names, Gitlab doesn't impose the same restriction on name duplication of groups / projects as filesystems do with folders.
