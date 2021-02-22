@@ -145,7 +145,7 @@ def parse_args(argv=None):
         type=CloneMethod.argparse,
         choices=list(CloneMethod),
         default=os.environ.get('GITLABBER_CLONE_METHOD', "ssh"),
-        help='the method to use for cloning (default: "ssh")')
+        help='the git transport method to use for cloning (default: "ssh")')
     parser.add_argument(
         '-i',
         '--include',
