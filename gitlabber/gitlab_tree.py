@@ -109,7 +109,8 @@ class GitlabTree:
         self.progress.update_progress_length(len(subgroups))
         for subgroup_def in subgroups:
             subgroup = self.gitlab.groups.get(subgroup_def.id)
-            node = self.make_node(subgroup.name, parent, url=subgroup.web_url)
+            subgroup_id = subgroup.name if self.method is FolderNaming.NAME else subgroup.path
+            node = self.make_node(subgroup_id, parent, url=subgroup.web_url)
             self.progress.show_progress(node.name, 'group')
             self.get_subgroups(subgroup, node)
             self.get_projects(subgroup, node)
@@ -119,7 +120,8 @@ class GitlabTree:
         self.progress.init_progress(len(groups))
         for group in groups:
             if group.parent_id is None:
-                node = self.make_node(group.name, self.root, url=group.web_url)
+                group_id = group.name if self.method is FolderNaming.NAME else group.path
+                node = self.make_node(group_id, self.root, url=group.web_url)
                 self.progress.show_progress(node.name, 'group')
                 self.get_subgroups(group, node)
                 self.get_projects(group, node)
