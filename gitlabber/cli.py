@@ -42,6 +42,9 @@ def main():
 
     if args.print:
         tree.print_tree(args.print_format)
+    elif args.dest is None:
+        print('Please specify a destination for the gitlab tree')
+        sys.exit(1)
     else:
         tree.sync_tree(args.dest)
 

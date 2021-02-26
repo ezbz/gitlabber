@@ -98,3 +98,17 @@ def test_empty_tree(mock_tree):
 
     with pytest.raises(SystemExit):
         cli.main()
+
+
+@mock.patch("gitlabber.cli.GitlabTree")
+def test_missing_dest(mock_tree, capsys):
+    args_mock = mock.Mock()
+    args_mock.return_value = Node(
+        name="test", version=None, verbose=None, include="", exclude="", url="test_url", token="test_token", method=CloneMethod.SSH, naming=FolderNaming.NAME, file=None, concurrency=1, disble_progress=True, print=False, dest=None)
+    cli.parse_args = args_mock
+    mock_tree.return_value.is_empty = mock.Mock(return_value=False)
+
+    with pytest.raises(SystemExit):
+        cli.main()
+    out, err = capsys.readouterr()
+    assert "Please specify a destination" in out
