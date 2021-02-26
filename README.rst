@@ -136,7 +136,7 @@ Usage
 Debugging 
 ---------
 * You can use the `--verbose` flag to get Gitlabber debug messages printed
-* For more verbose gitlab messages you can get `GitPython <https://gitpython.readthedocs.io/en/stable/>`_ module to print more debug messages by setting the environment variable:
+* For more verbose gitlab messages you can get `GitPython <https://gitpython.readthedocs.io/en/stable>`__ module to print more debug messages by setting the environment variable:
 
 .. code-block:: bash
 
@@ -151,3 +151,4 @@ Known Limitations
 * Cloning vs Pulling: when running Gitlabber consecutively with same parameters it will scan the local tree structure, if the project directory exists and is a valid git repository (has .git folder in it) gitlabber will perform a git pull in the directory, otherwise the project directory will be created and the gitlab project will be cloned into it. 
 * Project Renaming: Gitlabber doesn't maintain local state and will not rename local projects but rather clone them into new directories
 * Folder Naming Strategy: consecutively running gitlabber with different values for the `-n` parameter will produce undesirable results, keep the same value as previous runs or simply don't change it from the default (project name)
+* When using gitlab.com observe `rate limits <https://docs.gitlab.com/ee/user/gitlab_com/index.html#gitlabcom-specific-rate-limits/>`__ when cloning large number of projects and the `ones <https://docs.gitlab.com/ee/security/rate_limits.html>`__ for on-premise installations
