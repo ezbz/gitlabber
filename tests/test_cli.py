@@ -33,7 +33,7 @@ def test_args_version():
 def test_args_logging(mock_tree, mock_log, mock_os, mock_sys, mock_logging):
     args_mock = mock.Mock()
     args_mock.return_value = Node(
-        name="test", version=None, verbose=True, include="", exclude="", url="test_url", token="test_token", method=CloneMethod.SSH, naming=FolderNaming.PATH, file=None, concurrency=1, disble_progress=True, print=None, dest=".")
+        name="test", version=None, verbose=True, include="", exclude="", url="test_url", token="test_token", method=CloneMethod.SSH, naming=FolderNaming.PATH, file=None, concurrency=1, recursive=False, disble_progress=True, print=None, dest=".")
     cli.parse_args = args_mock
 
     mock_streamhandler = mock.Mock()
@@ -54,7 +54,7 @@ def test_args_include(mock_tree):
     exc_groups = "/exc**,/exc**"
     args_mock = mock.Mock()
     args_mock.return_value = Node(
-        name="test", version=None, debug=None, include=inc_groups, exclude=exc_groups, url="test_url", token="test_token", method=CloneMethod.SSH, naming=FolderNaming.NAME, file=None, concurrency=1, disble_progress=True, print=None, dest=".")
+        name="test", version=None, debug=None, include=inc_groups, exclude=exc_groups, url="test_url", token="test_token", method=CloneMethod.SSH, naming=FolderNaming.NAME, file=None, concurrency=1, recursive=False, disble_progress=True, print=None, dest=".")
     cli.parse_args = args_mock
     
     split_mock = mock.Mock()
@@ -70,7 +70,7 @@ def test_args_include(mock_tree):
 def test_args_include(mock_tree):
     args_mock = mock.Mock()
     args_mock.return_value = Node(
-        name="test", version=None, verbose=None, include="", exclude="", url="test_url", token="test_token", method=CloneMethod.SSH, naming=FolderNaming.NAME, file=None, concurrency=1, disble_progress=True, print=True, dest=".", print_format=PrintFormat.YAML)
+        name="test", version=None, verbose=None, include="", exclude="", url="test_url", token="test_token", method=CloneMethod.SSH, naming=FolderNaming.NAME, file=None, concurrency=1, recursive=False, disble_progress=True, print=True, dest=".", print_format=PrintFormat.YAML)
     cli.parse_args = args_mock
 
     print_tree_mock = mock.Mock()
@@ -93,7 +93,7 @@ def test_validate_path():
 def test_empty_tree(mock_tree):
     args_mock = mock.Mock()
     args_mock.return_value = Node(
-        name="test", version=None, verbose=None, include="", exclude="", url="test_url", token="test_token", method=CloneMethod.SSH, naming=FolderNaming.NAME, file=None, concurrency=1, disble_progress=True, print=True, dest=".")
+        name="test", version=None, verbose=None, include="", exclude="", url="test_url", token="test_token", method=CloneMethod.SSH, naming=FolderNaming.NAME, file=None, concurrency=1, recursive=False, disble_progress=True, print=True, dest=".")
     cli.parse_args = args_mock
 
     with pytest.raises(SystemExit):
@@ -104,7 +104,7 @@ def test_empty_tree(mock_tree):
 def test_missing_dest(mock_tree, capsys):
     args_mock = mock.Mock()
     args_mock.return_value = Node(
-        name="test", version=None, verbose=None, include="", exclude="", url="test_url", token="test_token", method=CloneMethod.SSH, naming=FolderNaming.NAME, file=None, concurrency=1, disble_progress=True, print=False, dest=None)
+        name="test", version=None, verbose=None, include="", exclude="", url="test_url", token="test_token", method=CloneMethod.SSH, naming=FolderNaming.NAME, file=None, concurrency=1, recursive=False, disble_progress=True, print=False, dest=None)
     cli.parse_args = args_mock
     mock_tree.return_value.is_empty = mock.Mock(return_value=False)
 

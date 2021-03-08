@@ -32,7 +32,7 @@ def main():
     includes=split(args.include)
     excludes=split(args.exclude)
     tree = GitlabTree(args.url, args.token, args.method, args.naming, includes,
-                      excludes, args.file, args.concurrency, args.verbose)
+                      excludes, args.file, args.concurrency, args.recursive, args.verbose)
     log.debug("Reading projects tree from gitlab at [%s]", args.url)
     tree.load_tree()
 
@@ -161,6 +161,12 @@ def parse_args(argv=None):
         metavar=('csv'),
         default=os.environ.get('GITLABBER_EXCLUDE', ""),
         help='comma delimited list of glob patterns of paths to projects or groups to exclude from clone/pull')
+    parser.add_argument(
+        '-r',
+        '--recursive',
+        action='store_true',
+        default=False,
+        help='clone/pull git submodules recursively')
     parser.add_argument(
         '--version',
         action='store_true',

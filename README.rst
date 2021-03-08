@@ -79,6 +79,8 @@ Usage
 
 * To see how to use glob patterns and regex to filter tree nodes see `globre project page <https://pypi.org/project/globre/>`_ .
 
+* Cloning submodules: use the `-r` flag to recurse git submodules, uses the `--recursive` for cloning and utilizes `GitPython's smart update method <https://github.com/gitpython-developers/GitPython/blob/20f4a9d49b466a18f1af1fdfb480bc4520a4cdc2/git/objects/submodule/root.py#L67>`__ for upading cloned repositories
+
 * Printed Usage:
 
 .. code-block:: bash
@@ -110,6 +112,7 @@ Usage
                             comma delimited list of glob patterns of paths to projects or groups to clone/pull
     -x csv, --exclude csv
                             comma delimited list of glob patterns of paths to projects or groups to exclude from clone/pull
+    -r, --recursive       clone/pull git submodules recursively
     --version             print the version
 
     examples:
