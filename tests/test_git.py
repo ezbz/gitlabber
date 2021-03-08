@@ -79,6 +79,29 @@ def test_clone_repo(mock_git):
     mock_git.Repo.clone_from.assert_called_once_with("dummy_url", "dummy_dir")
 
 @mock.patch('gitlabber.git.git')
+def test_clone_repo_recursive(mock_git):
+    mock_repo = mock.Mock()
+    mock_git.Repo = mock_repo
+    git.is_git_repo = mock.MagicMock(return_value=False)
+
+    git.clone_or_pull_project(
+        GitAction(Node(name="dummy_url", url="dummy_url"), "dummy_dir", recursive=True))
+
+    mock_git.Repo.clone_from.assert_called_once_with("dummy_url", "dummy_dir", multi_options='--recursive')
+
+@mock.patch('gitlabber.git.git')
+def test_pull_repo_recursive(mock_git):
+    mock_repo = mock.Mock()
+    mock_git.Repo = mock_repo
+    repo_instance = mock_git.Repo.return_value
+    git.is_git_repo = mock.MagicMock(return_value=True)
+
+    git.clone_or_pull_project(GitAction(Node(name="test"), "dummy_dir", recursive=True))
+    mock_git.Repo.assert_called_once_with("dummy_dir")
+    repo_instance.remotes.origin.pull.assert_called_once()
+    repo_instance.submodule_update.assert_called_once_with(recursive=True)
+
+@mock.patch('gitlabber.git.git')
 def test_pull_repo_interrupt(mock_git):
     mock_repo = mock.Mock()
     mock_git.Repo = mock_repo

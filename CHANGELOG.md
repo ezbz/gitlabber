@@ -1,3 +1,5 @@
+1.1.3 - Support git submodules
+
 1.1.2 - Support different local folder naming strategy (project path/name), support CA bundles, 
 
 1.1.1 - Added concurrency, fix for pattern matching filtering out parents with relevant children, fix Gitlab groups API change not returning subgroups 

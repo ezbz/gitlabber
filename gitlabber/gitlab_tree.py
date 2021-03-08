@@ -16,7 +16,7 @@ log = logging.getLogger(__name__)
 
 class GitlabTree:
 
-    def __init__(self, url, token, method, naming, includes=[], excludes=[], in_file=None, concurrency=1, disable_progress=False):
+    def __init__(self, url, token, method, naming, includes=[], excludes=[], in_file=None, concurrency=1, recursive=False, disable_progress=False):
         self.includes = includes
         self.excludes = excludes
         self.url = url
@@ -26,6 +26,7 @@ class GitlabTree:
         self.naming = naming
         self.in_file = in_file
         self.concurrency = concurrency
+        self.recursive = recursive
         self.disable_progress = disable_progress
         self.progress = ProgressBar('* loading tree', disable_progress)
 
@@ -177,7 +178,7 @@ class GitlabTree:
         log.debug("Going to clone/pull [%s] groups and [%s] projects" %
                   (len(self.root.descendants) - len(self.root.leaves), len(self.root.leaves)))
         sync_tree(self.root, dest, concurrency=self.concurrency,
-                  disable_progress=self.disable_progress)
+                  disable_progress=self.disable_progress, recursive=self.recursive)
 
     def is_empty(self):
         return self.root.height < 1
