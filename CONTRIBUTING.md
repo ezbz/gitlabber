@@ -9,6 +9,7 @@ Dependencies
 * pyvenv
 * pytest
 * pytest-cov
+* pytest-integration
 
 
 Setup

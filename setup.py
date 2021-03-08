@@ -78,7 +78,7 @@ setup(
             'GitPython', 
             'python-gitlab'
     ],
-    tests_require=  ['coverage', 'pytest', 'pytest-cov'],
+    tests_require=  ['coverage', 'pytest', 'pytest-cov', 'pytest-integration'],
     entry_points = {
         'console_scripts': [
             'gitlabber=gitlabber.cli:main',
