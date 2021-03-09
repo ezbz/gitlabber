@@ -1,11 +1,16 @@
 from gitlabber.archive import ArchivedResults
 import pytest
+import re
 
 def test_archive_parse():
     assert ArchivedResults.INCLUDE == ArchivedResults.argparse("include")
 
 def test_archive_string():
     assert "exclude" == ArchivedResults.__str__(ArchivedResults.EXCLUDE)
+
+def test_repr():
+    retval = repr(ArchivedResults.ONLY)
+    match = re.match("^<ArchivedResults: ({.*})>\Z", retval)
 
 def test_archive_api_value():
     assert True == ArchivedResults.ONLY.api_value
