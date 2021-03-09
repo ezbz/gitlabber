@@ -92,7 +92,25 @@ def test_validate_path():
     assert "." == cli.validate_path("./")
     assert "." == cli.validate_path(".")
 
+@mock.patch("gitlabber.cli.GitlabTree")
+def test__missing_token(mock_tree):
+    args_mock = mock.Mock()
+    args_mock.return_value = Node(
+        name="test", version=None, verbose=None, include="", exclude="", url="test_url", token=None, print=True, dest=".")
+    cli.parse_args = args_mock
 
+    with pytest.raises(SystemExit):
+        cli.main()
+
+@mock.patch("gitlabber.cli.GitlabTree")
+def test_missing_url(mock_tree):
+    args_mock = mock.Mock()
+    args_mock.return_value = Node(
+        name="test", version=None, verbose=None, include="", exclude="", url=None, token="some_token", print=True, dest=".")
+    cli.parse_args = args_mock
+
+    with pytest.raises(SystemExit):
+        cli.main()
 @mock.patch("gitlabber.cli.GitlabTree")
 def test_empty_tree(mock_tree):
     args_mock = mock.Mock()
