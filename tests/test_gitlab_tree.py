@@ -1,6 +1,7 @@
 
 import tests.gitlab_test_utils as gitlab_util
 import tests.output_test_utils as output_util
+from gitlabber.archive import ArchivedResults
 
 def test_load_tree(monkeypatch):
     gl = gitlab_util.create_test_gitlab(monkeypatch)
@@ -91,6 +92,39 @@ def test_empty_tree(monkeypatch):
     gl.load_tree()
     assert gl.is_empty() is True
 
+def test_archive_included(monkeypatch):
+    gl = gitlab_util.create_test_gitlab_with_archived(monkeypatch, archived=ArchivedResults.INCLUDE.api_value)
+    gl.load_tree()
+    assert gl.root.is_leaf is False
+    assert len(gl.root.children) == 2
+    assert len(gl.root.children[0].children) == 2
+    assert len(gl.root.children[0].children[0].children) == 2
+
+def test_archive_excluded(monkeypatch):
+    gl = gitlab_util.create_test_gitlab_with_archived(monkeypatch, archived=ArchivedResults.EXCLUDE.api_value)
+    
+    gl.load_tree()
+    assert gl.root.is_leaf is False
+    assert len(gl.root.children) == 1
+    assert len(gl.root.children[0].children) == 1
+    assert len(gl.root.children[0].children[0].children) == 1
+    
+    assert "_archived_" not in gl.root.children[0].name
+    assert "_archived_" not in gl.root.children[0].children[0].name
+    assert "_archived_" not in gl.root.children[0].children[0].children[0].name
+
+def test_archive_only(monkeypatch):
+    gl = gitlab_util.create_test_gitlab_with_archived(monkeypatch, archived=ArchivedResults.ONLY.api_value)
+    
+    gl.load_tree()
+    gl.print_tree()
+    assert gl.root.is_leaf is False
+    assert len(gl.root.children) == 1
+    assert len(gl.root.children[0].children) == 1
+    assert len(gl.root.children[0].children[0].children) == 1
+    
+    assert "_archived_" in gl.root.children[0].name
+    assert "_archived_" in gl.root.children[0].children[0].children[0].name
 
 def test_get_ca_path(monkeypatch):
     import os
