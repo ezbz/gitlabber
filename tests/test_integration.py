@@ -8,16 +8,15 @@ import pytest
 import coverage
 coverage.process_startup()
 
-def execute(args):
+def execute(args, timeout=3):
     cmd = [sys.executable, '-m', 'gitlabber']
     cmd.extend(args)
-    os.environ['GITLAB_URL'] = 'http://gitlab.my.com/'
     with subprocess.Popen(cmd, stdout=subprocess.PIPE, env=os.environ.copy()) as process:
-        outs, err = process.communicate(timeout=3)    
+        outs, err = process.communicate(timeout=timeout)    
         process.wait()
         return outs.decode('utf-8')
     
-
+@pytest.mark.integration_test
 def test_help():
     output = execute(["-h"])
     assert "usage:" in output
@@ -26,12 +25,21 @@ def test_help():
     assert "optional arguments:" in output
     assert "Gitlabber - clones or pulls entire groups/projects tree from gitlab" in output
 
-
+@pytest.mark.integration_test
 def test_version():
     output = execute(["--version"])
     assert VERSION in output
 
+@pytest.mark.integration_test
 def test_file_input():
+    os.environ['GITLAB_URL'] = 'http://gitlab.my.com/'
     output = execute(["-f", gitlab_util.YAML_TEST_INPUT_FILE, "-p", '-t', 'xxx'])
     with open(gitlab_util.TREE_TEST_OUTPUT_FILE, 'r') as treeFile:
         assert treeFile.read().strip() == output.strip()
+
+# @pytest.mark.slow_integration_test
+# def test_clone_subgroup():
+#     os.environ['GITLAB_URL'] = 'http://www.gitlab.com/'
+#     output = execute(['-p'], 60)
+#     print(output)
+#     assert True
