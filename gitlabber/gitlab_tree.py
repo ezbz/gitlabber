@@ -16,14 +16,16 @@ log = logging.getLogger(__name__)
 
 class GitlabTree:
 
-    def __init__(self, url, token, method, naming, includes=[], excludes=[], in_file=None, concurrency=1, recursive=False, disable_progress=False):
+    def __init__(self, url, token, method, naming, archived=None, includes=[], excludes=[], in_file=None, concurrency=1, recursive=False, disable_progress=False):
         self.includes = includes
         self.excludes = excludes
         self.url = url
         self.root = Node("", root_path="", url=url)
-        self.gitlab = Gitlab(url, private_token=token, ssl_verify=GitlabTree.get_ca_path())
+        self.gitlab = Gitlab(url, private_token=token,
+                             ssl_verify=GitlabTree.get_ca_path())
         self.method = method
         self.naming = naming
+        self.archived = archived
         self.in_file = in_file
         self.concurrency = concurrency
         self.recursive = recursive
@@ -37,7 +39,6 @@ class GitlabTree:
         """
         return next(item for item in [os.getenv('REQUESTS_CA_BUNDLE', None), os.getenv('CURL_CA_BUNDLE', None), True]
                     if item is not None)
-
 
     def is_included(self, node):
         '''
@@ -100,13 +101,12 @@ class GitlabTree:
             self.progress.show_progress(node.name, 'project')
 
     def get_projects(self, group, parent):
-        projects = group.projects.list(as_list=False)
+        projects = group.projects.list(as_list=False, archived=self.archived)
         self.progress.update_progress_length(len(projects))
         self.add_projects(parent, projects)
-       
 
     def get_subgroups(self, group, parent):
-        subgroups = group.subgroups.list(as_list=False)
+        subgroups = group.subgroups.list(as_list=False, archived=self.archived)
         self.progress.update_progress_length(len(subgroups))
         for subgroup_def in subgroups:
             subgroup = self.gitlab.groups.get(subgroup_def.id)
@@ -117,7 +117,7 @@ class GitlabTree:
             self.get_projects(subgroup, node)
 
     def load_gitlab_tree(self):
-        groups = self.gitlab.groups.list(as_list=False)
+        groups = self.gitlab.groups.list(as_list=False, archived=self.archived)
         self.progress.init_progress(len(groups))
         for group in groups:
             if group.parent_id is None:
@@ -126,7 +126,7 @@ class GitlabTree:
                 self.progress.show_progress(node.name, 'group')
                 self.get_subgroups(group, node)
                 self.get_projects(group, node)
-        
+
         elapsed = self.progress.finish_progress()
         log.debug("Loading projects tree from gitlab took [%s]", elapsed)
 

@@ -108,6 +108,8 @@ Usage
                             the folder naming strategy for projects (default: "name")
     -m {ssh,http}, --method {ssh,http}
                             the git transport method to use for cloning (default: "ssh")
+    -a {include,exclude,only}, --archived {include,exclude,only}
+                            include archived projects and groups in the results (default: "include")
     -i csv, --include csv
                             comma delimited list of glob patterns of paths to projects or groups to clone/pull
     -x csv, --exclude csv
