@@ -13,6 +13,8 @@
 .. image:: https://img.shields.io/pypi/pyversions/ansicolortags.svg
     :target: https://pypi.python.org/pypi/gitlabber/
 
+.. image:: https://readthedocs.org/projects/gitlabber/badge/?version=latest&style=plastic
+:target: https://gitlabber.readthedocs.io/en/latest/README.html
 
 Gitlabber
 =========
