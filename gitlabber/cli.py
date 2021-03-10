@@ -29,6 +29,10 @@ def main():
         print('Please specify a valid gitlab base url with the -h flag or the \'GITLAB_URL\' environment variable')
         sys.exit(1)
 
+    elif args.dest is None and args.print is False:
+        print('Please specify a destination for the gitlab tree')
+        sys.exit(1)
+
     config_logging(args)
     includes=split(args.include)
     excludes=split(args.exclude)
@@ -44,9 +48,6 @@ def main():
 
     if args.print:
         tree.print_tree(args.print_format)
-    elif args.dest is None:
-        print('Please specify a destination for the gitlab tree')
-        sys.exit(1)
     else:
         tree.sync_tree(args.dest)
 
