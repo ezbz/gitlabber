@@ -13,7 +13,7 @@ class ProgressBar:
         if self.progress is None:
             self.start = time.time()
             self.progress = tqdm(total=total, unit="projects",
-                                 bar_format="{desc}: {percentage:.1f}%|{bar:100}| {n_fmt}/{total_fmt}{postfix}", desc=self.description, leave=False, disable=self.disabled)
+                                 bar_format="{desc}: {percentage:.1f}%|{bar:80}| {n_fmt}/{total_fmt}{postfix}", desc=self.description, leave=False, disable=self.disabled)
 
     def update_progress_length(self, added):
         if self.progress is not None:

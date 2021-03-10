@@ -1,3 +1,7 @@
+1.1.5 - Update depedencies
+
+1.1.4 - Fixes to naming strategy
+
 1.1.3 - Support git submodules
 
 1.1.2 - Support different local folder naming strategy (project path/name), support CA bundles, 
