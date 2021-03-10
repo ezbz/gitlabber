@@ -10,7 +10,7 @@ def test_naming_string():
 
 def test_repr():
     retval = repr(FolderNaming.PATH)
-    match = re.match("^<FolderNaming: ({.*})>\Z", retval)
+    match = re.match("^<FolderNaming: ({.*})>$", retval)
 
 def test_naming_invalid():
     assert "invalid_value" == FolderNaming.argparse("invalid_value")

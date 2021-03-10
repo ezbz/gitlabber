@@ -10,7 +10,7 @@ def test_archive_string():
 
 def test_repr():
     retval = repr(ArchivedResults.ONLY)
-    match = re.match("^<ArchivedResults: ({.*})>\Z", retval)
+    match = re.match("^<ArchivedResults: ({.*})>$", retval)
 
 def test_archive_api_value():
     assert True == ArchivedResults.ONLY.api_value

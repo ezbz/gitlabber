@@ -10,7 +10,7 @@ def test_method_string():
 
 def test_repr():
     retval = repr(CloneMethod.SSH)
-    match = re.match("^<CloneMethod: ({.*})>\Z", retval)
+    match = re.match("^<CloneMethod: ({.*})>$", retval)
 
 
 def test_method_invalid():

@@ -1,6 +1,6 @@
 
 import tests.gitlab_test_utils as gitlab_util
-import tests.output_test_utils as output_util
+import tests.io_test_util as output_util
 from gitlabber.archive import ArchivedResults
 
 def test_load_tree(monkeypatch):

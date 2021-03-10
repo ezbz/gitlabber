@@ -10,7 +10,7 @@ def test_format_string():
 
 def test_repr():
     retval = repr(PrintFormat.JSON)
-    match = re.match("^<PrintFormat: ({.*})>\Z", retval)
+    match = re.match("^<PrintFormat: ({.*})>$", retval)
 
 def test_format_invalid():
     assert "invalid_value" == PrintFormat.argparse("invalid_value")
