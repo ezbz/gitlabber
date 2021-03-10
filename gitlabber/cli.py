@@ -142,7 +142,7 @@ def parse_args(argv=None):
         '--naming',
         type=FolderNaming.argparse,
         choices=list(FolderNaming),
-        default=os.environ.get('GITLABBER_FOLDER_NAMING', "name"),
+        default=FolderNaming.argparse(os.environ.get('GITLABBER_FOLDER_NAMING', "name")),
         help='the folder naming strategy for projects from the gitlab API attributes (default: "name")')
     parser.add_argument(
         '-m',
