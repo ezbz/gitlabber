@@ -19,19 +19,15 @@
 Gitlabber
 =========
 
-* A Gitlab clone/pull tool to manage entire Gitlab trees (groups, subgroups, projects) *
+* A utility to clone and pull Gitlab groups, subgroups, projects based on path selection
 
 
 Purpose
 -------
 
-When working with large Gitlab setups you typically need a subset of the projects residing in groups of interest.
+Gitlabber clones or pulls all projects under a subset of groups / subgroups by building a tree from the Gitlab API and allowing you to specify which subset of the tree you want to clone using glob patterns and/or regex expressions.
 
-Gitlabber allows you to clone or pull all projects under a subset of groups / subgroups.
 
-Gitlabber builds a tree structure from the Gitlab server and allows you to specify which subset of the tree you want to clone using glob or regex expressions.
-
-This makes Gitlabber suitable for development environments or simple backup scenarios
 
 Installation
 ------------
@@ -80,6 +76,8 @@ Usage
         └── subgroup3 [/group2/subgroup3]
 
 * To see how to use glob patterns and regex to filter tree nodes see `globre project page <https://pypi.org/project/globre/>`_ .
+
+* Cloning vs Pulling: when running Gitlabber consecutively with same parameters it will scan the local tree structure, if the project directory exists and is a valid git repository (has .git folder in it) gitlabber will perform a git pull in the directory, otherwise the project directory will be created and the gitlab project will be cloned into it.
 
 * Cloning submodules: use the `-r` flag to recurse git submodules, uses the `--recursive` for cloning and utilizes `GitPython's smart update method <https://github.com/gitpython-developers/GitPython/blob/20f4a9d49b466a18f1af1fdfb480bc4520a4cdc2/git/objects/submodule/root.py#L67>`__ for upading cloned repositories
 
@@ -154,8 +152,7 @@ Toubleshooting
 * `GitlabHttpError: 503`: make sure you provide the base url to your gitalb installation (e.g., `https://gitlab.my.com` and not `https://gitlab.my.com/some/nested/path`)
 
 Known Limitations
------------------
-* Cloning vs Pulling: when running Gitlabber consecutively with same parameters it will scan the local tree structure, if the project directory exists and is a valid git repository (has .git folder in it) gitlabber will perform a git pull in the directory, otherwise the project directory will be created and the gitlab project will be cloned into it. 
+----------------- 
 * Project Renaming: Gitlabber doesn't maintain local state and will not rename local projects but rather clone them into new directories
 * Folder Naming Strategy: consecutively running gitlabber with different values for the `-n` parameter will produce undesirable results, keep the same value as previous runs or simply don't change it from the default (project name)
 * When using gitlab.com observe `rate limits <https://docs.gitlab.com/ee/user/gitlab_com/index.html#gitlabcom-specific-rate-limits/>`__ when cloning large number of projects and the `ones <https://docs.gitlab.com/ee/security/rate_limits.html>`__ for on-premise installations
