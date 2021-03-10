@@ -94,7 +94,7 @@ class GitlabTree:
 
     def add_projects(self, parent, projects):
         for project in projects:
-            project_id = project.name if self.method == FolderNaming.NAME else project.path
+            project_id = project.name if self.naming == FolderNaming.NAME else project.path
             project_url = project.ssh_url_to_repo if self.method is CloneMethod.SSH else project.http_url_to_repo
             node = self.make_node(project_id, parent,
                                   url=project_url)
@@ -110,7 +110,7 @@ class GitlabTree:
         self.progress.update_progress_length(len(subgroups))
         for subgroup_def in subgroups:
             subgroup = self.gitlab.groups.get(subgroup_def.id)
-            subgroup_id = subgroup.name if self.method == FolderNaming.NAME else subgroup.path
+            subgroup_id = subgroup.name if self.naming == FolderNaming.NAME else subgroup.path
             node = self.make_node(subgroup_id, parent, url=subgroup.web_url)
             self.progress.show_progress(node.name, 'group')
             self.get_subgroups(subgroup, node)
@@ -121,7 +121,7 @@ class GitlabTree:
         self.progress.init_progress(len(groups))
         for group in groups:
             if group.parent_id is None:
-                group_id = group.name if self.method == FolderNaming.NAME else group.path
+                group_id = group.name if self.naming == FolderNaming.NAME else group.path
                 node = self.make_node(group_id, self.root, url=group.web_url)
                 self.progress.show_progress(node.name, 'group')
                 self.get_subgroups(group, node)

@@ -13,8 +13,8 @@ def test_clone_subgroup():
     os.environ['GITLAB_URL'] = 'http://www.gitlab.com/'
     output = io_util.execute(['-p', '--print-format', 'json'], 60)
     obj = json.loads(output)
-    assert obj['children'][0]['name'] == 'erez-group-test'
-    assert obj['children'][0]['children'][0]['name'] == 'subgroup-test'
+    assert obj['children'][0]['name'] == 'Group Test'
+    assert obj['children'][0]['children'][0]['name'] == 'Subgroup Test'
     assert len(obj['children'][0]['children'][0]['children']) == 3
     assert obj['children'][0]['children'][0]['children'][0]['name'] == 'archived-project'
     assert obj['children'][0]['children'][0]['children'][1]['name'] == 'gitlab-project-submodule'
@@ -25,8 +25,8 @@ def test_clone_subgroup_exclude_archived():
     os.environ['GITLAB_URL'] = 'http://www.gitlab.com/'
     output = io_util.execute(['-p', '--print-format', 'json', '-a', 'exclude'], 60)
     obj = json.loads(output)
-    assert obj['children'][0]['name'] == 'erez-group-test'
-    assert obj['children'][0]['children'][0]['name'] == 'subgroup-test'
+    assert obj['children'][0]['name'] == 'Group Test'
+    assert obj['children'][0]['children'][0]['name'] == 'Subgroup Test'
     assert len(obj['children'][0]['children'][0]['children']) == 2
     assert obj['children'][0]['children'][0]['children'][0]['name'] == 'gitlab-project-submodule'
     assert obj['children'][0]['children'][0]['children'][1]['name'] == 'gitlabber-sample-submodule'
@@ -36,8 +36,8 @@ def test_clone_subgroup_only_archived():
     os.environ['GITLAB_URL'] = 'http://www.gitlab.com/'
     output = io_util.execute(['-p', '--print-format', 'json', '-a', 'only'], 60)
     obj = json.loads(output)
-    assert obj['children'][0]['name'] == 'erez-group-test'
-    assert obj['children'][0]['children'][0]['name'] == 'subgroup-test'
+    assert obj['children'][0]['name'] == 'Group Test'
+    assert obj['children'][0]['children'][0]['name'] == 'Subgroup Test'
     assert len(obj['children'][0]['children'][0]['children']) == 1
     assert obj['children'][0]['children'][0]['children'][0]['name'] == 'archived-project'
 
@@ -47,8 +47,8 @@ def test_clone_subgroup_only_archived():
     os.environ['GITLAB_URL'] = 'http://www.gitlab.com/'
     output = io_util.execute(['-p', '--print-format', 'json', '-a', 'only'], 60)
     obj = json.loads(output)
-    assert obj['children'][0]['name'] == 'erez-group-test'
-    assert obj['children'][0]['children'][0]['name'] == 'subgroup-test'
+    assert obj['children'][0]['name'] == 'Group Test'
+    assert obj['children'][0]['children'][0]['name'] == 'Subgroup Test'
     assert len(obj['children'][0]['children'][0]['children']) == 1
     assert obj['children'][0]['children'][0]['children'][0]['name'] == 'archived-project'
 
@@ -56,10 +56,10 @@ def test_clone_subgroup_only_archived():
 @pytest.mark.slow_integration_test
 def test_clone_subgroup_naming_path():
     os.environ['GITLAB_URL'] = 'http://www.gitlab.com/'
-    output = io_util.execute(['-p', '--print-format', 'json', '-n', 'name'], 60)
+    output = io_util.execute(['-p', '--print-format', 'json', '-n', 'path'], 60)
     obj = json.loads(output)
-    assert obj['children'][0]['name'] == 'Group Test'
-    assert obj['children'][0]['children'][0]['name'] == 'Subgroup Test'
+    assert obj['children'][0]['name'] == 'erez-group-test'
+    assert obj['children'][0]['children'][0]['name'] == 'subgroup-test'
     assert len(obj['children'][0]['children'][0]['children']) == 3
     assert obj['children'][0]['children'][0]['children'][0]['name'] == 'archived-project'
     assert obj['children'][0]['children'][0]['children'][1]['name'] == 'gitlab-project-submodule'
