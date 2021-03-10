@@ -1,17 +1,18 @@
-
 language: python
 python:
-  - "3.6"
-  - "3.7"
-  - "3.7.6"
-  - "3.8"
+- '3.6'
+- '3.7'
+- 3.7.6
+- '3.8'
 install:
-    - pip install -r requirements.txt
-    - pip install pytest-cov 
-    - pip install pytest-integration 
-    - pip install -e .
+- pip install -r requirements.txt
+- pip install pytest-cov
+- pip install pytest-integration
+- pip install -e .
 script:
-  - pytest
-
+- pytest --with-slow-integration
 after_success:
-  - bash <(curl -s https://codecov.io/bash)
+- bash <(curl -s https://codecov.io/bash)
+env:
+  global:
+    secure: eKV9Xb0D6pUqHgunnTFPlxbQ+jjljAHKGGU0JDGU1Ijz0yAj4g8670qLDLS1PQEWT6jaWNo19L5ZSZ8aRu8fdW6Ul4TyefYXElHRtcI6KnHlE6/jLJbyk2KPxE430IrY6hl4F7uoNpG5MI9lwvWZWArlRObfJ6lM6BYoWIh7d/9Of3DNEtRQtBq/68ckKBAfvagO3Z9HoPnEpKjOwEK3Be5SWRFyI0Zt4oVskvNvcz4dKrkasq7CrtBNzo7+ozGgqv1akP6KwKR60m42DvSgAkzPMtGTPX0g4dZd1aM4FvsUGNDl3oYIEi+PQuIGBIB+twlqzP3JpzGT4s7TO77XRAg4yMrwmBhSJiMly5Mvk+93CZo2rnRIYnFjeXm6lhQQO6eWPPHKWtTpQ3wOoagF6bvdEAzOiSMmoF7ZJsqRI7G6lqNTIFXdxwNS3K4nwpAe9Cf6pH3hs6aPojKgUkwEvOCZcJjQkGp5wpMCe/Mwb1qKysDgwzDNBB4PLxn/E8RZiWcT93VHnxGKVG1BwX4VdTSdRoIQ09kZTdYsfFp1K/Ymnl1DUGFu9XkSoiQezf2CoLwyWFyCi7Jv/W7XNAx2JrDjlE3MR6uOxbD/IyVwow3PPHnwD4emd9XRHg+v8UbqA63zscqVXRMMsRG5ACfk1jEYG5FymUsXI8LjDxG34Ew=

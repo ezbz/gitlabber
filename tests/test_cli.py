@@ -1,7 +1,7 @@
 
 from gitlabber import cli
 from gitlabber import __version__ as VERSION
-import tests.output_test_utils as output_util
+import tests.io_test_util as output_util
 
 from gitlabber.format import PrintFormat
 from gitlabber.method import CloneMethod
