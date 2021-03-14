@@ -37,6 +37,9 @@ jobs:
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
     - name: Test with pytest
+      env:
+        GITLAB_URL: http://www.gitlab.com/
+        GITLAB_TOKEN: ${{ secrets.GITLAB_COM_TOKEN }}
       run: |
         pytest --with-slow-integration
     - name: Upload Coverage to Codecov
