@@ -120,7 +120,7 @@ Usage
     examples:
 
         clone an entire gitlab tree using a base url and a token:
-        gitlabber -t <personal access token> -u <gitlab url>
+        gitlabber -t <personal access token> -u <gitlab url> .
 
         # the following examples assume you provided token/url in environment variables so these arguments are omitted
         only print the gitlab tree:
@@ -153,6 +153,6 @@ Toubleshooting
 
 Known Limitations
 ----------------- 
-* Project Renaming: Gitlabber doesn't maintain local state and will not rename local projects but rather clone them into new directories
+* Project Renaming: Gitlabber doesn't maintain local state and will not rename local projects when they are renamed on the server and it will clone them again under their new name.
 * Folder Naming Strategy: consecutively running gitlabber with different values for the `-n` parameter will produce undesirable results, keep the same value as previous runs or simply don't change it from the default (project name)
 * When using gitlab.com observe `rate limits <https://docs.gitlab.com/ee/user/gitlab_com/index.html#gitlabcom-specific-rate-limits/>`__ when cloning large number of projects and the `ones <https://docs.gitlab.com/ee/security/rate_limits.html>`__ for on-premise installations
