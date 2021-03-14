@@ -1,5 +1,5 @@
-.. image:: https://travis-ci.org/ezbz/gitlabber.svg?branch=master
-    :target: https://travis-ci.org/ezbz/gitlabber
+.. image:: https://github.com/ezbz/gitlabber/actions/workflows/python-app.yml/badge.svg?branch=master
+    :target: https://github.com/ezbz/gitlabber/actions/workflows/python-app.yml
 
 .. image:: https://codecov.io/gh/ezbz/gitlabber/branch/master/graph/badge.svg
   :target: https://codecov.io/gh/ezbz/gitlabber
