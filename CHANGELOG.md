@@ -84,3 +84,14 @@
 ### Removed
 ### Fixed
 ### Security
+
+[unreleased]: https://github.com/ezbz/gitlabber/compare/v1.1.7...HEAD
+[1.1.7]: https://github.com/ezbz/gitlabber/compare/v1.1.6...v1.1.7
+[1.1.6]: https://github.com/ezbz/gitlabber/compare/v1.1.4...v1.1.6
+[1.1.4]: https://github.com/ezbz/gitlabber/compare/v1.1.3...v1.1.4
+[1.1.3]: https://github.com/ezbz/gitlabber/compare/v1.1.2...v1.1.3
+[1.1.2]: https://github.com/ezbz/gitlabber/compare/v1.1.1...v1.1.2
+[1.1.1]: https://github.com/ezbz/gitlabber/compare/v1.1.0...v1.1.1
+[1.1.0]: https://github.com/ezbz/gitlabber/compare/v1.0.9...v1.1.0
+[1.0.9]: https://github.com/ezbz/gitlabber/compare/v1.0.8...v1.0.9
+[1.0.8]: https://github.com/ezbz/gitlabber/releases/tag/v1.0.8
