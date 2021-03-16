@@ -1,4 +1,6 @@
-1.1.5 - Update depedencies
+1.1.7 - Move to GH actions
+
+1.1.6 - Update depedencies
 
 1.1.4 - Fixes to naming strategy
 
