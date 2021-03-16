@@ -1,15 +1,86 @@
-1.1.7 - Move to GH actions
+# Changelog
 
-1.1.6 - Update depedencies
+<!--next-version-placeholder-->
 
-1.1.4 - Fixes to naming strategy
+## [1.1.7]  - 15/03/2021
 
-1.1.3 - Support git submodules
+### Added
+### Changed
+ - Move to GH actions
+### Deprecated
+### Removed
+### Fixed
+### Security
+## [1.1.6] - 11/03/2021
 
-1.1.2 - Support different local folder naming strategy (project path/name), support CA bundles, 
+### Added
+### Changed
+- Update depedencies
+### Deprecated
+### Removed
+### Fixed
+### Security
+## [1.1.4] - 10/03/2021
+### Added
+### Changed
+### Deprecated
+### Removed
+### Fixed
+- Fixes to naming strategy
+### Security
+## [1.1.3] - 08/03/2021
+### Added
+- Support git submodules
 
-1.1.1 - Added concurrency, fix for pattern matching filtering out parents with relevant children, fix Gitlab groups API change not returning subgroups 
+### Changed
+### Deprecated
+### Removed
+### Fixed
+### Security
+## [1.1.2] - 22/02/2021
+### Added
+- Support different local folder naming strategy (project path/name)
+- support CA bundles 
 
-1.1.0 - Add support for HTTP clone via CLI argument or ENV variable
+### Changed
+### Deprecated
+### Removed
+### Fixed
+### Security
+## [1.1.1] - 01/05/2021
+### Added
+ - Added concurrency 
 
-1.0.9 - First published version on PyPi
+### Changed
+### Deprecated
+### Removed
+### Fixed
+- Fix for pattern matching filtering out parents with relevant children
+- Fix Gitlab groups API change not returning subgroups
+### Security
+## [1.1.0] - - 11/05/2020
+### Added
+- Add support for HTTP clone via CLI argument or ENV variable
+### Changed
+### Deprecated
+### Removed
+### Fixed
+### Security
+ ## [1.0.9] - 10/04/2020
+### Added
+
+- Documentation Changes
+### Changed
+### Deprecated
+### Removed
+### Fixed
+### Security
+ ## [1.0.8] - 28/03/2020
+### Added
+
+- First published version on PyPi
+### Changed
+### Deprecated
+### Removed
+### Fixed
+### Security
