@@ -96,7 +96,8 @@
 ### Fixed
 ### Security
 
-[unreleased]: https://github.com/ezbz/gitlabber/compare/v1.1.7...HEAD
+[unreleased]: https://github.com/ezbz/gitlabber/compare/v1.1.8...HEAD
+[1.1.8]: https://github.com/ezbz/gitlabber/compare/v1.1.7...v1.1.8
 [1.1.7]: https://github.com/ezbz/gitlabber/compare/v1.1.6...v1.1.7
 [1.1.6]: https://github.com/ezbz/gitlabber/compare/v1.1.4...v1.1.6
 [1.1.4]: https://github.com/ezbz/gitlabber/compare/v1.1.3...v1.1.4
