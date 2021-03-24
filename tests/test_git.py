@@ -87,7 +87,7 @@ def test_clone_repo_recursive(mock_git):
     git.clone_or_pull_project(
         GitAction(Node(name="dummy_url", url="dummy_url"), "dummy_dir", recursive=True))
 
-    mock_git.Repo.clone_from.assert_called_once_with("dummy_url", "dummy_dir", multi_options='--recursive')
+    mock_git.Repo.clone_from.assert_called_once_with("dummy_url", "dummy_dir", multi_options=['--recursive'])
 
 @mock.patch('gitlabber.git.git')
 def test_pull_repo_recursive(mock_git):
