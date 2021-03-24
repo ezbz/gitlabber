@@ -73,7 +73,7 @@ def clone_or_pull_project(action):
         progress.show_progress(action.node.name, 'clone')
         try:
             if(action.recursive):
-                git.Repo.clone_from(action.node.url, action.path, multi_options='--recursive')
+                git.Repo.clone_from(action.node.url, action.path, multi_options=['--recursive'])
             else:
                 git.Repo.clone_from(action.node.url, action.path)
         except KeyboardInterrupt:
