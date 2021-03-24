@@ -1,6 +1,17 @@
 # Changelog
 
 <!--next-version-placeholder-->
+## [1.1.8]  - 24/03/2021
+
+### Added
+### Changed
+ - Changelog standartization
+### Deprecated
+### Removed
+### Fixed
+ - Fix recursive flag
+### Security
+
 
 ## [1.1.7]  - 15/03/2021
 
