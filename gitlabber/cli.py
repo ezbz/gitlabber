@@ -26,7 +26,7 @@ def main():
         sys.exit(1)
 
     if args.url is None:
-        print('Please specify a valid gitlab base url with the -h flag or the \'GITLAB_URL\' environment variable')
+        print('Please specify a valid gitlab base url with the -u flag or the \'GITLAB_URL\' environment variable')
         sys.exit(1)
 
     elif args.dest is None and args.print is False:
