@@ -1,3 +1,6 @@
+import re
+from typing import Any, Dict, Optional
+
 from gitlab import Gitlab
 from anytree import Node, RenderTree
 from anytree.exporter import DictExporter, JsonExporter
@@ -116,8 +119,36 @@ class GitlabTree:
             self.get_subgroups(subgroup, node)
             self.get_projects(subgroup, node)
 
+    def get_search_term_if_top_level_optim(self) -> Optional[str]:
+        """
+        Return the left-most significant part of the include if there's only one.
+        """
+        if self.includes is None or len(self.includes) != 1:
+            return None
+        include = self.includes[0]
+        top_level_optim_regex = re.compile(r"^/\*?(?P<search_term>[^/*]+)")
+        matches = top_level_optim_regex.match(include)
+        if matches:
+            return matches.groupdict()["search_term"]
+        return None
+
+    def get_groups_list_kwargs(self) -> Dict[str, Any]:
+        groups_list_kwargs = {
+            "as_list": False,
+            "archived": self.archived,
+        }
+        search_term = self.get_search_term_if_top_level_optim()
+        if search_term:
+            log.debug("Using search term [%s]", search_term)
+            groups_list_kwargs["search"] = search_term
+        else:
+            log.debug("No search term found.")
+
+        return groups_list_kwargs
+
     def load_gitlab_tree(self):
-        groups = self.gitlab.groups.list(as_list=False, archived=self.archived)
+        groups_list_kwargs = self.get_groups_list_kwargs()
+        groups = self.gitlab.groups.list(**groups_list_kwargs)
         self.progress.init_progress(len(groups))
         for group in groups:
             if group.parent_id is None:

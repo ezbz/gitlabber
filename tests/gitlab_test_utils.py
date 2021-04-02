@@ -40,7 +40,7 @@ class Listable:
         self.get_result = get_result
         self.archive_result = archive_result
 
-    def list(self, as_list=False, archived=None):
+    def list(self, as_list=False, archived=None, search=None):
         if archived is None:
             return [self.list_result, self.archive_result] if self.archive_result is not None else [self.list_result]
         elif archived is True:

@@ -1,3 +1,4 @@
+import pytest
 
 import tests.gitlab_test_utils as gitlab_util
 import tests.io_test_util as output_util
@@ -115,14 +116,14 @@ def test_archive_excluded(monkeypatch):
 
 def test_archive_only(monkeypatch):
     gl = gitlab_util.create_test_gitlab_with_archived(monkeypatch, archived=ArchivedResults.ONLY.api_value)
-    
+
     gl.load_tree()
     gl.print_tree()
     assert gl.root.is_leaf is False
     assert len(gl.root.children) == 1
     assert len(gl.root.children[0].children) == 1
     assert len(gl.root.children[0].children[0].children) == 1
-    
+
     assert "_archived_" in gl.root.children[0].name
     assert "_archived_" in gl.root.children[0].children[0].children[0].name
 
@@ -143,4 +144,32 @@ def test_get_ca_path(monkeypatch):
     assert result == True
 
 
+@pytest.mark.parametrize(
+    ["includes", "expected_search_term"],
+    [
+        ("/test_group1/**", "test_group1"),
+        ("/test_group1/*", "test_group1"),
+        ("/test_group1/", "test_group1"),
+        ("/test_group1**", "test_group1"),
+        ("/*test_group1/**", "test_group1"),
+        ("/test_group1/subgroup/**", "test_group1"),
+        ("/test_group1/subgroup/*", "test_group1"),
+        ("/test_group1/subgroup/", "test_group1"),
+        ("/test_group1/subgroup", "test_group1"),
+        ("/tes*roup1/**", "tes"),
+        ("/tes*roup1/sub*group/**", "tes"),
+        ("**/test_group1/**", None),
+        ("**/**/**/test_group1/**", None),  # inefficient glob but why not
+        ("/*/**test_group1**", None),
+        ("**test_group1**", None),
+        ("**", None),
+    ])
+def test_get_groups_list_kwargs(monkeypatch, includes, expected_search_term):
+    gl = gitlab_util.create_test_gitlab(monkeypatch, includes=[includes])
+    assert gl.get_search_term_if_top_level_optim() == expected_search_term
 
+
+def test_get_groups_list_kwargs_more_1_include(monkeypatch):
+    includes = ["/test_group1/**", "/test_group2/*"]
+    gl = gitlab_util.create_test_gitlab(monkeypatch, includes=includes)
+    assert gl.get_search_term_if_top_level_optim() is None
