@@ -1,4 +1,5 @@
 from gitlab import Gitlab
+from gitlab.exceptions import GitlabGetError
 from anytree import Node, RenderTree
 from anytree.exporter import DictExporter, JsonExporter
 from anytree.importer import DictImporter
@@ -109,7 +110,11 @@ class GitlabTree:
         subgroups = group.subgroups.list(as_list=False, archived=self.archived)
         self.progress.update_progress_length(len(subgroups))
         for subgroup_def in subgroups:
-            subgroup = self.gitlab.groups.get(subgroup_def.id)
+            try:
+                subgroup = self.gitlab.groups.get(subgroup_def.id)
+            except GitlabGetError as error:
+                log.warning(f"Group {subgroup.name} (ID: {subgroup.id}) retrieval error: {error}")
+                continue
             subgroup_id = subgroup.name if self.naming == FolderNaming.NAME else subgroup.path
             node = self.make_node(subgroup_id, parent, url=subgroup.web_url)
             self.progress.show_progress(node.name, 'group')
