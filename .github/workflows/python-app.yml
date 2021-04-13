@@ -41,7 +41,7 @@ jobs:
         GITLAB_URL: http://www.gitlab.com/
         GITLAB_TOKEN: ${{ secrets.GITLAB_COM_TOKEN }}
       run: |
-        pytest --with-slow-integration
+        pytest
     - name: Upload Coverage to Codecov
       uses: codecov/codecov-action@v1
       with:
