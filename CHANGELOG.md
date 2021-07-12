@@ -1,6 +1,15 @@
 # Changelog
 
 <!--next-version-placeholder-->
+## [1.1.9] - 12/07/2021
+
+### Added
+### Changed
+- Update depedencies
+### Deprecated
+### Removed
+### Fixed
+### Security
 ## [1.1.8]  - 24/03/2021
 
 ### Added
