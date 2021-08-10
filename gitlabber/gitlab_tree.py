@@ -58,7 +58,7 @@ class GitlabTree:
 
     def is_excluded(self, node):
         '''
-        returns True if the node should be excluded 
+        returns True if the node should be excluded
         if the are no exclude patterns then nothing is excluded
         any exclude pattern matching the root path will result in exclusion
         '''
@@ -113,7 +113,11 @@ class GitlabTree:
             try:
                 subgroup = self.gitlab.groups.get(subgroup_def.id)
             except GitlabGetError as error:
-                log.warning(f"Group {subgroup.name} (ID: {subgroup.id}) retrieval error: {error}")
+                if error.response_code == 404:
+                    log.error(f"""Error retrieving group {subgroup.name} (ID: {subgroup.id}): {error.response_body}.
+                                  Check your permissions as you may not have access to it.""")
+                else:
+                    log.error(f"Error retrieving group: {subgroup.name} (ID: {subgroup.id}): {error.response_body}")
                 continue
             subgroup_id = subgroup.name if self.naming == FolderNaming.NAME else subgroup.path
             node = self.make_node(subgroup_id, parent, url=subgroup.web_url)
