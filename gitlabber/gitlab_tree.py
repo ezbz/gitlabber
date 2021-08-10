@@ -114,10 +114,9 @@ class GitlabTree:
                 subgroup = self.gitlab.groups.get(subgroup_def.id)
             except GitlabGetError as error:
                 if error.response_code == 404:
-                    log.error(f"""Error retrieving group {subgroup.name} (ID: {subgroup.id}): {error.response_body}.
-                                  Check your permissions as you may not have access to it.""")
+                    log.error(f"Error retrieving group {subgroup.name} (ID: {subgroup.id}): {error}. Check your permissions as you may not have access to it.")
                 else:
-                    log.error(f"Error retrieving group: {subgroup.name} (ID: {subgroup.id}): {error.response_body}")
+                    log.error(f"Error retrieving group: {subgroup.name} (ID: {subgroup.id}): {error}")
                 continue
             subgroup_id = subgroup.name if self.naming == FolderNaming.NAME else subgroup.path
             node = self.make_node(subgroup_id, parent, url=subgroup.web_url)
