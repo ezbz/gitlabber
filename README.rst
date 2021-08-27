@@ -153,6 +153,6 @@ Toubleshooting
 
 Known Limitations
 ----------------- 
-* Project Renaming: Gitlabber doesn't maintain local state and will not rename local projects when they are renamed on the server and it will clone them again under their new name.
+* Renaming, moving and deleting projects: Gitlabber doesn't maintain local tree (projects and groups) state and for that reason is doesn not rename move or delete local projects when they are modified on the server, when moved/renamed Gitlabber will clone them again under their new name or location. When deleted, Gitlabber will not delete the local project.
 * Folder Naming Strategy: consecutively running gitlabber with different values for the `-n` parameter will produce undesirable results, keep the same value as previous runs or simply don't change it from the default (project name)
 * When using gitlab.com observe `rate limits <https://docs.gitlab.com/ee/user/gitlab_com/index.html#gitlabcom-specific-rate-limits/>`__ when cloning large number of projects and the `ones <https://docs.gitlab.com/ee/security/rate_limits.html>`__ for on-premise installations
