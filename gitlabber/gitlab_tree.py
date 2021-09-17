@@ -105,27 +105,26 @@ class GitlabTree:
         self.progress.update_progress_length(len(projects))
         self.add_projects(parent, projects)
 
+    def add_groups(self, parent, groups):
+        for group in groups:
+            lazy_group = self.gitlab.groups.get(group.id, lazy=True)
+            group_id = group.name if self.naming == FolderNaming.NAME else group.path
+            node = self.make_node(group_id, parent, url=group.web_url)
+            self.progress.show_progress(node.name, 'group')
+            self.get_subgroups(lazy_group, node)
+            self.get_projects(lazy_group, node)
+
     def get_subgroups(self, group, parent):
         subgroups = group.subgroups.list(as_list=False, archived=self.archived)
         self.progress.update_progress_length(len(subgroups))
-        for subgroup_def in subgroups:
-            subgroup = self.gitlab.groups.get(subgroup_def.id)
-            subgroup_id = subgroup.name if self.naming == FolderNaming.NAME else subgroup.path
-            node = self.make_node(subgroup_id, parent, url=subgroup.web_url)
-            self.progress.show_progress(node.name, 'group')
-            self.get_subgroups(subgroup, node)
-            self.get_projects(subgroup, node)
+        self.add_groups(parent, subgroups)
 
     def load_gitlab_tree(self):
-        groups = self.gitlab.groups.list(as_list=False, archived=self.archived)
+        groups = self.gitlab.groups.list(as_list=False,
+                                         archived=self.archived,
+                                         top_level_only=True)
         self.progress.init_progress(len(groups))
-        for group in groups:
-            if group.parent_id is None:
-                group_id = group.name if self.naming == FolderNaming.NAME else group.path
-                node = self.make_node(group_id, self.root, url=group.web_url)
-                self.progress.show_progress(node.name, 'group')
-                self.get_subgroups(group, node)
-                self.get_projects(group, node)
+        self.add_groups(self.root, groups)
 
         elapsed = self.progress.finish_progress()
         log.debug("Loading projects tree from gitlab took [%s]", elapsed)
