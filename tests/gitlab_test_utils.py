@@ -2,6 +2,7 @@ import pytest
 import json
 from unittest import mock
 from gitlabber import gitlab_tree
+from gitlab.exceptions import GitlabGetError
 
 URL = "http://gitlab.my.com/"
 TOKEN = "MOCK_TOKEN"
@@ -23,8 +24,8 @@ TREE_TEST_OUTPUT_FILE = "tests/test-output.tree"
 class MockNode:
     def __init__(self, id, name, url, subgroups=mock.MagicMock(), projects=mock.MagicMock(), parent_id=None):
         self.id = id
-        self.name = name
-        self.path = name
+        self.name = self.full_name = name
+        self.path = self.full_path = name
         self.url = url
         self.web_url = url
         self.ssh_url_to_repo = url
@@ -49,7 +50,11 @@ class Listable:
             return [self.list_result]
 
     def get(self, id, lazy=False):
-        return self.get_results[id]
+        try:
+            return list(filter(lambda n: id in (n.id, n.full_path),
+                               self.get_results)).pop()
+        except IndexError:
+            raise GitlabGetError(response_code=404)
 
 
 def validate_root(root):
@@ -61,7 +66,8 @@ def validate_root(root):
 
 
 def validate_group(group):
-    assert group.name == GROUP_NAME
+    if not group.is_root:
+        assert group.name == GROUP_NAME
     assert group.url == GROUP_URL
     assert group.is_leaf is False
     assert len(group.children) == 1
@@ -69,7 +75,8 @@ def validate_group(group):
 
 
 def validate_subgroup(subgroup):
-    assert subgroup.name == SUBGROUP_NAME
+    if not subgroup.is_root:
+        assert subgroup.name == SUBGROUP_NAME
     assert subgroup.url == SUBGROUP_URL
     assert subgroup.is_leaf is False
     assert len(subgroup.children) == 1
@@ -90,15 +97,28 @@ def validate_tree(root):
     validate_project(root.children[0].children[0].children[0])
 
 
+def fixup_child_nodes(node):
+    for children in filter(lambda c: isinstance(c, Listable), [node.subgroups,
+                                                               node.projects]):
+        for child in filter(lambda r: isinstance(r, MockNode),
+                            [children.list_result, children.archive_result]):
+            child.full_path = '/'.join([node.full_path, child.path])
+            child.full_name = ' / '.join([node.full_name, child.name])
+            fixup_child_nodes(child)
+
+
 def append_node(nodes, *args, **kwargs):
     node = MockNode(len(nodes), *args, **kwargs)
     nodes.append(node)
+    fixup_child_nodes(node)
     return node
 
 
-def create_test_gitlab(monkeypatch, includes=None, excludes=None, in_file=None):
+def create_test_gitlab(monkeypatch, includes=None, excludes=None, in_file=None,
+                       root_group=None):
     gl = gitlab_tree.GitlabTree(
-        URL, TOKEN, "ssh", "name", includes=includes, excludes=excludes, in_file=in_file)
+        URL, TOKEN, "ssh", "name", includes=includes, excludes=excludes, in_file=in_file,
+        root_group=root_group)
     nodes = []
     projects = Listable(append_node(nodes, PROJECT_NAME, PROJECT_URL))
     subgroup_node = append_node(nodes, SUBGROUP_NAME, SUBGROUP_URL,

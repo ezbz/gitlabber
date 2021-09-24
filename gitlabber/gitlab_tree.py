@@ -1,4 +1,5 @@
 from gitlab import Gitlab
+from gitlab.exceptions import GitlabGetError
 from anytree import Node, RenderTree
 from anytree.exporter import DictExporter, JsonExporter
 from anytree.importer import DictImporter
@@ -16,7 +17,8 @@ log = logging.getLogger(__name__)
 
 class GitlabTree:
 
-    def __init__(self, url, token, method, naming, archived=None, includes=[], excludes=[], in_file=None, concurrency=1, recursive=False, disable_progress=False):
+    def __init__(self, url, token, method, naming, archived=None, includes=[], excludes=[], in_file=None, concurrency=1, recursive=False, disable_progress=False,
+                 root_group=None):
         self.includes = includes
         self.excludes = excludes
         self.url = url
@@ -31,6 +33,7 @@ class GitlabTree:
         self.recursive = recursive
         self.disable_progress = disable_progress
         self.progress = ProgressBar('* loading tree', disable_progress)
+        self.root_group = root_group
 
     @staticmethod
     def get_ca_path():
@@ -109,10 +112,17 @@ class GitlabTree:
         for group in groups:
             lazy_group = self.gitlab.groups.get(group.id, lazy=True)
             group_id = group.name if self.naming == FolderNaming.NAME else group.path
-            node = self.make_node(group_id, parent, url=group.web_url)
-            self.progress.show_progress(node.name, 'group')
+            node = None
+            if parent is not None:
+                node = self.make_node(group_id, parent, url=group.web_url)
+            elif self.root_group in (group.id, group.full_path, group.full_name):
+                node = self.root = Node("", root_path="", url=group.web_url)
+            self.progress.show_progress(group_id, 'group')
             self.get_subgroups(lazy_group, node)
-            self.get_projects(lazy_group, node)
+            if node is not None:
+                self.get_projects(lazy_group, node)
+            if node == self.root:
+                break
 
     def get_subgroups(self, group, parent):
         subgroups = group.subgroups.list(as_list=False, archived=self.archived)
@@ -120,11 +130,25 @@ class GitlabTree:
         self.add_groups(parent, subgroups)
 
     def load_gitlab_tree(self):
-        groups = self.gitlab.groups.list(as_list=False,
-                                         archived=self.archived,
-                                         top_level_only=True)
+        groups = []
+        if self.root_group is not None:
+            try:
+                # Try to get a group by the given 'root_group' value so we
+                # won't need to traverse a whole group tree. In case of
+                # success, assume the 'root_group' value is equal to the 'id'
+                # or 'full_path' group field value.
+                groups = [self.gitlab.groups.get(self.root_group)]
+            except GitlabGetError as e:
+                if e.response_code == 404:
+                    log.debug("Couldn't find a group with id='%s'" % self.root_group)
+                else:
+                    raise
+        if not groups:
+            groups = self.gitlab.groups.list(as_list=False,
+                                             archived=self.archived,
+                                             top_level_only=True)
         self.progress.init_progress(len(groups))
-        self.add_groups(self.root, groups)
+        self.add_groups(self.root if self.root_group is None else None, groups)
 
         elapsed = self.progress.finish_progress()
         log.debug("Loading projects tree from gitlab took [%s]", elapsed)
@@ -160,7 +184,7 @@ class GitlabTree:
         for pre, _, node in RenderTree(self.root):
             line = ""
             if node.is_root:
-                line = "%s%s [%s]" % (pre, "root", self.url)
+                line = "%s%s [%s]" % (pre, "root", node.url)
             else:
                 line = "%s%s [%s]" % (pre, node.name, node.root_path)
             print(line)
