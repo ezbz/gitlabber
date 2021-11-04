@@ -1,4 +1,4 @@
-from gitlab import Gitlab, GitlabListError
+from gitlab import Gitlab
 from anytree import Node, RenderTree
 from anytree.exporter import DictExporter, JsonExporter
 from anytree.importer import DictImporter
