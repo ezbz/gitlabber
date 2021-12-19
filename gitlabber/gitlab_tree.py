@@ -1,5 +1,5 @@
 from gitlab import Gitlab
-from gitlab.exceptions import GitlabGetError
+from gitlab.exceptions import GitlabGetError, GitlabListError
 from anytree import Node, RenderTree
 from anytree.exporter import DictExporter, JsonExporter
 from anytree.importer import DictImporter
@@ -107,7 +107,12 @@ class GitlabTree:
         self.add_projects(parent, projects)
 
     def get_subgroups(self, group, parent):
-        subgroups = group.subgroups.list(as_list=False, archived=self.archived)
+        try:
+            subgroups = group.subgroups.list(as_list=False, archived=self.archived)
+        except GitlabListError as error:
+            log.error(f"Error listing group {group.name} (ID: {group.id}): {error}. Check your permissions as you may not have access to it.")
+            return
+
         self.progress.update_progress_length(len(subgroups))
         for subgroup_def in subgroups:
             try:
