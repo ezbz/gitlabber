@@ -102,9 +102,12 @@ class GitlabTree:
             self.progress.show_progress(node.name, 'project')
 
     def get_projects(self, group, parent):
-        projects = group.projects.list(as_list=False, archived=self.archived)
-        self.progress.update_progress_length(len(projects))
-        self.add_projects(parent, projects)
+        try:
+            projects = group.projects.list(as_list=False, archived=self.archived)
+            self.progress.update_progress_length(len(projects))
+            self.add_projects(parent, projects)
+        except GitlabListError as error:
+            log.error(f"Error getting projects on {group.name} (ID: {group.id}): {error} )")
 
     def get_subgroups(self, group, parent):
         try:
