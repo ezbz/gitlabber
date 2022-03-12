@@ -39,7 +39,7 @@ Installation
     pip install gitlabber
 
 * You'll need to create an  `access token <https://docs.gitlab.com/ee/user/profile/personal_access_tokens.html>`_ from Gitlab with API scopes `read_repository`
-  and `read_api`
+  and `read_api` (`api` for Gitlab versions <12.0)
 
 Usage
 -----
