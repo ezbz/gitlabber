@@ -6,11 +6,11 @@
   
 .. image:: https://badge.fury.io/py/gitlabber.svg
     :target: https://badge.fury.io/py/gitlabber
-    
-.. image:: https://img.shields.io/pypi/pyversions/gitlabber
+  
+.. image:: https://img.shields.io/pypi/l/gitlabber.svg
     :target: https://pypi.python.org/pypi/gitlabber/
 
-.. image:: https://img.shields.io/pypi/pyversions/ansicolortags.svg
+.. image:: https://img.shields.io/pypi/pyversions/gitlabber
     :target: https://pypi.python.org/pypi/gitlabber/
 
 .. image:: https://readthedocs.org/projects/gitlabber/badge/?version=latest&style=plastic
