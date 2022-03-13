@@ -6,8 +6,8 @@
   
 .. image:: https://badge.fury.io/py/gitlabber.svg
     :target: https://badge.fury.io/py/gitlabber
-  
-.. image:: https://img.shields.io/pypi/l/gitlabber.svg
+    
+.. image:: https://img.shields.io/pypi/pyversions/gitlabber
     :target: https://pypi.python.org/pypi/gitlabber/
 
 .. image:: https://img.shields.io/pypi/pyversions/ansicolortags.svg
