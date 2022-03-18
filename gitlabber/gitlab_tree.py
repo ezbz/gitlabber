@@ -1,4 +1,5 @@
 from gitlab import Gitlab
+from gitlab.exceptions import GitlabGetError, GitlabListError
 from anytree import Node, RenderTree
 from anytree.exporter import DictExporter, JsonExporter
 from anytree.importer import DictImporter
@@ -57,7 +58,7 @@ class GitlabTree:
 
     def is_excluded(self, node):
         '''
-        returns True if the node should be excluded 
+        returns True if the node should be excluded
         if the are no exclude patterns then nothing is excluded
         any exclude pattern matching the root path will result in exclusion
         '''
@@ -101,15 +102,31 @@ class GitlabTree:
             self.progress.show_progress(node.name, 'project')
 
     def get_projects(self, group, parent):
-        projects = group.projects.list(as_list=False, archived=self.archived)
-        self.progress.update_progress_length(len(projects))
-        self.add_projects(parent, projects)
+        try:
+            projects = group.projects.list(as_list=False, archived=self.archived)
+            self.progress.update_progress_length(len(projects))
+            self.add_projects(parent, projects)
+        except GitlabListError as error:
+            log.error(f"Error getting projects on {group.name} (ID: {group.id}): {error} )")
 
     def get_subgroups(self, group, parent):
-        subgroups = group.subgroups.list(as_list=False, archived=self.archived)
+        try:
+            subgroups = group.subgroups.list(as_list=False, archived=self.archived)
+        except GitlabListError as error:
+            log.error(f"Error listing group {group.name} (ID: {group.id}): {error}. Check your permissions as you may not have access to it.")
+            return
+
         self.progress.update_progress_length(len(subgroups))
         for subgroup_def in subgroups:
-            subgroup = self.gitlab.groups.get(subgroup_def.id)
+            try:
+                subgroup = self.gitlab.groups.get(subgroup_def.id)
+            except GitlabGetError as error:
+                if error.response_code == 404:
+                    log.error(f"Error retrieving group {subgroup.name} (ID: {subgroup.id}): {error}. Check your permissions as you may not have access to it.")
+                    continue
+                else:
+                    log.error(f"Error retrieving group: {subgroup.name} (ID: {subgroup.id}): {error}")
+                    raise error
             subgroup_id = subgroup.name if self.naming == FolderNaming.NAME else subgroup.path
             node = self.make_node(subgroup_id, parent, url=subgroup.web_url)
             self.progress.show_progress(node.name, 'group')
