@@ -149,7 +149,7 @@ Debugging
 
 Toubleshooting
 --------------
-* `GitlabHttpError: 503`: make sure you provide the base url to your gitalb installation (e.g., `https://gitlab.my.com` and not `https://gitlab.my.com/some/nested/path`)
+* `GitlabHttpError: 503`: make sure you provide the base url to your gitlab installation (e.g., `https://gitlab.my.com` and not `https://gitlab.my.com/some/nested/path`)
 
 Known Limitations
 ----------------- 
