@@ -124,6 +124,9 @@ class GitlabTree:
                 group_id = group.name if self.naming == FolderNaming.NAME else group.path
                 node = self.make_node(group_id, self.root, url=group.web_url)
                 self.progress.show_progress(node.name, 'group')
+                # Fix: https://gitlab.com/gitlab-org/gitlab/-/issues/292682
+                if group_id == 'GitLab Instance':
+                    continue
                 self.get_subgroups(group, node)
                 self.get_projects(group, node)
 
