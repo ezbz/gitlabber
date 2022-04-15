@@ -1,6 +1,10 @@
 # Changelog
 
 <!--next-version-placeholder-->
+## [1.1.10] - 15/05/2022
+### Added
+- Support for mirrored repositories - dont-checkout flag
+
 ## [1.1.9] - 12/07/2021
 
 ### Added
