@@ -38,7 +38,7 @@ def main():
     excludes=split(args.exclude)
 
     tree = GitlabTree(args.url, args.token, args.method, args.naming, args.archived.api_value, includes,
-                      excludes, args.file, args.concurrency, args.recursive, args.verbose)
+                      excludes, args.file, args.concurrency, args.recursive, args.verbose, args.dont_checkout)
     log.debug("Reading projects tree from gitlab at [%s]", args.url)
     tree.load_tree()
 
@@ -177,6 +177,12 @@ def parse_args(argv=None):
         action='store_true',
         default=False,
         help='clone/pull git submodules recursively')
+    parser.add_argument(
+        '-d',
+        '--dont-checkout',
+        action='store_true',
+        default=False,
+        help="don't checkout pulled git repository")
     parser.add_argument(
         '--version',
         action='store_true',

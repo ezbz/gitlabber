@@ -85,7 +85,7 @@ Usage
 
 .. code-block:: bash
 
-    usage: gitlabber [-h] [-t token] [-u url] [--verbose] [-p]
+    usage: gitlabber [-h] [-t token] [-u url] [--verbose] [-p] [-d]
                     [--print-format {json,yaml,tree}] [-m {ssh,https}] [-i csv]
                     [-x csv] [--version]
                     [dest]
@@ -115,6 +115,7 @@ Usage
     -x csv, --exclude csv
                             comma delimited list of glob patterns of paths to projects or groups to exclude from clone/pull
     -r, --recursive       clone/pull git submodules recursively
+    -d, --dont-checkout   clone/fetch git repository without checkout
     --version             print the version
 
     examples:
