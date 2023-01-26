@@ -115,6 +115,7 @@ Usage
     -x csv, --exclude csv
                             comma delimited list of glob patterns of paths to projects or groups to exclude from clone/pull
     -r, --recursive       clone/pull git submodules recursively
+    -S, --without_shared  exclude shared projects in the results
     --version             print the version
 
     examples:

@@ -16,7 +16,7 @@ log = logging.getLogger(__name__)
 
 class GitlabTree:
 
-    def __init__(self, url, token, method, naming, archived=None, includes=[], excludes=[], in_file=None, concurrency=1, recursive=False, disable_progress=False):
+    def __init__(self, url, token, method, naming, archived=None, includes=[], excludes=[], in_file=None, concurrency=1, recursive=False, with_shared=True, disable_progress=False):
         self.includes = includes
         self.excludes = excludes
         self.url = url
@@ -29,6 +29,7 @@ class GitlabTree:
         self.in_file = in_file
         self.concurrency = concurrency
         self.recursive = recursive
+        self.with_shared = with_shared
         self.disable_progress = disable_progress
         self.progress = ProgressBar('* loading tree', disable_progress)
 
@@ -101,7 +102,7 @@ class GitlabTree:
             self.progress.show_progress(node.name, 'project')
 
     def get_projects(self, group, parent):
-        projects = group.projects.list(as_list=False, archived=self.archived)
+        projects = group.projects.list(as_list=False, archived=self.archived, with_shared=self.with_shared)
         self.progress.update_progress_length(len(projects))
         self.add_projects(parent, projects)
 

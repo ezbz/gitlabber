@@ -126,6 +126,31 @@ def test_archive_only(monkeypatch):
     assert "_archived_" in gl.root.children[0].name
     assert "_archived_" in gl.root.children[0].children[0].children[0].name
 
+
+def test_shared_included(monkeypatch):
+    gl = gitlab_util.create_test_gitlab_with_shared(monkeypatch, with_shared=True)
+
+    gl.load_tree()
+    gl.print_tree()
+    assert gl.root.is_leaf is False
+    assert len(gl.root.children) == 1
+    assert len(gl.root.children[0].children) == 2
+
+    assert "project" in gl.root.children[0].children[0].name
+    assert "_shared_" in gl.root.children[0].children[1].name
+
+
+def test_shared_excluded(monkeypatch):
+    gl = gitlab_util.create_test_gitlab_with_shared(monkeypatch, with_shared=False)
+
+    gl.load_tree()
+    gl.print_tree()
+    assert gl.root.is_leaf is False
+    assert len(gl.root.children) == 1
+    assert len(gl.root.children[0].children) == 1
+
+    assert "project" in gl.root.children[0].children[0].name
+
 def test_get_ca_path(monkeypatch):
     import os
     from gitlabber import gitlab_tree
