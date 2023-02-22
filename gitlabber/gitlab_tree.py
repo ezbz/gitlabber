@@ -19,7 +19,7 @@ log = logging.getLogger(__name__)
 class GitlabTree:
 
     def __init__(self, url, token, method, naming, archived=None, includes=[], excludes=[], in_file=None, concurrency=1, recursive=False, disable_progress=False,
-                 root_group=None, dont_checkout=False):
+                 root_group=None, dont_checkout=False, dont_store_token=False):
         self.includes = includes
         self.excludes = excludes
         self.url = url
@@ -37,6 +37,7 @@ class GitlabTree:
         self.token = token
         self.root_group = root_group
         self.dont_checkout = dont_checkout
+        self.dont_store_token = dont_store_token
 
     @staticmethod
     def get_ca_path():
@@ -103,8 +104,11 @@ class GitlabTree:
             project_id = project.name if self.naming == FolderNaming.NAME else project.path
             project_url = project.ssh_url_to_repo if self.method is CloneMethod.SSH else project.http_url_to_repo
             if self.token is not None and self.method is CloneMethod.HTTP:
-                project_url = project_url.replace('://', '://gitlab-token:%s@' % self.token)
-                log.debug("Generated URL: %s", project_url)
+                if (not self.dont_store_token):
+                    project_url = project_url.replace('://', '://gitlab-token:%s@' % self.token)
+                    log.debug("Generated URL: %s", project_url)
+                else:
+                    log.debug("Hiding token from project url: %s", project_url)
             node = self.make_node(project_id, parent,
                                   url=project_url)
             self.progress.show_progress(node.name, 'project')
@@ -232,7 +236,7 @@ class GitlabTree:
                   (len(self.root.descendants) - len(self.root.leaves), len(self.root.leaves)))
         sync_tree(self.root, dest, concurrency=self.concurrency,
                   disable_progress=self.disable_progress, recursive=self.recursive,
-                  dont_checkout=self.dont_checkout)
+                  dont_checkout=self.dont_checkout, dont_store_token=self.dont_store_token)
 
     def is_empty(self):
         return self.root.height < 1
