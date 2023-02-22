@@ -87,9 +87,9 @@ Usage
 
 .. code-block:: bash
 
-    usage: gitlabber [-h] [-t token] [-u url] [--verbose] [-p]
+    usage: gitlabber [-h] [-t token] [-u url] [--verbose] [-p] [-d]
                     [--print-format {json,yaml,tree}] [-m {ssh,https}] [-i csv]
-                    [-x csv] [--version]
+                    [-x csv] [--version] [-g {id,full_path,full_name}]
                     [dest]
 
     Gitlabber - clones or pulls entire groups/projects tree from GitLab
@@ -119,6 +119,7 @@ Usage
     -g root_group, --root-group root_group
                             id/full_path/full_name of a group to use as the root instead of the entire gitlab tree
     -r, --recursive       clone/pull git submodules recursively
+    -d, --dont-checkout   clone/fetch git repository without checkout
     --version             print the version
 
     examples:

@@ -19,7 +19,7 @@ log = logging.getLogger(__name__)
 class GitlabTree:
 
     def __init__(self, url, token, method, naming, archived=None, includes=[], excludes=[], in_file=None, concurrency=1, recursive=False, disable_progress=False,
-                 root_group=None):
+                 root_group=None, dont_checkout=False):
         self.includes = includes
         self.excludes = excludes
         self.url = url
@@ -36,6 +36,7 @@ class GitlabTree:
         self.progress = ProgressBar('* loading tree', disable_progress)
         self.token = token
         self.root_group = root_group
+        self.dont_checkout = dont_checkout
 
     @staticmethod
     def get_ca_path():
@@ -230,7 +231,8 @@ class GitlabTree:
         log.debug("Going to clone/pull [%s] groups and [%s] projects" %
                   (len(self.root.descendants) - len(self.root.leaves), len(self.root.leaves)))
         sync_tree(self.root, dest, concurrency=self.concurrency,
-                  disable_progress=self.disable_progress, recursive=self.recursive)
+                  disable_progress=self.disable_progress, recursive=self.recursive,
+                  dont_checkout=self.dont_checkout)
 
     def is_empty(self):
         return self.root.height < 1
