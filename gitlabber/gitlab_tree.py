@@ -34,6 +34,7 @@ class GitlabTree:
         self.recursive = recursive
         self.disable_progress = disable_progress
         self.progress = ProgressBar('* loading tree', disable_progress)
+        self.token = token
         self.root_group = root_group
 
     @staticmethod
@@ -100,6 +101,9 @@ class GitlabTree:
         for project in projects:
             project_id = project.name if self.naming == FolderNaming.NAME else project.path
             project_url = project.ssh_url_to_repo if self.method is CloneMethod.SSH else project.http_url_to_repo
+            if self.token is not None and self.method is CloneMethod.HTTP:
+                project_url = project_url.replace('://', '://gitlab-token:%s@' % self.token)
+                log.debug("Generated URL: %s", project_url)
             node = self.make_node(project_id, parent,
                                   url=project_url)
             self.progress.show_progress(node.name, 'project')
