@@ -60,6 +60,8 @@ Usage
     +---------------+---------------+---------------------------+
     | exclude       | -x            | `GITLABBER_EXCLUDE`       |
     +---------------+---------------+---------------------------+
+    | root_group    | -g            | `GITLABBER_ROOT_GROUP`    |
+    +---------------+---------------+---------------------------+
 
 * To view the tree run the command with your includes/excludes and the `-p` flag. It will print your tree like so:
 
@@ -114,6 +116,8 @@ Usage
                             comma delimited list of glob patterns of paths to projects or groups to clone/pull
     -x csv, --exclude csv
                             comma delimited list of glob patterns of paths to projects or groups to exclude from clone/pull
+    -g root_group, --root-group root_group
+                            id/full_path/full_name of a group to use as the root instead of the entire gitlab tree
     -r, --recursive       clone/pull git submodules recursively
     --version             print the version
 
