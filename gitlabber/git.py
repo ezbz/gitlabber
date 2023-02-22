@@ -12,32 +12,33 @@ progress = ProgressBar('* syncing projects')
 
 
 class GitAction:
-    def __init__(self, node, path, recursive=False, dont_checkout=False):
+    def __init__(self, node, path, recursive=False, dont_checkout=False, dont_store_token=False):
         self.node = node
         self.path = path
         self.recursive = recursive
         self.dont_checkout = dont_checkout
+        self.dont_store_token = dont_store_token
 
-def sync_tree(root, dest, concurrency=1, disable_progress=False, recursive=False, dont_checkout=False):
+def sync_tree(root, dest, concurrency=1, disable_progress=False, recursive=False, dont_checkout=False, dont_store_token=False):
     if not disable_progress:
         progress.init_progress(len(root.leaves))
-    actions = get_git_actions(root, dest, recursive, dont_checkout)
+    actions = get_git_actions(root, dest, recursive, dont_checkout, dont_store_token)
     with concurrent.futures.ThreadPoolExecutor(max_workers=concurrency) as executor:
         executor.map(clone_or_pull_project, actions)
     elapsed = progress.finish_progress()
     log.debug("Syncing projects took [%s]", elapsed)
 
 
-def get_git_actions(root, dest, recursive, dont_checkout):
+def get_git_actions(root, dest, recursive, dont_checkout, dont_store_token):
     actions = []
     for child in root.children:
         path = "%s%s" % (dest, child.root_path)
         if not os.path.exists(path):
             os.makedirs(path)
         if child.is_leaf:
-            actions.append(GitAction(child, path, recursive, dont_checkout))            
+            actions.append(GitAction(child, path, recursive, dont_checkout, dont_store_token))            
         if not child.is_leaf:
-            actions.extend(get_git_actions(child, dest, recursive, dont_checkout))
+            actions.extend(get_git_actions(child, dest, recursive, dont_checkout, dont_store_token))
     return actions
 
 

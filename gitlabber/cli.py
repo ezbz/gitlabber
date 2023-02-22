@@ -39,7 +39,7 @@ def main():
 
     tree = GitlabTree(args.url, args.token, args.method, args.naming, args.archived.api_value, includes,
                       excludes, args.file, args.concurrency, args.recursive, args.verbose,
-                      args.root_group, args.dont_checkout)
+                      args.root_group, args.dont_checkout, args.dont_store_token)
     log.debug("Reading projects tree from gitlab at [%s]", args.url)
     tree.load_tree()
 
@@ -106,6 +106,12 @@ def parse_args(argv=None):
         metavar=('token'),
         default=os.environ.get('GITLAB_TOKEN'),
         help='gitlab personal access token https://docs.gitlab.com/ee/user/profile/personal_access_tokens.html')
+    parser.add_argument(
+        '-T',
+        '--dont_store_token',
+        action='store_true',
+        default=False,
+        help='do not store the gitlab personal access token in the .git/config')    
     parser.add_argument(
         '-u',
         '--url',
