@@ -1,6 +1,15 @@
 # Changelog
 
 <!--next-version-placeholder-->
+## [1.1.9.2] - WIP
+### Added
+### Changed
+### Deprecated
+### Removed
+### Fixed
+ - Fix for DeprecationWarning: `as_list=False` is deprecated and will be removed in a future version. Use `iterator=True` instead
+### Security
+
 ## [1.1.9.1] - 22/02/2023
 
 ### Added
