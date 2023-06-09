@@ -1,7 +1,7 @@
 anytree==2.8.0
-GitPython==3.1.18
-python-gitlab==2.9.0
+GitPython==3.1.31
+python-gitlab==3.14.0
 globre==0.1.5
-PyYAML==5.4.1
-tqdm==4.61.2
+PyYAML==6.0
+tqdm==4.65.0
 docopt==0.6.2
