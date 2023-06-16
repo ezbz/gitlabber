@@ -1,30 +1,6 @@
 # Changelog
 
 <!--next-version-placeholder-->
-## [1.1.9.2] - WIP
-### Added
-### Changed
-### Deprecated
-### Removed
-### Fixed
- - Fix for DeprecationWarning: `as_list=False` is deprecated and will be removed in a future version. Use `iterator=True` instead
-### Security
-
-## [1.1.9.1] - 22/02/2023
-
-### Added
-- upstream-pr-89 - Add an ability to clone/pull only one group using its id or full path or name @konfetka1989
-- upstream-pr-98 - use token for cloning repos - @syphernl
-- upstream-pr-100 - Support for mirrored repositories - dont-checkout flag @stanop
-- local-pr-1  - add support for dont_store_token from @arnvid
-### Changed
-- upstream-pr-104 - Various fixes to the README @waldyrious
-- upstream-pr-72 - Avoid 404 errors for groups we can see but not access - @fmartingr
-### Deprecated
-### Removed
-### Fixed
-### Security
-
 ## [1.1.9] - 12/07/2021
 
 ### Added
