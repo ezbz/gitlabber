@@ -38,12 +38,13 @@ def main():
     excludes=split(args.exclude)
 
     tree = GitlabTree(args.url, args.token, args.method, args.naming, args.archived.api_value, includes,
-                      excludes, args.file, args.concurrency, args.recursive, args.verbose)
+                      excludes, args.file, args.concurrency, args.recursive, args.verbose,
+                      args.root_group, args.dont_checkout, args.dont_store_token)
     log.debug("Reading projects tree from gitlab at [%s]", args.url)
     tree.load_tree()
 
     if tree.is_empty():
-        log.fatal("The tree is empty, check your include/exclude patterns or run with more verbosity for debugging")
+        log.fatal("The tree is empty, check your include/exclude patterns and/or a root_group value or run with more verbosity for debugging")
         sys.exit(1) 
 
     if args.print:
@@ -105,6 +106,12 @@ def parse_args(argv=None):
         metavar=('token'),
         default=os.environ.get('GITLAB_TOKEN'),
         help='gitlab personal access token https://docs.gitlab.com/ee/user/profile/personal_access_tokens.html')
+    parser.add_argument(
+        '-T',
+        '--dont_store_token',
+        action='store_true',
+        default=False,
+        help='do not store the gitlab personal access token in the .git/config')    
     parser.add_argument(
         '-u',
         '--url',
@@ -172,11 +179,24 @@ def parse_args(argv=None):
         default=os.environ.get('GITLABBER_EXCLUDE', ""),
         help='comma delimited list of glob patterns of paths to projects or groups to exclude from clone/pull')
     parser.add_argument(
+        '-g',
+        '--root-group',
+        metavar=('root_group'),
+        default=os.environ.get('GITLABBER_ROOT_GROUP'),
+        help='id/full_path/full_name of a group to use as the root instead of the entire gitlab tree',
+        )
+    parser.add_argument(
         '-r',
         '--recursive',
         action='store_true',
         default=False,
         help='clone/pull git submodules recursively')
+    parser.add_argument(
+        '-d',
+        '--dont-checkout',
+        action='store_true',
+        default=False,
+        help="don't checkout pulled git repository")    
     parser.add_argument(
         '--version',
         action='store_true',
