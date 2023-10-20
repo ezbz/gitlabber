@@ -104,11 +104,11 @@ class GitlabTree:
             project_id = project.name if self.naming == FolderNaming.NAME else project.path
             project_url = project.ssh_url_to_repo if self.method is CloneMethod.SSH else project.http_url_to_repo
             if self.token is not None and self.method is CloneMethod.HTTP:
-                if (not self.dont_store_token):
-                    project_url = project_url.replace('://', '://gitlab-token:%s@' % self.token)
-                    log.debug("Generated URL: %s", project_url)
-                else:
-                    log.debug("Hiding token from project url: %s", project_url)
+              if (not self.dont_store_token):
+                  project_url = project_url.replace('://', '://gitlab-token:%s@' % self.token)
+                  log.debug("Generated URL: %s", project_url)
+              else:
+                  log.debug("Hiding token from project url: %s", project_url)
             node = self.make_node(project_id, parent,
                                   url=project_url)
             self.progress.show_progress(node.name, 'project')
