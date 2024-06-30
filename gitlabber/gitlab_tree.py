@@ -125,12 +125,20 @@ class GitlabTree:
         subgroups = group.subgroups.list(as_list=False, archived=self.archived)
         self.progress.update_progress_length(len(subgroups))
         for subgroup_def in subgroups:
-            subgroup = self.gitlab.groups.get(subgroup_def.id)
-            subgroup_id = subgroup.name if self.naming == FolderNaming.NAME else subgroup.path
-            node = self.make_node(subgroup_id, parent, url=subgroup.web_url)
-            self.progress.show_progress(node.name, 'group')
-            self.get_subgroups(subgroup, node)
-            self.get_projects(subgroup, node)
+            try:
+                subgroup = self.gitlab.groups.get(subgroup_def.id)
+                subgroup_id = subgroup.name if self.naming == FolderNaming.NAME else subgroup.path
+                node = self.make_node(subgroup_id, parent, url=subgroup.web_url)
+                self.progress.show_progress(node.name, 'group')
+                self.get_subgroups(subgroup, node)
+                self.get_projects(subgroup, node)
+            except GitlabListError as error:
+                if error.response_code == 404:
+                    log.error(f"{error.response_code} error while listing subgroup with name: {group.name} [id: {group.id}]. Check your permissions as you may not have access to it. Message: {error.error_message}")
+                    continue
+                else:
+                    raise error
+
 
 
     def load_gitlab_tree(self):
