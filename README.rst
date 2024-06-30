@@ -10,7 +10,7 @@
 .. image:: https://img.shields.io/pypi/l/gitlabber.svg
     :target: https://pypi.python.org/pypi/gitlabber/
 
-.. image:: https://img.shields.io/pypi/pyversions/ansicolortags.svg
+.. image:: https://img.shields.io/pypi/pyversions/gitlabber
     :target: https://pypi.python.org/pypi/gitlabber/
 
 .. image:: https://readthedocs.org/projects/gitlabber/badge/?version=latest&style=plastic
@@ -19,27 +19,27 @@
 Gitlabber
 =========
 
-* A utility to clone and pull Gitlab groups, subgroups, projects based on path selection
+* A utility to clone and pull GitLab groups, subgroups, projects based on path selection
 
 
 Purpose
 -------
 
-Gitlabber clones or pulls all projects under a subset of groups / subgroups by building a tree from the Gitlab API and allowing you to specify which subset of the tree you want to clone using glob patterns and/or regex expressions.
+Gitlabber clones or pulls all projects under a subset of groups / subgroups by building a tree from the GitLab API and allowing you to specify which subset of the tree you want to clone using glob patterns and/or regex expressions.
 
 
 
 Installation
 ------------
 
-* You can install gitlabber from `PyPi <https://pypi.org/project/gitlabber>`_ :
+* You can install Gitlabber from `PyPi <https://pypi.org/project/gitlabber>`_:
 
 .. code-block:: bash
 
     pip install gitlabber
 
-* You'll need to create an  `access token <https://docs.gitlab.com/ee/user/profile/personal_access_tokens.html>`_ from Gitlab with API scopes `read_repository`
-  and `read_api`
+* You'll need to create an `access token <https://docs.gitlab.com/ee/user/profile/personal_access_tokens.html>`_ from GitLab with API scopes `read_repository`
+  and `read_api` (or `api`, for GitLab versions <12.0)
 
 Usage
 -----
@@ -60,8 +60,10 @@ Usage
     +---------------+---------------+---------------------------+
     | exclude       | -x            | `GITLABBER_EXCLUDE`       |
     +---------------+---------------+---------------------------+
+    | root_group    | -g            | `GITLABBER_ROOT_GROUP`    |
+    +---------------+---------------+---------------------------+
 
-* To view the tree run the command with your includes/excludes and the `-p` flag it will print your tree like so
+* To view the tree run the command with your includes/excludes and the `-p` flag. It will print your tree like so:
 
 .. code-block:: bash
 
@@ -75,22 +77,22 @@ Usage
         ├── subgroup2 [/group2/subgroup2]
         └── subgroup3 [/group2/subgroup3]
 
-* To see how to use glob patterns and regex to filter tree nodes see `globre project page <https://pypi.org/project/globre/>`_ .
+* To see how to use glob patterns and regex to filter tree nodes, see the `globre project page <https://pypi.org/project/globre/#details>`_.
 
-* Cloning vs Pulling: when running Gitlabber consecutively with same parameters it will scan the local tree structure, if the project directory exists and is a valid git repository (has .git folder in it) gitlabber will perform a git pull in the directory, otherwise the project directory will be created and the gitlab project will be cloned into it.
+* Cloning vs Pulling: when running Gitlabber consecutively with the same parameters, it will scan the local tree structure; if the project directory exists and is a valid git repository (has .git folder in it) Gitlabber will perform a git pull in the directory, otherwise the project directory will be created and the GitLab project will be cloned into it.
 
-* Cloning submodules: use the `-r` flag to recurse git submodules, uses the `--recursive` for cloning and utilizes `GitPython's smart update method <https://github.com/gitpython-developers/GitPython/blob/20f4a9d49b466a18f1af1fdfb480bc4520a4cdc2/git/objects/submodule/root.py#L67>`__ for upading cloned repositories
+* Cloning submodules: use the `-r` flag to recurse git submodules, uses the `--recursive` for cloning and utilizes `GitPython's smart update method <https://github.com/gitpython-developers/GitPython/blob/20f4a9d49b466a18f1af1fdfb480bc4520a4cdc2/git/objects/submodule/root.py#L67>`_ for updating cloned repositories
 
 * Printed Usage:
 
 .. code-block:: bash
 
-    usage: gitlabber [-h] [-t token] [-u url] [--verbose] [-p]
+    usage: gitlabber [-h] [-t token] [-u url] [--verbose] [-p] [-d]
                     [--print-format {json,yaml,tree}] [-m {ssh,https}] [-i csv]
-                    [-x csv] [--version]
+                    [-x csv] [--version] [-g {id,full_path,full_name}]
                     [dest]
 
-    Gitlabber - clones or pulls entire groups/projects tree from gitlab
+    Gitlabber - clones or pulls entire groups/projects tree from GitLab
 
     positional arguments:
     dest                  destination path for the cloned tree (created if doesn't exist)
@@ -114,7 +116,10 @@ Usage
                             comma delimited list of glob patterns of paths to projects or groups to clone/pull
     -x csv, --exclude csv
                             comma delimited list of glob patterns of paths to projects or groups to exclude from clone/pull
+    -g root_group, --root-group root_group
+                            id/full_path/full_name of a group to use as the root instead of the entire gitlab tree
     -r, --recursive       clone/pull git submodules recursively
+    -d, --dont-checkout   clone/fetch git repository without checkout
     --version             print the version
 
     examples:
@@ -138,21 +143,21 @@ Usage
         clone projects that start with a case insensitive 'w' using a regular expression:
         gitlabber -i '/{[w].*}' .
 
-Debugging 
+Debugging
 ---------
-* You can use the `--verbose` flag to get Gitlabber debug messages printed
-* For more verbose gitlab messages you can get `GitPython <https://gitpython.readthedocs.io/en/stable>`__ module to print more debug messages by setting the environment variable:
+* You can use the `--verbose` flag to print Gitlabber debug messages
+* For more verbose GitLab messages, you can get the `GitPython <https://gitpython.readthedocs.io/en/stable>`_ module to print more debug messages by setting the environment variable:
 
 .. code-block:: bash
 
     export GIT_PYTHON_TRACE='full'
 
-Toubleshooting
+Troubleshooting
 --------------
-* `GitlabHttpError: 503`: make sure you provide the base url to your gitlab installation (e.g., `https://gitlab.my.com` and not `https://gitlab.my.com/some/nested/path`)
+* `GitlabHttpError: 503`: make sure you provide the base URL to your GitLab installation (e.g., `https://gitlab.my.com` and not `https://gitlab.my.com/some/nested/path`)
 
 Known Limitations
------------------ 
-* Project Renaming: Gitlabber doesn't maintain local state and will not rename local projects when they are renamed on the server and it will clone them again under their new name.
-* Folder Naming Strategy: consecutively running gitlabber with different values for the `-n` parameter will produce undesirable results, keep the same value as previous runs or simply don't change it from the default (project name)
-* When using gitlab.com observe `rate limits <https://docs.gitlab.com/ee/user/gitlab_com/index.html#gitlabcom-specific-rate-limits/>`__ when cloning large number of projects and the `ones <https://docs.gitlab.com/ee/security/rate_limits.html>`__ for on-premise installations
+-----------------
+* Renaming, moving and deleting projects: Gitlabber doesn't maintain local tree state (projects and groups). For that reason is does not rename move or delete local projects when they are modified on the server. When projects are moved or renamed, Gitlabber will clone them again under their new name or location. When deleted, Gitlabber will not delete the local project.
+* Folder naming strategy: Consecutively running Gitlabber with different values for the `-n` parameter will produce undesirable results. Use the same value as previous runs, or simply don't change it from the default (project name).
+* If you're going to clone a large number of projects, observe rate limits `for gitlab.com <https://docs.gitlab.com/ee/user/gitlab_com/index.html#gitlabcom-specific-rate-limits/>`_, and `for on-premise installations <https://docs.gitlab.com/ee/security/rate_limits.html>`_.
