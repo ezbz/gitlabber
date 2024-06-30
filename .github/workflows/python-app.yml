@@ -15,11 +15,11 @@ jobs:
 
     strategy:
       matrix:
-        python: [ 3.7, 3.8, 3.9]
+        python: ["3.9", "3.10", "3.11", "3.12"]
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
     - name: Set up Python ${{ matrix.python }}
       uses: actions/setup-python@v2
       with:
@@ -43,7 +43,8 @@ jobs:
       run: |
         pytest
     - name: Upload Coverage to Codecov
-      uses: codecov/codecov-action@v1
+      uses: codecov/codecov-action@v4
       with:
         fail_ci_if_error: true
+        token: ${{ secrets.CODECOV_TOKEN }} 
 
