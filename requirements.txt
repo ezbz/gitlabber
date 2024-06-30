@@ -3,5 +3,5 @@ GitPython==3.1.41
 python-gitlab==3.14.0
 globre==0.1.5
 PyYAML==6.0
-tqdm==4.65.0
+tqdm==4.66.3
 docopt==0.6.2
