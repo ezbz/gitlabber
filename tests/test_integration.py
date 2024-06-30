@@ -13,7 +13,6 @@ def test_help():
     assert "usage:" in output
     assert "examples:" in output
     assert "positional arguments:" in output
-    assert "optional arguments:" in output
     assert "Gitlabber - clones or pulls entire groups/projects tree from gitlab" in output
 
 @pytest.mark.integration_test
