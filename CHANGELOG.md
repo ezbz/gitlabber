@@ -1,6 +1,15 @@
 # Changelog
 
 <!--next-version-placeholder-->
+## [1.2.1] - 30/06/2024
+### Added
+### Changed
+### Deprecated
+### Removed
+### Fixed
+### Security
+- move to latest urllib3 release for security improvments
+
 ## [1.2.0] - 30/06/2024
 
 ### Added
