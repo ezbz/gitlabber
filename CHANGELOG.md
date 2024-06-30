@@ -1,6 +1,21 @@
 # Changelog
 
 <!--next-version-placeholder-->
+## [1.2.0] - 12/07/2021
+
+### Added
+- Support new GitPython API (iterator depracation, pagination support)
+- Support for excluding shared projects
+- Support for fetching repositories instead of cloning (--mirror)
+- Support for omitting the token from the URL in HTTP mode
+### Changed
+- Update depedencies for GiyPython, Python-Gitlab and others
+### Deprecated
+### Removed
+### Fixed
+### Security
+
+
 ## [1.1.9] - 12/07/2021
 
 ### Added
