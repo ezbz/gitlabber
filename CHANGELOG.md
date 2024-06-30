@@ -1,7 +1,7 @@
 # Changelog
 
 <!--next-version-placeholder-->
-## [1.2.0] - 12/07/2021
+## [1.2.0] - 30/06/2024
 
 ### Added
 - Support new GitPython API (iterator depracation, pagination support)
