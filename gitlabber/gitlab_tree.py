@@ -115,7 +115,7 @@ class GitlabTree:
 
     def get_projects(self, group, parent):
         try:
-            projects = group.projects.list(archived=self.archived, with_shared=self.include_shared)
+            projects = group.projects.list(archived=self.archived, with_shared=self.include_shared, get_all=True)
             self.progress.update_progress_length(len(projects))
             self.add_projects(parent, projects)
         except GitlabListError as error:

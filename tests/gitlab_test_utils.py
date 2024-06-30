@@ -41,7 +41,7 @@ class Listable:
     def __init__(self, *nodes: MockNode):
         self.nodes = nodes
 
-    def list(self, as_list=False, archived=None, with_shared=True):
+    def list(self, as_list=False, archived=None, with_shared=True, get_all=True):
         filtered = filter(lambda it: self.is_included(it, archived, with_shared), self.nodes)
         return list(filtered)
 
@@ -70,7 +70,7 @@ class Tree:
     def get(self, id):
         return next(filter(lambda it: it.id == id, self.all_nodes))
 
-    def list(self, as_list=False, archived=None, with_shared=True):
+    def list(self, as_list=False, archived=None, with_shared=True, get_all=True):
         return self.roots.list(as_list, archived, with_shared)
 
     def get_all_nodes(self, node: MockNode):

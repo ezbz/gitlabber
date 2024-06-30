@@ -5,3 +5,4 @@ globre==0.1.5
 PyYAML==6.0.1
 tqdm==4.66.4
 docopt==0.6.2
+urllib3<=1.26.15
