@@ -142,19 +142,26 @@ def test_get_ca_path(monkeypatch):
     result = gitlab_tree.GitlabTree.get_ca_path()
     assert result == True
 
-def test_root_group(monkeypatch):
-    gl = gitlab_util.create_test_gitlab(monkeypatch, root_group='group')
-    gl.load_tree()
-    gitlab_util.validate_group(gl.root)
+def test_shared_included(monkeypatch):
+    gl = gitlab_util.create_test_gitlab_with_shared(monkeypatch, with_shared=True)
 
-def test_root_group_subgroup(monkeypatch):
-    gl = gitlab_util.create_test_gitlab(monkeypatch,
-                                        root_group='group/subgroup')
     gl.load_tree()
-    gitlab_util.validate_subgroup(gl.root)
+    gl.print_tree()
+    assert gl.root.is_leaf is False
+    assert len(gl.root.children) == 1
+    assert len(gl.root.children[0].children) == 2
 
-def test_root_group_subgroup_name(monkeypatch):
-    gl = gitlab_util.create_test_gitlab(monkeypatch,
-                                        root_group='group / subgroup')
+    assert "project" in gl.root.children[0].children[0].name
+    assert "_shared_" in gl.root.children[0].children[1].name
+
+
+def test_shared_excluded(monkeypatch):
+    gl = gitlab_util.create_test_gitlab_with_shared(monkeypatch, with_shared=False)
+
     gl.load_tree()
-    gitlab_util.validate_subgroup(gl.root)
+    gl.print_tree()
+    assert gl.root.is_leaf is False
+    assert len(gl.root.children) == 1
+    assert len(gl.root.children[0].children) == 1
+
+    assert "project" in gl.root.children[0].children[0].name
