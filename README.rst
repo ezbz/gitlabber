@@ -151,7 +151,7 @@ Debugging
     export GIT_PYTHON_TRACE='full'
 
 Troubleshooting
---------------
+---------------
 * `GitlabHttpError: 503`: make sure you provide the base URL to your GitLab installation (e.g., `https://gitlab.my.com` and not `https://gitlab.my.com/some/nested/path`)
 
 Known Limitations
