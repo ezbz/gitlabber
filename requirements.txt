@@ -1,5 +1,5 @@
 anytree==2.8.0
-GitPython==3.1.37
+GitPython==3.1.41
 python-gitlab==3.14.0
 globre==0.1.5
 PyYAML==6.0
