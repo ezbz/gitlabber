@@ -115,7 +115,7 @@ class GitlabTree:
 
     def get_projects(self, group, parent):
         try:
-            projects = group.projects.list(iterator=True, archived=self.archived)
+            projects = group.projects.list(iterator=True, archived=self.archived, get_all=True)
             self.progress.update_progress_length(len(projects))
             self.add_projects(parent, projects)
         except GitlabListError as error:
@@ -147,7 +147,7 @@ class GitlabTree:
 
     def get_subgroups(self, group, parent):
         try:
-            subgroups = group.subgroups.list(iterator=True, archived=self.archived)
+            subgroups = group.subgroups.list(iterator=True, archived=self.archived, get_all=True)
         except GitlabListError as error:
             log.error(f"Error listing group {group.name} (ID: {group.id}): {error}. Check your permissions as you may not have access to it.")
             return
@@ -173,7 +173,8 @@ class GitlabTree:
         if not groups:
             groups = self.gitlab.groups.list(iterator=True,
                                              archived=self.archived,
-                                             top_level_only=True)
+                                             top_level_only=True,
+                                             get_all=True)
         self.progress.init_progress(len(groups))
         for group in groups:
             if group.parent_id is None:
