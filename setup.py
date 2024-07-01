@@ -38,7 +38,7 @@ setup(
     version = __version__,
     description = 'A Gitlab clone/pull utility for backing up or cloning Gitlab groups',
     long_description = long_description,
-    long_description_content_type="text/markdown",
+    long_description_content_type="text/x-rst",
     url = 'https://github.com/ezbz/gitlabber',
     download_url = 'https://github.com/ezbz/gitlabber/archive/master.zip',
     author = 'Erez Mazor',

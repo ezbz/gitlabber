@@ -1,6 +1,25 @@
 # Changelog
 
 <!--next-version-placeholder-->
+## [1.2.3] - 01/07/2024
+### Added
+### Changed
+- fix pypi documentation
+### Deprecated
+### Removed
+### Fixed
+### Security
+
+## [1.2.2] - 01/07/2024
+### Added
+### Changed
+- debug statements for inclusion
+- get all for groups
+### Deprecated
+### Removed
+### Fixed
+### Security
+- 
 ## [1.2.1] - 30/06/2024
 ### Added
 ### Changed
