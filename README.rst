@@ -153,7 +153,7 @@ Debugging
 Troubleshooting
 ---------------
 * `GitlabHttpError: 503`: make sure you provide the base URL to your GitLab installation (e.g., `https://gitlab.my.com` and not `https://gitlab.my.com/some/nested/path`)
-* `git.exc.GitCommandError: Cmd('git') failed due to: exit code(128)` OR `ERROR: The project you were looking for could not be found or you don't have permission to view it.`: if you are using Git's SSH method, follow the `SSH Guide <https://docs.gitlab.com/ee/user/ssh.html>` from Gitlab and ensure you have your SSH key in Gitlab for clone or use the HTTP method (`-m http` flag)
+* `git.exc.GitCommandError: Cmd('git') failed due to: exit code(128)` OR `ERROR: The project you were looking for could not be found or you don't have permission to view it.`: if you are using Git's SSH method, follow the `SSH Guide <https://docs.gitlab.com/ee/user/ssh.html>`_ from Gitlab and ensure you have your SSH key in Gitlab for clone or use the HTTP method (`-m http` flag)
   
 Known Limitations
 -----------------
