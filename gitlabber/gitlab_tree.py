@@ -55,9 +55,8 @@ class GitlabTree:
         '''
         if self.includes is not None:
             for include in self.includes:
+                log.debug(f"Checking requested include: {include} with path: {node.root_path}, match {globre.match(include, node.root_path)}")
                 if globre.match(include, node.root_path):
-                    log.debug(
-                        "Matched include path [%s] to node [%s]", include, node.root_path)
                     return True
         else:
             return True
@@ -70,10 +69,10 @@ class GitlabTree:
         '''
         if self.excludes is not None:
             for exclude in self.excludes:
+                log.debug(f"Checking requested exclude: {exclude} with path: {node.root_path}, match {globre.match(exclude, node.root_path)}")
                 if globre.match(exclude, node.root_path):
-                    log.debug(
-                        "Matched exclude path [%s] to node [%s]", exclude, node.root_path)
                     return True
+        
         return False
 
     def filter_tree(self, parent):
@@ -122,7 +121,7 @@ class GitlabTree:
             log.error(f"Error getting projects on {group.name} (ID: {group.id}): {error} )")
 
     def get_subgroups(self, group, parent):
-        subgroups = group.subgroups.list(as_list=False, archived=self.archived)
+        subgroups = group.subgroups.list(as_list=False, archived=self.archived, get_all=True)
         self.progress.update_progress_length(len(subgroups))
         for subgroup_def in subgroups:
             try:
@@ -139,10 +138,8 @@ class GitlabTree:
                 else:
                     raise error
 
-
-
     def load_gitlab_tree(self):
-        groups = self.gitlab.groups.list(as_list=False, archived=self.archived)
+        groups = self.gitlab.groups.list(as_list=False, archived=self.archived, get_all=True)
         self.progress.init_progress(len(groups))
         for group in groups:
             if group.parent_id is None:
