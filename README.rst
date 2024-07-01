@@ -40,7 +40,7 @@ Installation
     pip install gitlabber
 
 * You'll need to create an `access token <https://docs.gitlab.com/ee/user/profile/personal_access_tokens.html>`_ from GitLab with API scopes `read_repository`
-  and `read_api` (or `api`, for GitLab versions <12.0)
+  and ``read_api`` (or ``api``, for GitLab versions <12.0)
 
 Usage
 -----
@@ -62,7 +62,7 @@ Usage
     | exclude       | -x            | `GITLABBER_EXCLUDE`       |
     +---------------+---------------+---------------------------+
 
-* To view the tree run the command with your includes/excludes and the `-p` flag. It will print your tree like so:
+* To view the tree run the command with your includes/excludes and the ``-p`` flag. It will print your tree like so:
 
 .. code-block:: bash
 
@@ -80,7 +80,7 @@ Usage
 
 * Cloning vs Pulling: when running Gitlabber consecutively with the same parameters, it will scan the local tree structure; if the project directory exists and is a valid git repository (has .git folder in it) Gitlabber will perform a git pull in the directory, otherwise the project directory will be created and the GitLab project will be cloned into it.
 
-* Cloning submodules: use the `-r` flag to recurse git submodules, uses the `--recursive` for cloning and utilizes `GitPython's smart update method <https://github.com/gitpython-developers/GitPython/blob/20f4a9d49b466a18f1af1fdfb480bc4520a4cdc2/git/objects/submodule/root.py#L67>`_ for updating cloned repositories
+* Cloning submodules: use the ``-r`` flag to recurse git submodules, uses the ``--recursive`` for cloning and utilizes `GitPython's smart update method <https://github.com/gitpython-developers/GitPython/blob/20f4a9d49b466a18f1af1fdfb480bc4520a4cdc2/git/objects/submodule/root.py#L67>`_ for updating cloned repositories
 
 * Printed Usage:
 
@@ -143,7 +143,7 @@ Usage
 
 Debugging
 ---------
-* You can use the `--verbose` flag to print Gitlabber debug messages
+* You can use the ``--verbose`` flag to print Gitlabber debug messages
 * For more verbose GitLab messages, you can get the `GitPython <https://gitpython.readthedocs.io/en/stable>`_ module to print more debug messages by setting the environment variable:
 
 .. code-block:: bash
@@ -152,11 +152,11 @@ Debugging
 
 Troubleshooting
 ---------------
-* `GitlabHttpError: 503`: make sure you provide the base URL to your GitLab installation (e.g., `https://gitlab.my.com` and not `https://gitlab.my.com/some/nested/path`)
-* `git.exc.GitCommandError: Cmd('git') failed due to: exit code(128)` OR `ERROR: The project you were looking for could not be found or you don't have permission to view it.`: if you are using Git's SSH method, follow the `SSH Guide <https://docs.gitlab.com/ee/user/ssh.html>`_ from Gitlab and ensure you have your SSH key in Gitlab for clone or use the HTTP method (`-m http` flag)
+* ``GitlabHttpError: 503``: make sure you provide the base URL to your GitLab installation (e.g., `https://gitlab.my.com` and not `https://gitlab.my.com/some/nested/path`)
+* ``git.exc.GitCommandError: Cmd('git') failed due to: exit code(128)`` OR ``ERROR: The project you were looking for could not be found or you don't have permission to view it.``: if you are using Git's SSH method, follow the `SSH Guide <https://docs.gitlab.com/ee/user/ssh.html>`_ from Gitlab and ensure you have your SSH key in Gitlab for clone or use the HTTP method (``-m http`` flag)
   
 Known Limitations
 -----------------
 * Renaming, moving and deleting projects: Gitlabber doesn't maintain local tree state (projects and groups). For that reason is does not rename move or delete local projects when they are modified on the server. When projects are moved or renamed, Gitlabber will clone them again under their new name or location. When deleted, Gitlabber will not delete the local project.
-* Folder naming strategy: Consecutively running Gitlabber with different values for the `-n` parameter will produce undesirable results. Use the same value as previous runs, or simply don't change it from the default (project name).
+* Folder naming strategy: Consecutively running Gitlabber with different values for the ``-n`` parameter will produce undesirable results. Use the same value as previous runs, or simply don't change it from the default (project name).
 * If you're going to clone a large number of projects, observe rate limits `for gitlab.com <https://docs.gitlab.com/ee/user/gitlab_com/index.html#gitlabcom-specific-rate-limits/>`_, and `for on-premise installations <https://docs.gitlab.com/ee/security/rate_limits.html>`_.
