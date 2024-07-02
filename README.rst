@@ -1,7 +1,7 @@
 .. image:: https://github.com/ezbz/gitlabber/actions/workflows/python-app.yml/badge.svg?branch=master
     :target: https://github.com/ezbz/gitlabber/actions/workflows/python-app.yml
 
-.. image:: https://codecov.io/gh/ezbz/gitlabber/branch/master/graph/badge.svg
+.. image:: https://codecov.io/gh/ezbz/gitlabber/branch/main/graph/badge.svg
   :target: https://codecov.io/gh/ezbz/gitlabber
   
 .. image:: https://badge.fury.io/py/gitlabber.svg
