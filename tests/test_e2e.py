@@ -10,8 +10,8 @@ coverage.process_startup()
 
 @pytest.mark.slow_integration_test
 def test_clone_subgroup():
-    os.environ['GITLAB_URL'] = 'http://www.gitlab.com/'
-    output = io_util.execute(['-p', '--print-format', 'json'], 60)
+    os.environ['GITLAB_URL'] = 'https://gitlab.com/'
+    output = io_util.execute(['-p', '--print-format', 'json', '--group-search', 'Group Test'], 60)
     obj = json.loads(output)
     assert obj['children'][0]['name'] == 'Group Test'
     assert obj['children'][0]['children'][0]['name'] == 'Subgroup Test'
@@ -22,8 +22,8 @@ def test_clone_subgroup():
 
 @pytest.mark.slow_integration_test
 def test_clone_subgroup_exclude_archived():
-    os.environ['GITLAB_URL'] = 'http://www.gitlab.com/'
-    output = io_util.execute(['-p', '--print-format', 'json', '-a', 'exclude'], 60)
+    os.environ['GITLAB_URL'] = 'https://gitlab.com/'
+    output = io_util.execute(['-p', '--print-format', 'json', '--group-search', 'Group Test',  '-a', 'exclude'], 60)
     obj = json.loads(output)
     assert obj['children'][0]['name'] == 'Group Test'
     assert obj['children'][0]['children'][0]['name'] == 'Subgroup Test'
@@ -33,19 +33,8 @@ def test_clone_subgroup_exclude_archived():
 
 @pytest.mark.slow_integration_test
 def test_clone_subgroup_only_archived():
-    os.environ['GITLAB_URL'] = 'http://www.gitlab.com/'
-    output = io_util.execute(['-p', '--print-format', 'json', '-a', 'only'], 60)
-    obj = json.loads(output)
-    assert obj['children'][0]['name'] == 'Group Test'
-    assert obj['children'][0]['children'][0]['name'] == 'Subgroup Test'
-    assert len(obj['children'][0]['children'][0]['children']) == 1
-    assert obj['children'][0]['children'][0]['children'][0]['name'] == 'archived-project'
-
-
-@pytest.mark.slow_integration_test
-def test_clone_subgroup_only_archived():
-    os.environ['GITLAB_URL'] = 'http://www.gitlab.com/'
-    output = io_util.execute(['-p', '--print-format', 'json', '-a', 'only'], 60)
+    os.environ['GITLAB_URL'] = 'https://gitlab.com/'
+    output = io_util.execute(['-p', '--print-format', 'json', '--group-search', 'Group Test',  '-a', 'only'], 60)
     obj = json.loads(output)
     assert obj['children'][0]['name'] == 'Group Test'
     assert obj['children'][0]['children'][0]['name'] == 'Subgroup Test'
@@ -55,8 +44,8 @@ def test_clone_subgroup_only_archived():
 
 @pytest.mark.slow_integration_test
 def test_clone_subgroup_naming_path():
-    os.environ['GITLAB_URL'] = 'http://www.gitlab.com/'
-    output = io_util.execute(['-p', '--print-format', 'json', '-n', 'path'], 60)
+    os.environ['GITLAB_URL'] = 'https://gitlab.com/'
+    output = io_util.execute(['-p', '--print-format', 'json', '-n', 'path', '--group-search', 'Group Test'], 60)
     obj = json.loads(output)
     assert obj['children'][0]['name'] == 'erez-group-test'
     assert obj['children'][0]['children'][0]['name'] == 'subgroup-test'
@@ -64,3 +53,16 @@ def test_clone_subgroup_naming_path():
     assert obj['children'][0]['children'][0]['children'][0]['name'] == 'archived-project'
     assert obj['children'][0]['children'][0]['children'][1]['name'] == 'gitlab-project-submodule'
     assert obj['children'][0]['children'][0]['children'][2]['name'] == 'gitlabber-sample-submodule'
+
+
+@pytest.mark.slow_integration_test
+def test_large_groups():
+    os.environ['GITLAB_URL'] = 'https://gitlab.com/'
+    output = io_util.execute(['-p', '--print-format', 'json', '-n', 'path', '--group-search', 'large-group-test', '--verbose'], 60)
+    obj = json.loads(output)
+    assert obj['children'][0]['name'] == 'large-group-test'
+    assert obj['children'][0]['children'][0]['name'] == 'many-subgroups'
+    assert len(obj['children'][0]['children'][0]['children']) == 21
+    assert obj['children'][0]['children'][1]['name'] == 'gitlab-many-projects'
+    assert len(obj['children'][0]['children'][1]['children']) == 21
+    
