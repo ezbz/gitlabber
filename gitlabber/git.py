@@ -25,6 +25,7 @@ def sync_tree(root, dest, concurrency=1, disable_progress=False, recursive=False
     actions = get_git_actions(root, dest, recursive, use_fetch, hide_token)
     with concurrent.futures.ThreadPoolExecutor(max_workers=concurrency) as executor:
         executor.map(clone_or_pull_project, actions)
+    
     elapsed = progress.finish_progress()
     log.debug("Syncing projects took [%s]", elapsed)
 
@@ -57,6 +58,7 @@ def clone_or_pull_project(action):
         '''
         log.debug("updating existing project %s", action.path)
         progress.show_progress(action.node.name, 'pull')
+        
         try:
             repo = git.Repo(action.path)
             if(not action.use_fetch):
@@ -74,6 +76,9 @@ def clone_or_pull_project(action):
         '''
         Clone new project
         '''
+        if(action.node.type != "project"):
+            log.debug("Skipping clone of node with type [%s] (empty subgroup/group)", action.node.type)
+            return
         log.debug("cloning new project %s", action.path)
         progress.show_progress(action.node.name, 'clone')
         multi_options = []
@@ -88,5 +93,5 @@ def clone_or_pull_project(action):
             log.fatal("User interrupted")
             sys.exit(0)
         except Exception as e:
-            log.debug("Error cloning project %s", action.path, exc_info=True)
+            log.error("Error cloning project %s", action.path, exc_info=True)
 
