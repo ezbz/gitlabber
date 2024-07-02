@@ -43,8 +43,7 @@ def main():
 
     tree = GitlabTree(args.url, args.token, args.method, args.naming, args.archived.api_value, includes,
                       excludes, args.file, args.concurrency, args.recursive, args.verbose,
-                      args.use_fetch, args.hide_token, group_search=args.group_search)
-    log.debug("Reading projects tree from gitlab at [%s]", args.url)
+                      args.include_shared, args.use_fetch, args.hide_token, args.user_projects, group_search=args.group_search)
     tree.load_tree()
 
     if tree.is_empty():
@@ -211,6 +210,12 @@ def parse_args(argv=None):
         '--group-search',
         metavar=('term'),
         help='only include groups matching the search term, filtering done at the API level (useful for large projects, see: https://docs.gitlab.com/ee/api/groups.html#search-for-group works with partial names of path or name)')
+    parser.add_argument(
+        '-U',
+        '--user-projects',
+        action='store_true',
+        default=False,
+        help='fetch only user personal projects (skips the group tree altogether, group related parameters are ignored). Clones personal projects to \'{gitlab-username}-personal-projects\'')
     parser.add_argument(
         '--version',
         action='store_true',

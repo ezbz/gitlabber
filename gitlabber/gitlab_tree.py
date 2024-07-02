@@ -17,9 +17,8 @@ log = logging.getLogger(__name__)
 
 
 class GitlabTree:
-
     def __init__(self, url, token, method, naming=None, archived=None, includes=[], excludes=[], in_file=None, concurrency=1, recursive=False, disable_progress=False,
-                include_shared=True, use_fetch=False, hide_token=False, group_search=None):
+                include_shared=True, use_fetch=False, hide_token=False, user_projects=False, group_search=None):
         self.includes = includes
         self.excludes = excludes
         self.url = url
@@ -38,6 +37,7 @@ class GitlabTree:
         self.include_shared = include_shared
         self.use_fetch = use_fetch
         self.hide_token = hide_token
+        self.user_projects = user_projects
         self.group_search = group_search
 
     @staticmethod
@@ -160,12 +160,26 @@ class GitlabTree:
             dct = yaml.safe_load(stream)
             self.root = DictImporter().import_(dct)
 
+    def load_user_tree(self):
+        log.debug(f"Starting user project search with archived: {self.archived}")
+        self.gitlab.auth()
+        user = self.gitlab.users.get(self.gitlab.user.id)
+        username = user.username
+        projects = user.projects.list(as_list=False, archived=self.archived, get_all=True)
+        self.progress.init_progress(len(projects))
+        root = self.make_node("group", f"{username}-prsonal-projects", self.root, url=f"{self.url}/users/{username}/projects")
+        self.add_projects(root, projects)
+
+
     def load_tree(self):
         if self.in_file:
             log.debug("Loading tree from file [%s]", self.in_file)
             self.load_file_tree()
+        elif self.user_projects:
+            log.debug("Loading user personal projects from gitlab server [%s]", self.url)
+            self.load_user_tree()
         else:
-            log.debug("Loading projects tree gitlab server [%s]", self.url)
+            log.debug("Loading projects tree from gitlab server [%s]", self.url)
             self.load_gitlab_tree()
 
         log.debug("Fetched root node with [%d] projects" % len(
