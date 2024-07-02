@@ -86,59 +86,63 @@ Usage
 
 .. code-block:: bash
 
- usage: gitlabber [-h] [-t token] [-T] [-u url] [--verbose] [-p] [--print-format {json,yaml,tree}] [-n {name,path}] [-m {ssh,http}] [-a {include,exclude,only}] [-i csv] [-x csv] [-r] [-F] [-d] [-s] [--version]
-                 [dest]
+    usage: gitlabber [-h] [-t token] [-T] [-u url] [--verbose] [-p] [--print-format {json,yaml,tree}] [-n {name,path}] [-m {ssh,http}]
+                    [-a {include,exclude,only}] [-i csv] [-x csv] [-r] [-F] [-d] [-s] [-g term] [--version]
+                    [dest]
 
     Gitlabber - clones or pulls entire groups/projects tree from gitlab
-    
+
     positional arguments:
-      dest                  destination path for the cloned tree (created if doesn't exist)
-    
+    dest                  destination path for the cloned tree (created if doesn't exist)
+
     options:
-      -h, --help            show this help message and exit
-      -t token, --token token
+    -h, --help            show this help message and exit
+    -t token, --token token
                             gitlab personal access token https://docs.gitlab.com/ee/user/profile/personal_access_tokens.html
-      -T, --hide-token      use an inline URL token (avoids storing the gitlab personal access token in the .git/config)
-      -u url, --url url     base gitlab url (e.g.: 'http://gitlab.mycompany.com')
-      --verbose             print more verbose output
-      -p, --print           print the tree without cloning
-      --print-format {json,yaml,tree}
+    -T, --hide-token      use an inline URL token (avoids storing the gitlab personal access token in the .git/config)
+    -u url, --url url     base gitlab url (e.g.: 'http://gitlab.mycompany.com')
+    --verbose             print more verbose output
+    -p, --print           print the tree without cloning
+    --print-format {json,yaml,tree}
                             print format (default: 'tree')
-      -n {name,path}, --naming {name,path}
+    -n {name,path}, --naming {name,path}
                             the folder naming strategy for projects from the gitlab API attributes (default: "name")
-      -m {ssh,http}, --method {ssh,http}
+    -m {ssh,http}, --method {ssh,http}
                             the git transport method to use for cloning (default: "ssh")
-      -a {include,exclude,only}, --archived {include,exclude,only}
+    -a {include,exclude,only}, --archived {include,exclude,only}
                             include archived projects and groups in the results (default: "include")
-      -i csv, --include csv
+    -i csv, --include csv
                             comma delimited list of glob patterns of paths to projects or groups to clone/pull
-      -x csv, --exclude csv
+    -x csv, --exclude csv
                             comma delimited list of glob patterns of paths to projects or groups to exclude from clone/pull
-      -r, --recursive       clone/pull git submodules recursively
-      -F, --use-fetch       clone/fetch git repository (mirrored repositories)
-      -d, --dont-checkout   don't checkout pulled git repository
-      -s, --include-shared  include shared projects in the results
-      --version             print the version
-    
+    -r, --recursive       clone/pull git submodules recursively
+    -F, --use-fetch       clone/fetch git repository (mirrored repositories)
+    -d, --dont-checkout   don't checkout pulled git repository
+    -s, --include-shared  include shared projects in the results
+    -g term, --group-search term
+                            only include groups matching the search term, filtering done at the API level (useful for large projects, see: https://docs.gitlab.com/ee/api/groups.html#search-for-group works with partial names of path or name)
+    --version             print the version
+
     examples:
-    
+
         clone an entire gitlab tree using a url and a token:
         gitlabber -t <personal access token> -u <gitlab url>
-    
+
         only print the gitlab tree:
         gitlabber -p .
-    
+
         clone only projects under subgroup 'MySubGroup' to location '~/GitlabRoot':
         gitlabber -i '/MyGroup/MySubGroup**' ~/GitlabRoot
-    
+
         clone only projects under group 'MyGroup' excluding any projects under subgroup 'MySubGroup':
         gitlabber -i '/MyGroup**' -x '/MyGroup/MySubGroup**' .
-    
+
         clone an entire gitlab tree except projects under groups named 'ArchiveGroup':
         gitlabber -x '/ArchiveGroup**' .
-    
+
         clone projects that start with a case insensitive 'w' using a regular expression:
         gitlabber -i '/{[w].*}' .
+
 
 
 Debugging

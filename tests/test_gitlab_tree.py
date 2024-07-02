@@ -106,7 +106,7 @@ def test_archive_excluded(monkeypatch):
     gl.load_tree()
     assert gl.root.is_leaf is False
     assert len(gl.root.children) == 1
-    assert len(gl.root.children[0].children) == 1
+    assert len(gl.root.children[0].children) == 2
     assert len(gl.root.children[0].children[0].children) == 1
     
     assert "_archived_" not in gl.root.children[0].name
@@ -120,7 +120,7 @@ def test_archive_only(monkeypatch):
     gl.print_tree()
     assert gl.root.is_leaf is False
     assert len(gl.root.children) == 1
-    assert len(gl.root.children[0].children) == 1
+    assert len(gl.root.children[0].children) == 2
     assert len(gl.root.children[0].children[0].children) == 1
     
     assert "_archived_" in gl.root.children[0].name

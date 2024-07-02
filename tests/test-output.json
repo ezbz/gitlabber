@@ -7,20 +7,24 @@
             {
               "name": "project",
               "root_path": "/group/subgroup/project",
+              "type": "project",
               "url": "http://gitlab.my.com/group/subgroup/project/project.git"
             }
           ],
           "name": "subgroup",
           "root_path": "/group/subgroup",
+          "type": "subgroup",
           "url": "http://gitlab.my.com/group/subgroup"
         }
       ],
       "name": "group",
       "root_path": "/group",
+      "type": "group",
       "url": "http://gitlab.my.com/group"
     }
   ],
   "name": "",
   "root_path": "",
+  "type": "root",
   "url": "http://gitlab.my.com/"
 }

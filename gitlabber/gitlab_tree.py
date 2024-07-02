@@ -19,11 +19,11 @@ log = logging.getLogger(__name__)
 class GitlabTree:
 
     def __init__(self, url, token, method, naming=None, archived=None, includes=[], excludes=[], in_file=None, concurrency=1, recursive=False, disable_progress=False,
-                include_shared=True, use_fetch=False, hide_token=False):
+                include_shared=True, use_fetch=False, hide_token=False, group_search=None):
         self.includes = includes
         self.excludes = excludes
         self.url = url
-        self.root = Node("", root_path="", url=url)
+        self.root = Node("", root_path="", url=url, type="root")
         self.gitlab = Gitlab(url, private_token=token,
                              ssl_verify=GitlabTree.get_ca_path())
         self.method = method
@@ -38,6 +38,7 @@ class GitlabTree:
         self.include_shared = include_shared
         self.use_fetch = use_fetch
         self.hide_token = hide_token
+        self.group_search = group_search
 
     @staticmethod
     def get_ca_path():
@@ -93,8 +94,8 @@ class GitlabTree:
     def root_path(self, node):
         return "/".join([str(n.name) for n in node.path])
 
-    def make_node(self, name, parent, url):
-        node = Node(name=name, parent=parent, url=url)
+    def make_node(self, type, name, parent, url):
+        node = Node(name=name, parent=parent, url=url, type=type)
         node.root_path = self.root_path(node)
         return node
 
@@ -108,7 +109,7 @@ class GitlabTree:
                   log.debug("Generated URL: %s", project_url)
               else:
                   log.debug("Hiding token from project url: %s", project_url)
-            node = self.make_node(project_id, parent,
+            node = self.make_node("project", project_id, parent,
                                   url=project_url)
             self.progress.show_progress(node.name, 'project')
 
@@ -118,16 +119,16 @@ class GitlabTree:
             self.progress.update_progress_length(len(projects))
             self.add_projects(parent, projects)
         except GitlabListError as error:
-            log.error(f"Error getting projects on {group.name} (ID: {group.id}): {error} )")
+            log.error(f"Error getting projects on {group.name} id: [{group.id}]  error message: [{error.error_message}]")
 
     def get_subgroups(self, group, parent):
-        subgroups = group.subgroups.list(as_list=False, archived=self.archived, get_all=True)
+        subgroups = group.subgroups.list(as_list=False, get_all=True)
         self.progress.update_progress_length(len(subgroups))
         for subgroup_def in subgroups:
             try:
                 subgroup = self.gitlab.groups.get(subgroup_def.id)
                 subgroup_id = subgroup.name if self.naming == FolderNaming.NAME else subgroup.path
-                node = self.make_node(subgroup_id, parent, url=subgroup.web_url)
+                node = self.make_node("subgroup", subgroup_id, parent, url=subgroup.web_url)
                 self.progress.show_progress(node.name, 'group')
                 self.get_subgroups(subgroup, node)
                 self.get_projects(subgroup, node)
@@ -139,12 +140,14 @@ class GitlabTree:
                     raise error
 
     def load_gitlab_tree(self):
-        groups = self.gitlab.groups.list(as_list=False, archived=self.archived, get_all=True)
+        log.debug(f"Starting group search with archived: {self.archived} search term: {self.group_search}")
+                    
+        groups = self.gitlab.groups.list(as_list=False, archived=self.archived, get_all=True, search=self.group_search)
         self.progress.init_progress(len(groups))
         for group in groups:
             if group.parent_id is None:
                 group_id = group.name if self.naming == FolderNaming.NAME else group.path
-                node = self.make_node(group_id, self.root, url=group.web_url)
+                node = self.make_node("group", group_id, self.root, url=group.web_url)
                 self.progress.show_progress(node.name, 'group')
                 self.get_subgroups(group, node)
                 self.get_projects(group, node)        

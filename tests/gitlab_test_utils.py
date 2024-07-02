@@ -2,7 +2,6 @@ import pytest
 import json
 from unittest import mock
 from gitlabber import gitlab_tree
-from gitlab.exceptions import GitlabGetError
 
 URL = "http://gitlab.my.com/"
 TOKEN = "MOCK_TOKEN"
@@ -22,7 +21,8 @@ TREE_TEST_OUTPUT_FILE = "tests/test-output.tree"
 
 
 class MockNode:
-    def __init__(self, id, name, url, subgroups=mock.MagicMock(), projects=mock.MagicMock(), parent_id=None, archived=False, shared=False):
+    def __init__(self, type, id, name, url, subgroups=mock.MagicMock(), projects=mock.MagicMock(), parent_id=None, archived=0, shared=False, group_search=None):
+        self.type = type
         self.id = id
         self.name = name
         self.path = name
@@ -35,13 +35,14 @@ class MockNode:
         self.parent_id = parent_id
         self.archived = archived
         self.shared = shared
+        self.group_search = group_search
 
 
 class Listable:
     def __init__(self, *nodes: MockNode):
         self.nodes = nodes
 
-    def list(self, as_list=False, archived=None, with_shared=True, get_all=True):
+    def list(self, as_list=False, archived=None, with_shared=True, get_all=True, search=None):
         filtered = filter(lambda it: self.is_included(it, archived, with_shared), self.nodes)
         return list(filtered)
 
@@ -70,7 +71,7 @@ class Tree:
     def get(self, id):
         return next(filter(lambda it: it.id == id, self.all_nodes))
 
-    def list(self, as_list=False, archived=None, with_shared=True, get_all=True):
+    def list(self, as_list=False, archived=None, with_shared=True, get_all=True, search=None):
         return self.roots.list(as_list, archived, with_shared)
 
     def get_all_nodes(self, node: MockNode):
@@ -119,10 +120,10 @@ def validate_tree(root):
 def create_test_gitlab(monkeypatch, includes=None, excludes=None, in_file=None):
     gl = gitlab_tree.GitlabTree(
         URL, TOKEN, "ssh", "name", includes=includes, excludes=excludes, in_file=in_file)
-    projects = Listable(MockNode(2, PROJECT_NAME, PROJECT_URL))
+    projects = Listable(MockNode("project", 2, PROJECT_NAME, PROJECT_URL))
     groups = Listable(
-        MockNode(2, GROUP_NAME, GROUP_URL, subgroups=Listable(
-            MockNode(3, SUBGROUP_NAME, SUBGROUP_URL, projects=projects)
+            MockNode("group", 2, GROUP_NAME, GROUP_URL, subgroups=Listable(
+            MockNode("subgroup", 3, SUBGROUP_NAME, SUBGROUP_URL, projects=projects)
         ))
     )
     monkeypatch.setattr(gl.gitlab, "groups", Tree(groups))
@@ -132,28 +133,28 @@ def create_test_gitlab(monkeypatch, includes=None, excludes=None, in_file=None):
 def create_test_gitlab_with_toplevel_subgroups(monkeypatch):
     gl = gitlab_tree.GitlabTree(URL, TOKEN, "ssh", "path")
     groups = Listable(
-        MockNode(2, GROUP_NAME, GROUP_URL),
-        MockNode(3, GROUP_NAME, GROUP_URL, parent_id=1)
+        MockNode("group", 2, GROUP_NAME, GROUP_URL),
+        MockNode("group", 3, GROUP_NAME, GROUP_URL, parent_id=1)
     )
     monkeypatch.setattr(gl.gitlab, "groups", Tree(groups))
     return gl
 
 
-def create_test_gitlab_with_archived(monkeypatch, includes=None, excludes=None, in_file=None, archived=None):
+def create_test_gitlab_with_archived(monkeypatch, includes=None, excludes=None, in_file=None, archived=False):
     gl = gitlab_tree.GitlabTree(
         URL, TOKEN, "ssh", "name", includes=includes, excludes=excludes, in_file=in_file, archived=archived)
     projects = Listable(
-        MockNode(11, PROJECT_NAME, PROJECT_URL),
-        MockNode(12, "_archived_" + PROJECT_NAME, "_archived_" + PROJECT_URL, archived=True)
+        MockNode("project", 11, PROJECT_NAME, PROJECT_URL),
+        MockNode("project", 12, "_archived_" + PROJECT_NAME, "_archived_" + PROJECT_URL, archived=1)
     )
     monkeypatch.setattr(gl.gitlab, "groups", Tree(Listable(
-        MockNode(1, GROUP_NAME, GROUP_URL, subgroups=Listable(
-            MockNode(2, SUBGROUP_NAME, SUBGROUP_URL, projects=projects),
-            MockNode(3, SUBGROUP_NAME, SUBGROUP_URL, projects=projects, archived=True)
+        MockNode("group", 13, GROUP_NAME, GROUP_URL, subgroups=Listable(
+            MockNode("subgroup", 14, SUBGROUP_NAME, SUBGROUP_URL, projects=projects),
+            MockNode("subgroup", 15, SUBGROUP_NAME, SUBGROUP_URL, projects=projects)
         )),
-        MockNode(4, "_archived_" + GROUP_NAME, "_archived_" + GROUP_URL, archived=True, subgroups=Listable(
-            MockNode(5, SUBGROUP_NAME, SUBGROUP_URL, projects=projects),
-            MockNode(6, SUBGROUP_NAME, SUBGROUP_URL, projects=projects, archived=True)
+        MockNode("group", 16, "_archived_" + GROUP_NAME, "_archived_" + GROUP_URL, archived=1, subgroups=Listable(
+            MockNode("subgroup", 17, SUBGROUP_NAME, SUBGROUP_URL, projects=projects),
+            MockNode("subgroup", 18, SUBGROUP_NAME, SUBGROUP_URL, projects=projects)
         ))
     )))
     return gl
@@ -163,12 +164,10 @@ def create_test_gitlab_with_shared(monkeypatch, includes=None, excludes=None, in
         URL, TOKEN, "ssh", "name", includes=includes, excludes=excludes, in_file=in_file, include_shared=with_shared)
 
     projects = Listable(
-        MockNode(11, PROJECT_NAME, PROJECT_URL),
-        MockNode(13, "_shared_" + PROJECT_NAME, "_shared_" + PROJECT_URL, shared=True)
+        MockNode("project", 19, PROJECT_NAME, PROJECT_URL),
+        MockNode("project", 20, "_shared_" + PROJECT_NAME, "_shared_" + PROJECT_URL, shared=True)
     )
     monkeypatch.setattr(gl.gitlab, "groups", Tree(Listable(
-        MockNode(1, GROUP_NAME, GROUP_URL, projects=projects)
+        MockNode("group", 21, GROUP_NAME, GROUP_URL, projects=projects)
     )))
     return gl
-
- 

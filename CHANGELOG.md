@@ -1,6 +1,28 @@
 # Changelog
 
 <!--next-version-placeholder-->
+
+
+
+
+
+
+
+## [1.2.4] - 02/07/2024
+### Added
+### Changed
+- Fix archived parameter incorrectly passed to api - there's no support for archived subgroups in the groups.subgroups API
+- Introduce new paramter group-search, only groups matching the search term will be fetched from the API - using an SQL full Like on the name or the path of the group (useful for large projects), see: https://docs.gitlab.com/ee/api/groups.html#search-for-group
+- Fix showing elapsed time as None when progress bar is disabled (verbose mode)
+- Fix args not printing in verbose mode
+- Fix cloning of subgroups throws a git error, new type attributes on nodes ensures only projects are clone
+### Deprecated
+### Removed
+### Fixed
+### Security
+
+
+
 ## [1.2.3] - 01/07/2024
 ### Added
 ### Changed

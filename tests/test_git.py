@@ -12,10 +12,10 @@ SUBGROUP_PATH = "/group/subgroup"
 PROJECT_PATH = "/group/subgroup/project"
 
 def create_tree():
-    root = Node(name="root")
-    group = Node(name="group", root_path=GROUP_PATH, parent=root)
-    subgroup = Node(name="subgroup", root_path=SUBGROUP_PATH, parent=group)
-    Node(name="project1", root_path=PROJECT_PATH, parent=subgroup)
+    root = Node(type="root", name="root")
+    group = Node(type="group", name="group", root_path=GROUP_PATH, parent=root)
+    subgroup = Node(type="subgroup", name="subgroup", root_path=SUBGROUP_PATH, parent=group)
+    Node(type="project", name="project1", root_path=PROJECT_PATH, parent=subgroup)
     return root
 
 
@@ -62,7 +62,7 @@ def test_pull_repo(mock_git):
     repo_instance = mock_git.Repo.return_value
     git.is_git_repo = mock.MagicMock(return_value=True)
 
-    git.clone_or_pull_project(GitAction(Node(name="test"), "dummy_dir"))
+    git.clone_or_pull_project(GitAction(Node(type="test", name="test"), "dummy_dir"))
     mock_git.Repo.assert_called_once_with("dummy_dir")
     repo_instance.remotes.origin.pull.assert_called_once()
 
@@ -74,7 +74,7 @@ def test_clone_repo(mock_git):
     git.is_git_repo = mock.MagicMock(return_value=False)
 
     git.clone_or_pull_project(
-        GitAction(Node(name="dummy_url", url="dummy_url"), "dummy_dir"))
+        GitAction(Node(type="project", name="dummy_url", url="dummy_url"), "dummy_dir"))
 
     mock_git.Repo.clone_from.assert_called_once_with("dummy_url", "dummy_dir", multi_options=[])
 
@@ -85,7 +85,7 @@ def test_clone_repo_recursive(mock_git):
     git.is_git_repo = mock.MagicMock(return_value=False)
 
     git.clone_or_pull_project(
-        GitAction(Node(name="dummy_url", url="dummy_url"), "dummy_dir", recursive=True))
+        GitAction(Node(type="project", name="dummy_url", url="dummy_url"), "dummy_dir", recursive=True))
 
     mock_git.Repo.clone_from.assert_called_once_with("dummy_url", "dummy_dir", multi_options=['--recursive'])
 
@@ -96,7 +96,7 @@ def test_pull_repo_recursive(mock_git):
     repo_instance = mock_git.Repo.return_value
     git.is_git_repo = mock.MagicMock(return_value=True)
 
-    git.clone_or_pull_project(GitAction(Node(name="test"), "dummy_dir", recursive=True))
+    git.clone_or_pull_project(GitAction(Node(type="project", name="test"), "dummy_dir", recursive=True))
     mock_git.Repo.assert_called_once_with("dummy_dir")
     repo_instance.remotes.origin.pull.assert_called_once()
     repo_instance.submodule_update.assert_called_once_with(recursive=True)
@@ -111,7 +111,7 @@ def test_pull_repo_exception(mock_git):
     repo_instance.remotes.origin.pull.side_effect=Exception('pull test exception')
 
     git.clone_or_pull_project(GitAction(
-        Node(name="dummy_url", url="dummy_url"), "dummy_dir"))
+        Node(type="project", name="dummy_url", url="dummy_url"), "dummy_dir"))
 
     mock_git.Repo.assert_called_once_with("dummy_dir")
     repo_instance.remotes.origin.pull.assert_called_once()
@@ -127,7 +127,7 @@ def test_pull_repo_interrupt(mock_git):
 
     with pytest.raises(SystemExit):
         git.clone_or_pull_project(GitAction(
-            Node(name="dummy_url", url="dummy_url"), "dummy_dir"))
+            Node(type="project", name="dummy_url", url="dummy_url"), "dummy_dir"))
 
     mock_git.Repo.assert_called_once_with("dummy_dir")
     repo_instance.remotes.origin.pull.assert_called_once()
@@ -141,6 +141,6 @@ def test_clone_repo_interrupt(mock_git):
 
     with pytest.raises(SystemExit):
         git.clone_or_pull_project(GitAction(
-            Node(name="dummy_url", url="dummy_url"), "dummy_dir"))
+            Node(type="project", name="dummy_url", url="dummy_url"), "dummy_dir"))
 
     mock_git.Repo.clone_from.assert_called_once_with("dummy_url", "dummy_dir", multi_options=[])
