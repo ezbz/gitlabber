@@ -2,10 +2,14 @@
 
 <!--next-version-placeholder-->
 
-
-
-
-
+## [1.2.5] - 02/07/2024
+### Added
+- Added ability to clone a user's personal projects
+### Changed
+### Deprecated
+### Removed
+### Fixed
+### Security
 
 
 ## [1.2.4] - 02/07/2024

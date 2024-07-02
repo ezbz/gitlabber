@@ -58,11 +58,20 @@ def test_clone_subgroup_naming_path():
 @pytest.mark.slow_integration_test
 def test_large_groups():
     os.environ['GITLAB_URL'] = 'https://gitlab.com/'
-    output = io_util.execute(['-p', '--print-format', 'json', '-n', 'path', '--group-search', 'large-group-test', '--verbose'], 60)
+    output = io_util.execute(['-p', '--print-format', 'json', '-n', 'path', '--group-search', 'large-group-test'], 60)
     obj = json.loads(output)
     assert obj['children'][0]['name'] == 'large-group-test'
     assert obj['children'][0]['children'][0]['name'] == 'many-subgroups'
     assert len(obj['children'][0]['children'][0]['children']) == 21
     assert obj['children'][0]['children'][1]['name'] == 'gitlab-many-projects'
     assert len(obj['children'][0]['children'][1]['children']) == 21
+    
+
+@pytest.mark.slow_integration_test
+def test_user_personal_projects():
+    os.environ['GITLAB_URL'] = 'https://gitlab.com/'
+    output = io_util.execute(['-p', '--print-format', 'json', '-n', 'path', '--user-projects'], 60)
+    obj = json.loads(output)
+    assert obj['children'][0]['name'] == 'erezmazor-prsonal-projects'
+    assert obj['children'][0]['children'][0]['name'] == 'gitlabber-personal-project'
     
