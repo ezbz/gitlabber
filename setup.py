@@ -40,7 +40,7 @@ setup(
     long_description = long_description,
     long_description_content_type="text/x-rst",
     url = 'https://github.com/ezbz/gitlabber',
-    download_url = 'https://github.com/ezbz/gitlabber/archive/master.zip',
+    download_url = 'https://github.com/ezbz/gitlabber/archive/main.zip',
     author = 'Erez Mazor',
     author_email = 'erezmazor@gmail.com',
     license = 'MIT',
