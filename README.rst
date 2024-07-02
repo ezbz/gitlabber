@@ -29,7 +29,6 @@ Purpose
 Gitlabber clones or pulls all projects under a subset of groups / subgroups by building a tree from the GitLab API and allowing you to specify which subset of the tree you want to clone using glob patterns and/or regex expressions.
 
 
-
 Installation
 ------------
 
@@ -45,7 +44,8 @@ Installation
 Usage
 -----
 
-* Arguments can be provided via the CLI arguments directly or via environment variables::
+* Arguments can be provided via the CLI arguments directly or via environment variables:
+
     +---------------+---------------+---------------------------+
     | Argument      | Flag          | Environment Variable      |
     +===============+===============+===========================+
@@ -77,6 +77,8 @@ Usage
         └── subgroup3 [/group2/subgroup3]
 
 * To see how to use glob patterns and regex to filter tree nodes, see the `globre project page <https://pypi.org/project/globre/#details>`_.
+
+* Include/Exclude patterns do not work at the API level but work on the results returned from the API, for large Gitlab installations this can take a lot of time, if you need to reduce the amound of API calls for such projects use the ``--group-search`` parameter to search only for the top level groups the interest you using the `Gitlab Group Search API <https://docs.gitlab.com/ee/api/groups.html#search-for-group>` which allows you to do a partial like query for a Group's path or name
 
 * Cloning vs Pulling: when running Gitlabber consecutively with the same parameters, it will scan the local tree structure; if the project directory exists and is a valid git repository (has .git folder in it) Gitlabber will perform a git pull in the directory, otherwise the project directory will be created and the GitLab project will be cloned into it.
 
