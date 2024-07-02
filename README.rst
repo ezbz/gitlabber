@@ -89,7 +89,7 @@ Usage
 .. code-block:: bash
 
     usage: gitlabber [-h] [-t token] [-T] [-u url] [--verbose] [-p] [--print-format {json,yaml,tree}] [-n {name,path}] [-m {ssh,http}]
-                    [-a {include,exclude,only}] [-i csv] [-x csv] [-r] [-F] [-d] [-s] [-g term] [--version]
+                    [-a {include,exclude,only}] [-i csv] [-x csv] [-r] [-F] [-d] [-s] [-g term] [-U] [--version]
                     [dest]
 
     Gitlabber - clones or pulls entire groups/projects tree from gitlab
@@ -123,6 +123,7 @@ Usage
     -s, --include-shared  include shared projects in the results
     -g term, --group-search term
                             only include groups matching the search term, filtering done at the API level (useful for large projects, see: https://docs.gitlab.com/ee/api/groups.html#search-for-group works with partial names of path or name)
+    -U, --user-projects   fetch only user personal projects (skips the group tree altogether, group related parameters are ignored). Clones personal projects to '{gitlab-username}-personal-projects'
     --version             print the version
 
     examples:
