@@ -37,9 +37,13 @@ def main():
     includes=split(args.include)
     excludes=split(args.exclude)
 
+    args_print = vars(args).copy()
+    args_print['token'] = '__hidden__'
+    log.debug("running with args [%s]", args_print)
+
     tree = GitlabTree(args.url, args.token, args.method, args.naming, args.archived.api_value, includes,
                       excludes, args.file, args.concurrency, args.recursive, args.verbose,
-                      args.use_fetch, args.hide_token)
+                      args.use_fetch, args.hide_token, group_search=args.group_search)
     log.debug("Reading projects tree from gitlab at [%s]", args.url)
     tree.load_tree()
 
@@ -203,15 +207,16 @@ def parse_args(argv=None):
         default=True,
         help='include shared projects in the results')
     parser.add_argument(
+        '-g',
+        '--group-search',
+        metavar=('term'),
+        help='only include groups matching the search term, filtering done at the API level (useful for large projects, see: https://docs.gitlab.com/ee/api/groups.html#search-for-group works with partial names of path or name)')
+    parser.add_argument(
         '--version',
         action='store_true',
         help='print the version')
 
-    args = parser.parse_args(argv)
-    args_print = vars(args).copy()
-    args_print['token'] = 'xxxxx'
-    log.debug("running with args [%s]", args_print)
-    return args
+    return parser.parse_args(argv)
 
 def validate_path(value):
     if value.endswith('/'):
