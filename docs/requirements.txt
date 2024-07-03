@@ -72,5 +72,5 @@ sphinxcontrib-serializinghtml==1.1.5
     # via sphinx
 typing-extensions==4.12.2
     # via pydata-sphinx-theme
-urllib3==1.26.9
+urllib3==1.26.19
     # via requests
