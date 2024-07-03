@@ -11,3 +11,4 @@ dist
 htmlcov
 .pyvenv
 .pypirc
+docs/_build
