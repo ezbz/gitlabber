@@ -2,6 +2,7 @@ import pytest
 import json
 from unittest import mock
 from gitlabber import gitlab_tree
+from gitlabber.method import CloneMethod
 
 URL = "http://gitlab.my.com/"
 TOKEN = "MOCK_TOKEN"
@@ -12,6 +13,7 @@ SUBGROUP_URL = "http://gitlab.my.com/group/subgroup"
 SUBGROUP_NAME = "subgroup"
 
 PROJECT_URL = "http://gitlab.my.com/group/subgroup/project/project.git"
+PROJECT_URL_WITH_TOKEN = "http://gitlab-token:xxx@gitlab.my.com/group/subgroup/project/project.git"
 PROJECT_NAME = "project"
 
 YAML_TEST_INPUT_FILE = "tests/test-input.yaml"
@@ -21,7 +23,7 @@ TREE_TEST_OUTPUT_FILE = "tests/test-output.tree"
 
 
 class MockNode:
-    def __init__(self, type, id, name, url, subgroups=mock.MagicMock(), projects=mock.MagicMock(), parent_id=None, archived=0, shared=False, group_search=None):
+    def __init__(self, type, id, name, url, subgroups=mock.MagicMock(), projects=mock.MagicMock(), parent_id=None, archived=0, shared=False, group_search=None, git_options=None):
         self.type = type
         self.id = id
         self.name = name
@@ -117,10 +119,10 @@ def validate_tree(root):
     validate_subgroup(root.children[0].children[0])
     validate_project(root.children[0].children[0].children[0])
 
-def create_test_gitlab(monkeypatch, includes=None, excludes=None, in_file=None):
+def create_test_gitlab(monkeypatch, includes=None, excludes=None, in_file=None, hide_token=True, method=CloneMethod.SSH):
     gl = gitlab_tree.GitlabTree(
-        URL, TOKEN, "ssh", "name", includes=includes, excludes=excludes, in_file=in_file)
-    projects = Listable(MockNode("project", 2, PROJECT_NAME, PROJECT_URL))
+        URL, TOKEN, "ssh", "name", includes=includes, excludes=excludes, in_file=in_file, hide_token=hide_token)
+    projects = Listable(MockNode("project", 2, PROJECT_NAME, PROJECT_URL if hide_token else PROJECT_URL_WITH_TOKEN))
     groups = Listable(
             MockNode("group", 2, GROUP_NAME, GROUP_URL, subgroups=Listable(
             MockNode("subgroup", 3, SUBGROUP_NAME, SUBGROUP_URL, projects=projects)

@@ -1,4 +1,5 @@
 
+from gitlabber.method import CloneMethod
 import tests.gitlab_test_utils as gitlab_util
 import tests.io_test_util as output_util
 from gitlabber.archive import ArchivedResults
@@ -165,3 +166,10 @@ def test_shared_excluded(monkeypatch):
     assert len(gl.root.children[0].children) == 1
 
     assert "project" in gl.root.children[0].children[0].name
+    
+    
+def test_hide_token_from_project_url(monkeypatch):
+    gl = gitlab_util.create_test_gitlab(monkeypatch, hide_token=True, method=CloneMethod.HTTP)
+    gl.load_tree()
+    gl.print_tree()
+    assert 'gitlab-token:xxx@' not in gl.root.children[0].children[0].children[0].url

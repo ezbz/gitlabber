@@ -18,7 +18,7 @@ log = logging.getLogger(__name__)
 
 class GitlabTree:
     def __init__(self, url, token, method, naming=None, archived=None, includes=[], excludes=[], in_file=None, concurrency=1, recursive=False, disable_progress=False,
-                include_shared=True, use_fetch=False, hide_token=False, user_projects=False, group_search=None):
+                include_shared=True, use_fetch=False, hide_token=False, user_projects=False, group_search=None, git_options=None):
         self.includes = includes
         self.excludes = excludes
         self.url = url
@@ -39,6 +39,7 @@ class GitlabTree:
         self.hide_token = hide_token
         self.user_projects = user_projects
         self.group_search = group_search
+        self.git_options = git_options
 
     @staticmethod
     def get_ca_path():
