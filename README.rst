@@ -20,7 +20,7 @@
 Gitlabber
 =========
 
-* A utility to clone and pull GitLab groups, subgroups, projects based on path selection
+* A utility to clone and pull GitLab groups, subgroups, group projects or personal user projects based on path selection
 
 
 Purpose
