@@ -2,6 +2,15 @@
 
 <!--next-version-placeholder-->
 
+## [1.2.6] - 02/07/2024
+### Added
+- Added ability to provide git options to the GitPython clone/update method to support things like shallow clone (e.g., --depth=1)
+### Changed
+### Deprecated
+### Removed
+### Fixed
+### Security
+
 ## [1.2.5] - 02/07/2024
 ### Added
 - Added ability to clone a user's personal projects

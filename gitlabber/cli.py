@@ -43,7 +43,8 @@ def main():
 
     tree = GitlabTree(args.url, args.token, args.method, args.naming, args.archived.api_value, includes,
                       excludes, args.file, args.concurrency, args.recursive, args.verbose,
-                      args.include_shared, args.use_fetch, args.hide_token, args.user_projects, group_search=args.group_search)
+                      args.include_shared, args.use_fetch, args.hide_token, args.user_projects, 
+                      group_search=args.group_search, git_options=args.git_options)
     tree.load_tree()
 
     if tree.is_empty():
@@ -91,6 +92,12 @@ def parse_args(argv=None):
 
     clone projects that start with a case insensitive 'w' using a regular expression:
     gitlabber -i '/{[w].*}' .
+    
+    clone a user's personal projects to username-personal-projects
+    gitlabber -U .
+    
+    perform a shallow clone of the git repositories
+    gitlabber -o "\-\-depth=1," .
     '''
 
     parser = ArgumentParser(
@@ -216,6 +223,12 @@ def parse_args(argv=None):
         action='store_true',
         default=False,
         help='fetch only user personal projects (skips the group tree altogether, group related parameters are ignored). Clones personal projects to \'{gitlab-username}-personal-projects\'')
+    parser.add_argument(
+        '-o',
+        '--git-options',
+        nargs=1,
+        metavar=('options'),
+        help='provide additional options as csv for the git command (e.g., --depth=1). See: clone/multi_options https://gitpython.readthedocs.io/en/stable/reference.html#')
     parser.add_argument(
         '--version',
         action='store_true',

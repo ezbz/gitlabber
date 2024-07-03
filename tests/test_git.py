@@ -115,6 +115,20 @@ def test_pull_repo_exception(mock_git):
 
     mock_git.Repo.assert_called_once_with("dummy_dir")
     repo_instance.remotes.origin.pull.assert_called_once()
+    
+@mock.patch('gitlabber.git.git')
+def test_clone_repo_exception(mock_git):
+    mock_repo = mock.Mock()
+    mock_git.Repo = mock_repo
+    git.is_git_repo = mock.MagicMock(return_value=False)
+    
+    repo_instance = mock_git.Repo.return_value
+    repo_instance.clone_from.side_effect=Exception('clone test exception')
+
+    git.clone_or_pull_project(
+        GitAction(Node(type="project", name="dummy_url", url="dummy_url"), "dummy_dir"))
+    mock_git.Repo.clone_from.assert_called_once_with('dummy_url', 'dummy_dir', multi_options=[])
+    mock_git.Repo.clone_from.assert_called_once()
 
 @mock.patch('gitlabber.git.git')
 def test_pull_repo_interrupt(mock_git):
@@ -144,3 +158,27 @@ def test_clone_repo_interrupt(mock_git):
             Node(type="project", name="dummy_url", url="dummy_url"), "dummy_dir"))
 
     mock_git.Repo.clone_from.assert_called_once_with("dummy_url", "dummy_dir", multi_options=[])
+
+
+@mock.patch('gitlabber.git.git')
+def test_clone_repo_options_many_options(mock_git):
+    mock_repo = mock.Mock()
+    mock_git.Repo = mock_repo
+    git.is_git_repo = mock.MagicMock(return_value=False)
+
+    git.clone_or_pull_project(
+        GitAction(Node(type="project", name="dummy_url", url="dummy_url"), "dummy_dir", git_options="--opt1=1,--opt2=2"))
+
+    mock_git.Repo.clone_from.assert_called_once_with("dummy_url", "dummy_dir", multi_options=['--opt1=1','--opt2=2'])
+    
+    
+@mock.patch('gitlabber.git.git')
+def test_clone_repo_options_with_recursive(mock_git):
+    mock_repo = mock.Mock()
+    mock_git.Repo = mock_repo
+    git.is_git_repo = mock.MagicMock(return_value=False)
+
+    git.clone_or_pull_project(
+        GitAction(Node(type="project", name="dummy_url", url="dummy_url"), "dummy_dir", recursive=True, git_options="--opt1=1,--opt2=2"))
+
+    mock_git.Repo.clone_from.assert_called_once_with("dummy_url", "dummy_dir", multi_options=['--recursive','--opt1=1','--opt2=2'])

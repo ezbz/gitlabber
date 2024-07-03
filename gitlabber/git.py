@@ -12,14 +12,15 @@ progress = ProgressBar('* syncing projects')
 
 
 class GitAction:
-    def __init__(self, node, path, recursive=False, use_fetch=False, hide_token=False):
+    def __init__(self, node, path, recursive=False, use_fetch=False, hide_token=False, git_options=None):
         self.node = node
         self.path = path
         self.recursive = recursive
         self.use_fetch = use_fetch
         self.hide_token = hide_token
+        self.git_options = git_options
 
-def sync_tree(root, dest, concurrency=1, disable_progress=False, recursive=False, use_fetch=False, hide_token=False):
+def sync_tree(root, dest, concurrency=1, disable_progress=False, recursive=False, use_fetch=False, hide_token=False, git_options=None):
     if not disable_progress:
         progress.init_progress(len(root.leaves))
     actions = get_git_actions(root, dest, recursive, use_fetch, hide_token)
@@ -71,7 +72,7 @@ def clone_or_pull_project(action):
             log.fatal("User interrupted")
             sys.exit(0)
         except Exception as e:
-            log.debug("Error pulling project %s", action.path, exc_info=True)
+            log.error("Error pulling project %s", action.path, exc_info=True)
     else:
         '''
         Clone new project
@@ -86,6 +87,8 @@ def clone_or_pull_project(action):
             multi_options.append('--recursive')
         if(action.use_fetch):
             multi_options.append('--mirror')
+        if(action.git_options):
+            multi_options += action.git_options.split(',')
         try:
             git.Repo.clone_from(action.node.url, action.path, multi_options=multi_options)
                 
