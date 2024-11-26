@@ -1,4 +1,3 @@
-
 import os
 import sys
 import logging
@@ -73,7 +72,7 @@ def config_logging(args):
 
 
 def parse_args(argv=None):
-    example_text = '''examples:
+    example_text = r'''examples:
 
     clone an entire gitlab tree using a url and a token:
     gitlabber -t <personal access token> -u <gitlab url>
