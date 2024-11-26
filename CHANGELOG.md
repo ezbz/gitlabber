@@ -1,6 +1,18 @@
 # Changelog
 
 <!--next-version-placeholder-->
+## [1.2.7] - 26/1/2024
+### Added
+- Add support for Python 3.13
+### Changed
+- Update dependencies
+### Deprecated
+### Removed
+- Support for Python 3.8 (python gitlab library dropped support for it)
+### Fixed
+### Security
+
+
 
 ## [1.2.6] - 02/07/2024
 ### Added
