@@ -136,14 +136,13 @@ class GitlabTree:
                     self.get_projects(subgroup, node)
                 except GitlabGetError as error:
                     if error.response_code == 404:
-                        log.error(f"{error.response_code} error while get subgroup with name: {group.name} [id: {group.id}]. Check your permissions as you may not have access to it. Message: {error.error_message}")
+                        log.error(f"{error.response_code} error while getting subgroup with name: {group.name} [id: {group.id}]. Check your permissions as you may not have access to it. Message: {error.error_message}")
                         continue
                     else:
                         raise error
         except GitlabListError as error:
             if error.response_code == 404:
-                log.error(f"{error.response_code} error while list subgroup with name: {group.name} [id: {group.id}]. Check your permissions as you may not have access to it. Message: {error.error_message}")
-                pass
+                log.error(f"{error.response_code} error while listing subgroup with name: {group.name} [id: {group.id}]. Check your permissions as you may not have access to it. Message: {error.error_message}")
             else:
                 raise error
 
