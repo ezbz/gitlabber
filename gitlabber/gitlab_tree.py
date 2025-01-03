@@ -123,22 +123,29 @@ class GitlabTree:
             log.error(f"Error getting projects on {group.name} id: [{group.id}]  error message: [{error.error_message}]")
 
     def get_subgroups(self, group, parent):
-        subgroups = group.subgroups.list(as_list=False, get_all=True)
-        self.progress.update_progress_length(len(subgroups))
-        for subgroup_def in subgroups:
-            try:
-                subgroup = self.gitlab.groups.get(subgroup_def.id)
-                subgroup_id = subgroup.name if self.naming == FolderNaming.NAME else subgroup.path
-                node = self.make_node("subgroup", subgroup_id, parent, url=subgroup.web_url)
-                self.progress.show_progress(node.name, 'group')
-                self.get_subgroups(subgroup, node)
-                self.get_projects(subgroup, node)
-            except GitlabListError as error:
-                if error.response_code == 404:
-                    log.error(f"{error.response_code} error while listing subgroup with name: {group.name} [id: {group.id}]. Check your permissions as you may not have access to it. Message: {error.error_message}")
-                    continue
-                else:
-                    raise error
+        try:
+            subgroups = group.subgroups.list(as_list=False, get_all=True)
+            self.progress.update_progress_length(len(subgroups))
+            for subgroup_def in subgroups:
+                try:
+                    subgroup = self.gitlab.groups.get(subgroup_def.id)
+                    subgroup_id = subgroup.name if self.naming == FolderNaming.NAME else subgroup.path
+                    node = self.make_node("subgroup", subgroup_id, parent, url=subgroup.web_url)
+                    self.progress.show_progress(node.name, 'group')
+                    self.get_subgroups(subgroup, node)
+                    self.get_projects(subgroup, node)
+                except GitlabGetError as error:
+                    if error.response_code == 404:
+                        log.error(f"{error.response_code} error while get subgroup with name: {group.name} [id: {group.id}]. Check your permissions as you may not have access to it. Message: {error.error_message}")
+                        continue
+                    else:
+                        raise error
+        except GitlabListError as error:
+            if error.response_code == 404:
+                log.error(f"{error.response_code} error while list subgroup with name: {group.name} [id: {group.id}]. Check your permissions as you may not have access to it. Message: {error.error_message}")
+                pass
+            else:
+                raise error
 
     def load_gitlab_tree(self):
         log.debug(f"Starting group search with archived: {self.archived} search term: {self.group_search}")
