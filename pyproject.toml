@@ -55,3 +55,25 @@ gitlabber = "gitlabber.cli:main"
 [tool.setuptools]
 packages = ["gitlabber"]
 include-package-data = true
+
+[tool.pytest.ini_options]
+addopts = [
+    "-vv",
+    "--cov=gitlabber",
+    "--no-cov-on-fail",
+    "--cov-append",
+    "--cov-report=term-missing",
+    "--cov-report=xml",
+    "--verbose",
+    "--capture=sys",
+    "--without-slow-integration",
+    "--integration-cover"
+]
+norecursedirs = [
+    "dist",
+    "build"
+]
+testpaths = ["tests"]
+
+[tool.coverage.run]
+parallel = true
