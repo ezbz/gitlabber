@@ -30,8 +30,8 @@ pytest
 * Release
 ```
 pip install --upgrade pip
-pip install setuptools wheel twine
-python setup.py sdist bdist_wheel
+pip install build
+python -m build
 twine check dist/*
 twine upload dist/*
 ```

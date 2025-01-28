@@ -1,8 +1,57 @@
 [build-system]
-requires = ["flit_core >=3.2,<4"]
-build-backend = "flit_core.buildapi"
+requires = ["setuptools>=45", "wheel"]
+build-backend = "setuptools.build_meta"
 
 [project]
 name = "gitlabber"
-authors = [{name = "ezbz", email = "ezbz@github"}]
-dynamic = ["version", "description"]
+version = "1.2.7"
+description = "A Gitlab clone/pull utility for backing up or cloning Gitlab groups"
+readme = "README.rst"
+requires-python = ">=3"
+license = {text = "MIT"}
+authors = [
+    {name = "Erez Mazor", email = "erezmazor@gmail.com"},
+]
+keywords = ["gitlab", "python", "cli"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Topic :: Utilities",
+    "License :: OSI Approved :: MIT License",
+    "Natural Language :: English",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+]
+dependencies = [
+    "docopt",
+    "anytree",
+    "globre",
+    "pyyaml",
+    "tqdm",
+    "GitPython",
+    "python-gitlab",
+]
+
+[project.optional-dependencies]
+test = [
+    "coverage",
+    "pytest",
+    "pytest-cov",
+    "pytest-integration",
+]
+
+[project.urls]
+Homepage = "https://github.com/ezbz/gitlabber"
+Download = "https://github.com/ezbz/gitlabber/archive/main.zip"
+
+[project.scripts]
+gitlabber = "gitlabber.cli:main"
+
+[tool.setuptools]
+packages = ["gitlabber"]
+include-package-data = true
