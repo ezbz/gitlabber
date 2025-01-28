@@ -119,9 +119,17 @@ def validate_tree(root):
     validate_subgroup(root.children[0].children[0])
     validate_project(root.children[0].children[0].children[0])
 
-def create_test_gitlab(monkeypatch, includes=None, excludes=None, in_file=None, hide_token=True, method=CloneMethod.SSH):
+def create_test_gitlab(monkeypatch, includes=None, excludes=None, in_file=None, hide_token=True, method=CloneMethod.SSH, token=TOKEN):
     gl = gitlab_tree.GitlabTree(
-        URL, TOKEN, "ssh", "name", includes=includes, excludes=excludes, in_file=in_file, hide_token=hide_token)
+        URL, 
+        token, 
+        method,  # Use the method parameter instead of hardcoding "ssh"
+        "name", 
+        includes=includes, 
+        excludes=excludes, 
+        in_file=in_file, 
+        hide_token=hide_token
+    )
     projects = Listable(MockNode("project", 2, PROJECT_NAME, PROJECT_URL if hide_token else PROJECT_URL_WITH_TOKEN))
     groups = Listable(
             MockNode("group", 2, GROUP_NAME, GROUP_URL, subgroups=Listable(
@@ -130,7 +138,6 @@ def create_test_gitlab(monkeypatch, includes=None, excludes=None, in_file=None, 
     )
     monkeypatch.setattr(gl.gitlab, "groups", Tree(groups))
     return gl
-
 
 def create_test_gitlab_with_toplevel_subgroups(monkeypatch):
     gl = gitlab_tree.GitlabTree(URL, TOKEN, "ssh", "path")

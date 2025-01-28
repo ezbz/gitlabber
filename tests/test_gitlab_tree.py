@@ -1,8 +1,10 @@
-
 from gitlabber.method import CloneMethod
 import tests.gitlab_test_utils as gitlab_util
 import tests.io_test_util as output_util
 from gitlabber.archive import ArchivedResults
+import pytest
+from unittest import mock
+from gitlab.exceptions import GitlabGetError
 
 def test_load_tree(monkeypatch):
     gl = gitlab_util.create_test_gitlab(monkeypatch)
@@ -173,3 +175,73 @@ def test_hide_token_from_project_url(monkeypatch):
     gl.load_tree()
     gl.print_tree()
     assert 'gitlab-token:xxx@' not in gl.root.children[0].children[0].children[0].url
+
+
+def test_get_subgroups_404_error(monkeypatch):
+    gl = gitlab_util.create_test_gitlab(monkeypatch)
+
+    # Create mock group and subgroup
+    mock_group = mock.Mock()
+    mock_group.name = "mock_group"
+    mock_group.id = 123
+    
+    # Create a mock subgroup definition that will be returned by list()
+    mock_subgroup_def = mock.Mock()
+    mock_subgroup_def.id = 456
+    
+    # Make subgroups.list return our mock subgroup definition
+    mock_group.subgroups.list.return_value = [mock_subgroup_def]
+
+    # This is the function that will raise the 404 when trying to get the subgroup
+    def mock_get_subgroup(id):
+        raise GitlabGetError(response_code=404, error_message="Not Found")
+
+    # Patch the groups.get method
+    monkeypatch.setattr(gl.gitlab.groups, "get", mock_get_subgroup)
+
+    with mock.patch("gitlabber.gitlab_tree.log.error") as mock_log_error:
+        gl.get_subgroups(mock_group, gl.root)
+        
+        mock_log_error.assert_called_once_with(
+            f"404 error while getting subgroup with name: {mock_group.name} [id: {mock_group.id}]. Check your permissions as you may not have access to it. Message: Not Found"
+        )
+        
+def test_hide_token_in_project_url_both_cases(monkeypatch):
+    test_token = "test-token-123"
+    
+    # Create two instances to test both cases
+    gl_hidden = gitlab_util.create_test_gitlab(monkeypatch, 
+                                             hide_token=True, 
+                                             method=CloneMethod.HTTP,
+                                             token=test_token)
+                                             
+    gl_visible = gitlab_util.create_test_gitlab(monkeypatch, 
+                                              hide_token=False, 
+                                              method=CloneMethod.HTTP,
+                                              token=test_token)
+
+    # Create mock project
+    mock_project = mock.Mock()
+    mock_project.name = "test-project"
+    mock_project.path = "test-project"
+    mock_project.ssh_url_to_repo = "git@gitlab.com:group/test-project.git"
+    mock_project.http_url_to_repo = "https://gitlab.com/group/test-project.git"
+
+    # Test with hide_token=True
+    with mock.patch("gitlabber.gitlab_tree.log.debug") as mock_log_debug_hidden:
+        gl_hidden.add_projects(gl_hidden.root, [mock_project])
+        project_node_hidden = gl_hidden.root.children[0]
+        
+        # Verify token is not in URL
+        assert project_node_hidden.url == "https://gitlab.com/group/test-project.git"
+        mock_log_debug_hidden.assert_any_call("Hiding token from project url: %s", 
+                                            project_node_hidden.url)
+
+    # Test with hide_token=False
+    with mock.patch("gitlabber.gitlab_tree.log.debug") as mock_log_debug_visible:
+        gl_visible.add_projects(gl_visible.root, [mock_project])
+        project_node_visible = gl_visible.root.children[0]
+        
+        expected_url = f"https://gitlab-token:{test_token}@gitlab.com/group/test-project.git"
+        assert project_node_visible.url == expected_url
+        mock_log_debug_visible.assert_any_call("Generated URL: %s", expected_url)
