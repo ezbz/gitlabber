@@ -37,15 +37,14 @@ jobs:
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
     - name: Test with pytest
-      env:
-        GITLAB_URL: http://www.gitlab.com/
-        GITLAB_TOKEN: ${{ secrets.GITLAB_COM_TOKEN }}
       run: |
-        pytest
-    - name: Upload Coverage to Codecov
-      uses: codecov/codecov-action@v4
+        pytest --cov --junitxml=junit.xml
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v5
       with:
-        fail_ci_if_error: true
-        verbose: true
-      env:
-        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+        token: ${{ secrets.CODECOV_TOKEN }}
+    - name: Upload test results to Codecov
+      if: ${{ !cancelled() }}
+      uses: codecov/test-results-action@v1
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
