@@ -1,6 +1,16 @@
 # Changelog
 
 <!--next-version-placeholder-->
+## [1.2.8] - 25/3/2025
+### Added
+- Add support for shared projects fetching
+### Changed
+### Deprecated
+### Removed
+### Fixed
+### Security
+
+
 ## [1.2.7] - 26/1/2024
 ### Added
 - Add support for Python 3.13
@@ -11,7 +21,6 @@
 - Support for Python 3.8 (python gitlab library dropped support for it)
 ### Fixed
 ### Security
-
 
 
 ## [1.2.6] - 02/07/2024
