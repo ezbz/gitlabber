@@ -23,7 +23,7 @@ TREE_TEST_OUTPUT_FILE = "tests/test-output.tree"
 
 
 class MockNode:
-    def __init__(self, type, id, name, url, subgroups=mock.MagicMock(), projects=mock.MagicMock(), parent_id=None, archived=0, shared=False, group_search=None, git_options=None):
+    def __init__(self, type, id, name, url, subgroups=mock.MagicMock(), projects=mock.MagicMock(), shared_projects=mock.MagicMock(), parent_id=None, archived=0, shared=False, group_search=None, git_options=None):
         self.type = type
         self.id = id
         self.name = name
@@ -34,6 +34,7 @@ class MockNode:
         self.http_url_to_repo = url
         self.subgroups = subgroups
         self.projects = projects
+        self.shared_projects = shared_projects
         self.parent_id = parent_id
         self.archived = archived
         self.shared = shared
@@ -174,9 +175,12 @@ def create_test_gitlab_with_shared(monkeypatch, includes=None, excludes=None, in
 
     projects = Listable(
         MockNode("project", 19, PROJECT_NAME, PROJECT_URL),
+    )
+     
+    shared_projects = Listable(
         MockNode("project", 20, "_shared_" + PROJECT_NAME, "_shared_" + PROJECT_URL, shared=True)
     )
     monkeypatch.setattr(gl.gitlab, "groups", Tree(Listable(
-        MockNode("group", 21, GROUP_NAME, GROUP_URL, projects=projects)
+        MockNode("group", 21, GROUP_NAME, GROUP_URL, projects=projects, shared_projects=shared_projects)
     )))
     return gl

@@ -92,7 +92,7 @@ def parse_args(argv=None):
     clone projects that start with a case insensitive 'w' using a regular expression:
     gitlabber -i '/{[w].*}' .
     
-    clone a user's personal projects to username-personal-projects
+    clone the user personal projects to username-personal-projects
     gitlabber -U .
     
     perform a shallow clone of the git repositories
@@ -199,12 +199,6 @@ def parse_args(argv=None):
         action='store_true',
         default=False,
         help='clone/fetch git repository (mirrored repositories)')
-    parser.add_argument(
-        '-d',
-        '--dont-checkout',
-        action='store_true',
-        default=False,
-        help="don't checkout pulled git repository")    
     parser.add_argument(
         '-s',
         '--include-shared',

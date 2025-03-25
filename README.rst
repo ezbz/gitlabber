@@ -119,7 +119,6 @@ Usage
                             comma delimited list of glob patterns of paths to projects or groups to exclude from clone/pull
     -r, --recursive       clone/pull git submodules recursively
     -F, --use-fetch       clone/fetch git repository (mirrored repositories)
-    -d, --dont-checkout   don't checkout pulled git repository
     -s, --include-shared  include shared projects in the results
     -g term, --group-search term
                             only include groups matching the search term, filtering done at the API level (useful for large projects, see: https://docs.gitlab.com/ee/api/groups.html#search-for-group works with partial names of path or name)
@@ -148,7 +147,7 @@ Usage
         clone projects that start with a case insensitive 'w' using a regular expression:
         gitlabber -i '/{[w].*}' .
 
-        clone a user's personal projects to username-personal-projects
+        clone the personal projects to username-personal-projects
         gitlabber -U .
 
         perform a shallow clone of the git repositories

@@ -119,6 +119,11 @@ class GitlabTree:
             projects = group.projects.list(archived=self.archived, with_shared=self.include_shared, get_all=True)
             self.progress.update_progress_length(len(projects))
             self.add_projects(parent, projects)
+            
+            if self.include_shared and hasattr(group, 'shared_projects'):
+                shared_projects = group.shared_projects.list(get_all=True)
+                self.progress.update_progress_length(len(shared_projects))
+                self.add_projects(parent, shared_projects)
         except GitlabListError as error:
             log.error(f"Error getting projects on {group.name} id: [{group.id}]  error message: [{error.error_message}]")
 
