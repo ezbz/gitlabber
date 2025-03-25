@@ -22,10 +22,5 @@ jobs:
           pip install build
       - name: Build package
         run: python -m build
-      - name: Download all the dists
-        uses: actions/download-artifact@v4
-        with:
-          name: python-package-distributions
-          path: dist/
       - name: Publish package distributions to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
