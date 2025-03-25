@@ -1,2 +1,2 @@
-Sphinx>=5,<6
+Sphinx>=8
 sphinx_book_theme
