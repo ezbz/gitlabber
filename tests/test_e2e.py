@@ -75,3 +75,13 @@ def test_user_personal_projects():
     assert obj['children'][0]['name'] == 'erezmazor-prsonal-projects'
     assert obj['children'][0]['children'][0]['name'] == 'gitlabber-personal-project'
     
+
+@pytest.mark.slow_integration_test
+def test_shared_group_and_project():
+    os.environ['GITLAB_URL'] = 'https://gitlab.com/'
+    output = io_util.execute(['-p', '--print-format', 'json', '-s', '--group-search', 'shared-group3'], 60)
+    obj = json.loads(output)
+    assert obj['children'][0]['name'] == 'Shared Group'
+    assert obj['children'][0]['children'][0]['name'] == 'Shared Project'
+    
+    
