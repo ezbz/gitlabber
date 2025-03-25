@@ -2,8 +2,14 @@ name: pypi-release
 on:
   workflow_dispatch:
 jobs:
-  build:
+  pypi-publish:
+    name: upload release to PyPI
     runs-on: ubuntu-latest
+    # Specifying a GitHub environment is optional, but strongly encouraged
+    environment: release
+    permissions:
+      # IMPORTANT: this permission is mandatory for trusted publishing
+      id-token: write
     steps:
       - uses: actions/checkout@v4
       - name: Set up Python
@@ -16,15 +22,6 @@ jobs:
           pip install build
       - name: Build package
         run: python -m build
-  pypi-publish:
-    name: upload release to PyPI
-    runs-on: ubuntu-latest
-    # Specifying a GitHub environment is optional, but strongly encouraged
-    environment: release
-    permissions:
-      # IMPORTANT: this permission is mandatory for trusted publishing
-      id-token: write
-    steps:
       - name: Download all the dists
         uses: actions/download-artifact@v4
         with:
