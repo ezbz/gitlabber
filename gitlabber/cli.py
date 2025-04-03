@@ -1,9 +1,10 @@
+from typing import Optional, List, Any, Dict
 import os
 import sys
 import logging
 import logging.handlers
 import enum
-from argparse import ArgumentParser, RawTextHelpFormatter, FileType, SUPPRESS
+from argparse import ArgumentParser, RawTextHelpFormatter, FileType, SUPPRESS, Namespace
 from .gitlab_tree import GitlabTree
 from .format import PrintFormat
 from .method import CloneMethod
@@ -14,7 +15,7 @@ from . import __version__ as VERSION
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 log = logging.getLogger(__name__)
 
-def main():
+def main() -> None:
     args = parse_args(argv=None if sys.argv[1:] else ['--help'])
     if args.version:
         print(VERSION)
@@ -33,17 +34,32 @@ def main():
         sys.exit(1)
 
     config_logging(args)
-    includes=split(args.include)
-    excludes=split(args.exclude)
+    includes = split(args.include)
+    excludes = split(args.exclude)
 
-    args_print = vars(args).copy()
+    args_print: Dict[str, Any] = vars(args).copy()
     args_print['token'] = '__hidden__'
     log.debug("running with args [%s]", args_print)
 
-    tree = GitlabTree(args.url, args.token, args.method, args.naming, args.archived.api_value, includes,
-                      excludes, args.file, args.concurrency, args.recursive, args.verbose,
-                      args.include_shared, args.use_fetch, args.hide_token, args.user_projects, 
-                      group_search=args.group_search, git_options=args.git_options)
+    tree = GitlabTree(
+        url=args.url,
+        token=args.token,
+        method=args.method,
+        naming=args.naming,
+        archived=args.archived.api_value,
+        includes=includes,
+        excludes=excludes,
+        in_file=args.file,
+        concurrency=args.concurrency,
+        recursive=args.recursive,
+        disable_progress=args.verbose,
+        include_shared=args.include_shared,
+        use_fetch=args.use_fetch,
+        hide_token=args.hide_token,
+        user_projects=args.user_projects,
+        group_search=args.group_search,
+        git_options=args.git_options
+    )
     tree.load_tree()
 
     if tree.is_empty():
@@ -56,10 +72,14 @@ def main():
         tree.sync_tree(args.dest)
 
 
-def split(arg):
-    return arg.split(",") if arg != "" else None
+def split(csv: Optional[str]) -> List[str]:
+    """Split comma-separated values into a list"""
+    return csv.split(",") if csv != "" else None
 
-def config_logging(args):
+
+def config_logging(args: Namespace) -> None:
+    """Configure logging based on command line arguments"""
+    
     if args.verbose:
         handler = logging.StreamHandler(sys.stdout)
         logging.root.handlers = []
@@ -69,9 +89,12 @@ def config_logging(args):
         logging.root.setLevel(level)
         log.debug("verbose=[%s], print=[%s], log level set to [%s] level", args.verbose, args.print, level)
         os.environ["GIT_PYTHON_TRACE"] = 'full'
+        logging.getLogger().setLevel(logging.DEBUG)
+    else:
+        logging.getLogger().setLevel(logging.INFO)
 
 
-def parse_args(argv=None):
+def parse_args(argv: Optional[List[str]] = None) -> Namespace:
     example_text = r'''examples:
 
     clone an entire gitlab tree using a url and a token:

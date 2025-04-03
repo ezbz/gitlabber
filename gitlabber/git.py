@@ -1,8 +1,10 @@
+from typing import Optional, List
 import logging
 import os
 import sys
 import subprocess
 import git
+from anytree import Node
 from .progress import ProgressBar
 import concurrent.futures
 
@@ -12,7 +14,13 @@ progress = ProgressBar('* syncing projects')
 
 
 class GitAction:
-    def __init__(self, node, path, recursive=False, use_fetch=False, hide_token=False, git_options=None):
+    def __init__(self, 
+                 node: Node,
+                 path: str,
+                 recursive: bool = False,
+                 use_fetch: bool = False,
+                 hide_token: bool = False,
+                 git_options: Optional[str] = None) -> None:
         self.node = node
         self.path = path
         self.recursive = recursive
@@ -20,10 +28,33 @@ class GitAction:
         self.hide_token = hide_token
         self.git_options = git_options
 
-def sync_tree(root, dest, concurrency=1, disable_progress=False, recursive=False, use_fetch=False, hide_token=False, git_options=None):
+
+def sync_tree(root: Node, 
+              dest: str, 
+              concurrency: int = 1,
+              disable_progress: bool = False,
+              recursive: bool = False,
+              use_fetch: bool = False,
+              hide_token: bool = False,
+              git_options: Optional[str] = None) -> None:
+    """
+    Synchronizes the git repositories in the tree structure
+    
+    Args:
+        root: Root node of the tree
+        dest: Destination directory
+        concurrency: Number of concurrent git operations
+        disable_progress: Whether to disable progress reporting
+        recursive: Whether to clone recursively
+        use_fetch: Whether to use git fetch instead of pull
+        hide_token: Whether to hide token in URLs
+        git_options: Additional git options as comma-separated string
+    """
     if not disable_progress:
         progress.init_progress(len(root.leaves))
+
     actions = get_git_actions(root, dest, recursive, use_fetch, hide_token)
+
     with concurrent.futures.ThreadPoolExecutor(max_workers=concurrency) as executor:
         executor.map(clone_or_pull_project, actions)
     
@@ -44,7 +75,7 @@ def get_git_actions(root, dest, recursive, use_fetch, hide_token):
     return actions
 
 
-def is_git_repo(path):
+def is_git_repo(path: str) -> bool:
     try:
         _ = git.Repo(path).git_dir
         return True
@@ -52,7 +83,7 @@ def is_git_repo(path):
         return False
 
 
-def clone_or_pull_project(action):
+def clone_or_pull_project(action: GitAction) -> None:
     if is_git_repo(action.path):
         '''
         Update existing project
@@ -82,7 +113,7 @@ def clone_or_pull_project(action):
             return
         log.debug("cloning new project %s", action.path)
         progress.show_progress(action.node.name, 'clone')
-        multi_options = []
+        multi_options: List[str] = []
         if(action.recursive):
             multi_options.append('--recursive')
         if(action.use_fetch):

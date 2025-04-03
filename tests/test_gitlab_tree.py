@@ -5,8 +5,10 @@ from gitlabber.archive import ArchivedResults
 import pytest
 from unittest import mock
 from gitlab.exceptions import GitlabGetError
+from typing import Any, cast
+from anytree import Node
 
-def test_load_tree(monkeypatch):
+def test_load_tree(monkeypatch: pytest.MonkeyPatch) -> None:
     gl = gitlab_util.create_test_gitlab(monkeypatch)
     gl.load_tree()
     gl.print_tree()
@@ -245,3 +247,11 @@ def test_hide_token_in_project_url_both_cases(monkeypatch):
         expected_url = f"https://gitlab-token:{test_token}@gitlab.com/group/test-project.git"
         assert project_node_visible.url == expected_url
         mock_log_debug_visible.assert_any_call("Generated URL: %s", expected_url)
+
+@mock.patch('gitlabber.gitlab_tree.Gitlab')
+def test_get_projects_404(mock_gitlab: mock.Mock) -> None:
+    error = GitlabGetError(response_code=404)
+    mock_gitlab.groups.list.side_effect = error
+    gl = gitlab_util.create_test_gitlab(mock_gitlab)
+    gl.load_tree()
+    assert gl.root.height == 0

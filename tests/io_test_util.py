@@ -4,6 +4,7 @@ import subprocess
 import sys
 from contextlib import contextmanager
 from io import StringIO
+from typing import List, Optional, Union, Any
 
 
 @contextmanager
@@ -16,10 +17,25 @@ def captured_output():
     finally:
         sys.stdout, sys.stderr = old_out, old_err
 
-def execute(args, timeout=3):
-    cmd = [sys.executable, '-m', 'gitlabber']
-    cmd.extend(args)
-    with subprocess.Popen(cmd, stdout=subprocess.PIPE, env=os.environ.copy()) as process:
-        outs, err = process.communicate(timeout=timeout)    
-        process.wait()
-        return outs.decode('utf-8')
+def execute(args: List[str], timeout: Optional[int] = None) -> str:
+    """
+    Execute gitlabber command with given arguments
+    
+    Args:
+        args: List of command line arguments
+        timeout: Optional timeout in seconds
+        
+    Returns:
+        Command output as string
+    """
+    cmd = ["gitlabber"] + args
+    env = os.environ.copy()
+    result = subprocess.run(
+        cmd,
+        env=env,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        timeout=timeout,
+        text=True
+    )
+    return result.stdout
