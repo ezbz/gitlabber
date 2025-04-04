@@ -1,21 +1,64 @@
-from typing import Optional, List, Any, Dict
+from typing import Optional, List, Any, Dict, Union
 import os
 import sys
 import logging
 import logging.handlers
 import enum
-from argparse import ArgumentParser, RawTextHelpFormatter, FileType, SUPPRESS, Namespace
+from argparse import ArgumentParser, RawTextHelpFormatter, FileType, SUPPRESS, Namespace, ArgumentTypeError
 from .gitlab_tree import GitlabTree
 from .format import PrintFormat
 from .method import CloneMethod
 from .naming import FolderNaming
 from .archive import ArchivedResults
+from .auth import TokenAuthProvider
 from . import __version__ as VERSION
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 log = logging.getLogger(__name__)
 
+def validate_positive_int(value: str) -> int:
+    """Validate that the input is a positive integer."""
+    try:
+        int_value = int(value)
+        if int_value <= 0:
+            raise ArgumentTypeError(f"{value} is not a positive integer")
+        return int_value
+    except ValueError:
+        raise ArgumentTypeError(f"{value} is not a valid integer")
+
+def validate_url(value: str) -> str:
+    """Validate that the input is a valid URL."""
+    if not value.startswith(('http://', 'https://')):
+        raise ArgumentTypeError(f"{value} is not a valid URL. Must start with http:// or https://")
+    return value
+
+def validate_path(value: str) -> str:
+    """Validate and normalize the path."""
+    if value.endswith('/'):
+        return value[:-1]
+    return value
+
+def split(csv: Optional[str]) -> Optional[List[str]]:
+    """Split comma-separated values into a list"""
+    return csv.split(",") if csv and csv.strip() else None
+
+def config_logging(args: Namespace) -> None:
+    """Configure logging based on command line arguments"""
+    if args.verbose:
+        handler = logging.StreamHandler(sys.stdout)
+        logging.root.handlers = []
+        handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
+        logging.root.addHandler(handler)
+        level = logging.ERROR if args.print else logging.DEBUG
+        logging.root.setLevel(level)
+        log.debug("verbose=[%s], print=[%s], log level set to [%s] level", args.verbose, args.print, level)
+        os.environ["GIT_PYTHON_TRACE"] = 'full'
+        logging.getLogger().setLevel(logging.DEBUG)
+    else:
+        logging.getLogger().setLevel(logging.INFO)
+
 def main() -> None:
+    """Main entry point for the application."""
     args = parse_args(argv=None if sys.argv[1:] else ['--help'])
     if args.version:
         print(VERSION)
@@ -41,6 +84,9 @@ def main() -> None:
     args_print['token'] = '__hidden__'
     log.debug("running with args [%s]", args_print)
 
+    # Create a token-based auth provider
+    auth_provider = TokenAuthProvider(args.token)
+
     tree = GitlabTree(
         url=args.url,
         token=args.token,
@@ -58,7 +104,8 @@ def main() -> None:
         hide_token=args.hide_token,
         user_projects=args.user_projects,
         group_search=args.group_search,
-        git_options=args.git_options
+        git_options=args.git_options,
+        auth_provider=auth_provider
     )
     tree.load_tree()
 
@@ -71,30 +118,8 @@ def main() -> None:
     else:
         tree.sync_tree(args.dest)
 
-
-def split(csv: Optional[str]) -> List[str]:
-    """Split comma-separated values into a list"""
-    return csv.split(",") if csv != "" else None
-
-
-def config_logging(args: Namespace) -> None:
-    """Configure logging based on command line arguments"""
-    
-    if args.verbose:
-        handler = logging.StreamHandler(sys.stdout)
-        logging.root.handlers = []
-        handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
-        logging.root.addHandler(handler)
-        level = logging.ERROR if args.print else logging.DEBUG
-        logging.root.setLevel(level)
-        log.debug("verbose=[%s], print=[%s], log level set to [%s] level", args.verbose, args.print, level)
-        os.environ["GIT_PYTHON_TRACE"] = 'full'
-        logging.getLogger().setLevel(logging.DEBUG)
-    else:
-        logging.getLogger().setLevel(logging.INFO)
-
-
 def parse_args(argv: Optional[List[str]] = None) -> Namespace:
+    """Parse command line arguments."""
     example_text = r'''examples:
 
     clone an entire gitlab tree using a url and a token:
@@ -148,6 +173,7 @@ def parse_args(argv: Optional[List[str]] = None) -> Namespace:
         '-u',
         '--url',
         metavar=('url'),
+        type=validate_url,
         default=os.environ.get('GITLAB_URL'),
         help='base gitlab url (e.g.: \'http://gitlab.mycompany.com\')')
     parser.add_argument(
@@ -163,7 +189,7 @@ def parse_args(argv: Optional[List[str]] = None) -> Namespace:
         '-c',
         '--concurrency',
         default=os.environ.get('GITLABBER_GIT_CONCURRENCY', 1),
-        type=int,
+        type=validate_positive_int,
         metavar=('concurrency'),
         help=SUPPRESS)
     parser.add_argument(
@@ -242,18 +268,12 @@ def parse_args(argv: Optional[List[str]] = None) -> Namespace:
     parser.add_argument(
         '-o',
         '--git-options',
-        nargs=1,
         metavar=('options'),
-        help='provide additional options as csv for the git command (e.g., --depth=1). See: clone/multi_options https://gitpython.readthedocs.io/en/stable/reference.html#')
+        help='Additional options as CSV for the git command (e.g., --depth=1). See: clone/multi_options https://gitpython.readthedocs.io/en/stable/reference.html#')
     parser.add_argument(
         '--version',
         action='store_true',
         help='print the version')
 
     return parser.parse_args(argv)
-
-def validate_path(value):
-    if value.endswith('/'):
-        return value[:-1]
-    return value
 
