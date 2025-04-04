@@ -5,6 +5,7 @@ from unittest import mock
 from anytree import Node
 from gitlabber import gitlab_tree
 from gitlabber.method import CloneMethod
+from gitlabber.auth import NoAuthProvider
 
 URL: str = "http://gitlab.my.com/"
 TOKEN: str = "MOCK_TOKEN"
@@ -23,6 +24,8 @@ YAML_TEST_OUTPUT_FILE: str = "tests/test-output.yaml"
 JSON_TEST_OUTPUT_FILE: str = "tests/test-output.json"
 TREE_TEST_OUTPUT_FILE: str = "tests/test-output.tree"
 
+# Create a no-op auth provider for testing
+TEST_AUTH_PROVIDER = NoAuthProvider()
 
 class MockNode:
     def __init__(self,
@@ -157,7 +160,8 @@ def create_test_gitlab(monkeypatch: pytest.MonkeyPatch,
             includes=includes, 
             excludes=excludes, 
             in_file=in_file, 
-            hide_token=hide_token
+            hide_token=hide_token,
+            auth_provider=TEST_AUTH_PROVIDER  # Use no-op auth provider for testing
         )
     projects = Listable(MockNode("project", 2, PROJECT_NAME, PROJECT_URL if hide_token else PROJECT_URL_WITH_TOKEN))
     groups = Listable(
@@ -170,7 +174,7 @@ def create_test_gitlab(monkeypatch: pytest.MonkeyPatch,
 
 
 def create_test_gitlab_with_toplevel_subgroups(monkeypatch):
-    gl = gitlab_tree.GitlabTree(URL, TOKEN, "ssh", "path")
+    gl = gitlab_tree.GitlabTree(URL, TOKEN, "ssh", "path", auth_provider=TEST_AUTH_PROVIDER)  # Use no-op auth provider for testing
     groups = Listable(
         MockNode("group", 2, GROUP_NAME, GROUP_URL),
         MockNode("group", 3, GROUP_NAME, GROUP_URL, parent_id=1)
@@ -181,7 +185,7 @@ def create_test_gitlab_with_toplevel_subgroups(monkeypatch):
 
 def create_test_gitlab_with_archived(monkeypatch, includes=None, excludes=None, in_file=None, archived=False):
     gl = gitlab_tree.GitlabTree(
-        URL, TOKEN, "ssh", "name", includes=includes, excludes=excludes, in_file=in_file, archived=archived)
+        URL, TOKEN, "ssh", "name", includes=includes, excludes=excludes, in_file=in_file, archived=archived, auth_provider=TEST_AUTH_PROVIDER)  # Use no-op auth provider for testing
     projects = Listable(
         MockNode("project", 11, PROJECT_NAME, PROJECT_URL),
         MockNode("project", 12, "_archived_" + PROJECT_NAME, "_archived_" + PROJECT_URL, archived=1)
@@ -200,7 +204,7 @@ def create_test_gitlab_with_archived(monkeypatch, includes=None, excludes=None, 
 
 def create_test_gitlab_with_shared(monkeypatch, includes=None, excludes=None, in_file=None, with_shared=True):
     gl = gitlab_tree.GitlabTree(
-        URL, TOKEN, "ssh", "name", includes=includes, excludes=excludes, in_file=in_file, include_shared=with_shared)
+        URL, TOKEN, "ssh", "name", includes=includes, excludes=excludes, in_file=in_file, include_shared=with_shared, auth_provider=TEST_AUTH_PROVIDER)  # Use no-op auth provider for testing
 
     projects = Listable(
         MockNode("project", 19, PROJECT_NAME, PROJECT_URL),

@@ -65,7 +65,7 @@ def sync_tree(root: Node,
 def get_git_actions(root, dest, recursive, use_fetch, hide_token):
     actions = []
     for child in root.children:
-        path = "%s%s" % (dest, child.root_path)
+        path = f"{dest}{child.root_path}"
         if not os.path.exists(path):
             os.makedirs(path)
         if child.is_leaf:
@@ -93,32 +93,32 @@ def clone_or_pull_project(action: GitAction) -> None:
         
         try:
             repo = git.Repo(action.path)
-            if(not action.use_fetch):
+            if not action.use_fetch:
                 repo.remotes.origin.pull()
             else:
                 repo.remotes.origin.fetch()
-            if(action.recursive): 
+            if action.recursive: 
                 repo.submodule_update(recursive=True)
         except KeyboardInterrupt:
             log.fatal("User interrupted")
             sys.exit(0)
         except Exception as e:
-            log.error("Error pulling project %s", action.path, exc_info=True)
+            log.error("Error pulling project %s: %s", action.path, str(e), exc_info=True)
     else:
         '''
         Clone new project
         '''
-        if(action.node.type != "project"):
+        if action.node.type != "project":
             log.debug("Skipping clone of node with type [%s] (empty subgroup/group)", action.node.type)
             return
         log.debug("cloning new project %s", action.path)
         progress.show_progress(action.node.name, 'clone')
         multi_options: List[str] = []
-        if(action.recursive):
+        if action.recursive:
             multi_options.append('--recursive')
-        if(action.use_fetch):
+        if action.use_fetch:
             multi_options.append('--mirror')
-        if(action.git_options):
+        if action.git_options:
             multi_options += action.git_options.split(',')
         try:
             git.Repo.clone_from(action.node.url, action.path, multi_options=multi_options)
@@ -127,5 +127,5 @@ def clone_or_pull_project(action: GitAction) -> None:
             log.fatal("User interrupted")
             sys.exit(0)
         except Exception as e:
-            log.error("Error cloning project %s", action.path, exc_info=True)
+            log.error("Error cloning project %s: %s", action.path, str(e), exc_info=True)
 
