@@ -1,15 +1,15 @@
-
 from gitlabber import cli
 from gitlabber import __version__ as VERSION
 import tests.io_test_util as output_util
-
+from typing import Any, Dict, cast
+import pytest
+from unittest import mock
+from argparse import Namespace
+from anytree import Node
 from gitlabber.format import PrintFormat
 from gitlabber.method import CloneMethod
 from gitlabber.naming import FolderNaming
 from gitlabber.archive import ArchivedResults
-from unittest import mock
-from anytree import Node
-import pytest
 
 
 def exit():
@@ -28,15 +28,54 @@ def test_args_version():
             assert VERSION == out.getvalue()
 
 
+def create_mock_args(overrides: Dict[str, Any] = None) -> mock.Mock:
+    """Create a mock args object with default values that can be overridden"""
+    base_args = {
+        "type": "test",
+        "name": "test",
+        "version": None,
+        "verbose": None,
+        "include": "",
+        "exclude": "",
+        "url": "test_url",
+        "token": "test_token",
+        "method": CloneMethod.SSH,
+        "naming": FolderNaming.NAME,
+        "archived": ArchivedResults.INCLUDE,
+        "file": None,
+        "concurrency": 1,
+        "recursive": False,
+        "disable_progress": True,
+        "print": True,
+        "print_format": PrintFormat.TREE,
+        "dest": ".",
+        "include_shared": True,
+        "use_fetch": None,
+        "hide_token": None,
+        "user_projects": None,
+        "group_search": None,
+        "git_options": None
+    }
+    if overrides:
+        base_args.update(overrides)
+    args_mock = mock.Mock()
+    args_mock.return_value = Node(**base_args)
+    return args_mock
+
+
 @mock.patch("gitlabber.cli.logging")
 @mock.patch("gitlabber.cli.sys")
 @mock.patch("gitlabber.cli.os")
 @mock.patch("gitlabber.cli.log")
 @mock.patch("gitlabber.cli.GitlabTree")
-def test_args_logging(mock_tree, mock_log, mock_os, mock_sys, mock_logging):
-    args_mock = mock.Mock()
-    args_mock.return_value = Node(
-        type="test", name="test", version=None, verbose=True, include="", exclude="", url="test_url", token="test_token", method=CloneMethod.SSH, naming=FolderNaming.PATH, archived=ArchivedResults.INCLUDE, file=None, concurrency=1, recursive=False, disble_progress=True, print=None, dest=".", include_shared=True, use_fetch=None, hide_token=None, user_projects=None, group_search=None, git_options=None)
+def test_args_logging(
+    mock_tree: mock.Mock,
+    mock_log: mock.Mock,
+    mock_os: mock.Mock,
+    mock_sys: mock.Mock,
+    mock_logging: mock.Mock
+) -> None:
+    args_mock = create_mock_args({"verbose": True, "naming": FolderNaming.PATH})
     cli.parse_args = args_mock
 
     mock_streamhandler = mock.Mock()
@@ -52,28 +91,8 @@ def test_args_logging(mock_tree, mock_log, mock_os, mock_sys, mock_logging):
 
 
 @mock.patch("gitlabber.cli.GitlabTree")
-def test_args_include(mock_tree):
-    inc_groups = "/inc**,/inc**"
-    exc_groups = "/exc**,/exc**"
-    args_mock = mock.Mock()
-    args_mock.return_value = Node(
-        type="test", name="test", version=None, debug=None, include=inc_groups, exclude=exc_groups, url="test_url", token="test_token", method=CloneMethod.SSH, naming=FolderNaming.NAME, archived=ArchivedResults.INCLUDE, file=None, concurrency=1, recursive=False, disble_progress=True, print=None, dest=".", use_fetch=None, hide_token=None, user_projects=None, group_search=None, git_options=None)
-    cli.parse_args = args_mock
-
-    split_mock = mock.Mock()
-    cli.split = split_mock
-
-    mock_tree.return_value.is_empty = mock.Mock(return_value=False)
-
-    cli.main()
-    split_mock.assert_has_calls([mock.call(inc_groups), mock.call(exc_groups)])
-
-
-@mock.patch("gitlabber.cli.GitlabTree")
-def test_args_include(mock_tree):
-    args_mock = mock.Mock()
-    args_mock.return_value = Node(
-        type="test", name="test", version=None, verbose=None, include="", exclude="", url="test_url", token="test_token", method=CloneMethod.SSH, naming=FolderNaming.NAME, archived=ArchivedResults.INCLUDE, file=None, concurrency=1, recursive=False, disble_progress=True, print=True, dest=".", print_format=PrintFormat.YAML, include_shared=True, use_fetch=None, hide_token=None, user_projects=None, group_search=None, git_options=None)
+def test_args_include(mock_tree: mock.Mock) -> None:
+    args_mock = create_mock_args({"print_format": PrintFormat.YAML})
     cli.parse_args = args_mock
 
     print_tree_mock = mock.Mock()
@@ -92,6 +111,7 @@ def test_validate_path():
     assert "." == cli.validate_path("./")
     assert "." == cli.validate_path(".")
 
+
 @mock.patch("gitlabber.cli.GitlabTree")
 def test__missing_token(mock_tree):
     args_mock = mock.Mock()
@@ -101,6 +121,7 @@ def test__missing_token(mock_tree):
 
     with pytest.raises(SystemExit):
         cli.main()
+
 
 @mock.patch("gitlabber.cli.GitlabTree")
 def test_missing_url(mock_tree):
@@ -112,11 +133,10 @@ def test_missing_url(mock_tree):
     with pytest.raises(SystemExit):
         cli.main()
 
+
 @mock.patch("gitlabber.cli.GitlabTree")
-def test_empty_tree(mock_tree):
-    args_mock = mock.Mock()
-    args_mock.return_value = Node(
-        type="test", name="test", version=None, verbose=None, include="", exclude="", url="test_url", token="test_token", method=CloneMethod.SSH, naming=FolderNaming.NAME, archived=ArchivedResults.INCLUDE, file=None, concurrency=1, recursive=False, disble_progress=True, print=True, dest=".", include_shared=True, use_fetch=None, hide_token=None, user_projects=None, group_search=None, git_options=None)
+def test_empty_tree(mock_tree: mock.Mock) -> None:
+    args_mock = create_mock_args()
     cli.parse_args = args_mock
 
     with pytest.raises(SystemExit):

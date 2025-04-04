@@ -1,3 +1,4 @@
+from typing import Union
 import enum 
 
 class PrintFormat(enum.IntEnum):
@@ -5,14 +6,14 @@ class PrintFormat(enum.IntEnum):
     YAML = 2
     TREE = 3
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.name.lower()
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return str(self)
 
     @staticmethod
-    def argparse(s):
+    def argparse(s: str) -> Union['PrintFormat', str]:
         try:
             return PrintFormat[s.upper()]
         except KeyError:

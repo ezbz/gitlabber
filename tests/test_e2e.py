@@ -5,6 +5,7 @@ import tests.gitlab_test_utils as gitlab_util
 import tests.io_test_util as io_util
 import pytest
 import coverage
+from typing import Dict, Any, cast
 coverage.process_startup()
 
 
@@ -43,10 +44,14 @@ def test_clone_subgroup_only_archived():
 
 
 @pytest.mark.slow_integration_test
-def test_clone_subgroup_naming_path():
+def test_clone_subgroup_naming_path() -> None:
     os.environ['GITLAB_URL'] = 'https://gitlab.com/'
-    output = io_util.execute(['-p', '--print-format', 'json', '-n', 'path', '--group-search', 'Group Test'], 90)
-    obj = json.loads(output)
+    output = io_util.execute(
+        ['-p', '--print-format', 'json', '-n', 'path', '--group-search', 'Group Test'],
+        90
+    )
+    obj: Dict[str, Any] = json.loads(output)
+    
     assert obj['children'][0]['name'] == 'erez-group-test'
     assert obj['children'][0]['children'][0]['name'] == 'subgroup-test'
     assert len(obj['children'][0]['children'][0]['children']) == 3

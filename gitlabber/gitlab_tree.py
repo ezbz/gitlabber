@@ -1,6 +1,7 @@
+from typing import List, Optional, Union, Any
 from gitlab import Gitlab
 from gitlab.exceptions import GitlabGetError, GitlabListError
-from gitlab.exceptions import GitlabGetError
+from gitlab.v4.objects import Group, Project, User
 from anytree import Node, RenderTree
 from anytree.exporter import DictExporter, JsonExporter
 from anytree.importer import DictImporter
@@ -17,8 +18,24 @@ log = logging.getLogger(__name__)
 
 
 class GitlabTree:
-    def __init__(self, url, token, method, naming=None, archived=None, includes=[], excludes=[], in_file=None, concurrency=1, recursive=False, disable_progress=False,
-                include_shared=True, use_fetch=False, hide_token=False, user_projects=False, group_search=None, git_options=None):
+    def __init__(self, 
+                 url: str,
+                 token: str,
+                 method: CloneMethod,
+                 naming: Optional[FolderNaming] = None,
+                 archived: Optional[bool] = None,
+                 includes: List[str] = [],
+                 excludes: List[str] = [],
+                 in_file: Optional[str] = None,
+                 concurrency: int = 1,
+                 recursive: bool = False,
+                 disable_progress: bool = False,
+                 include_shared: bool = True,
+                 use_fetch: bool = False,
+                 hide_token: bool = False,
+                 user_projects: bool = False,
+                 group_search: Optional[str] = None,
+                 git_options: Optional[dict] = None) -> None:
         self.includes = includes
         self.excludes = excludes
         self.url = url
@@ -42,14 +59,14 @@ class GitlabTree:
         self.git_options = git_options
 
     @staticmethod
-    def get_ca_path():
-        """
-        returns REQUESTS_CA_BUNDLE, CURL_CA_BUNDLE, or True
-        """
-        return next(item for item in [os.getenv('REQUESTS_CA_BUNDLE', None), os.getenv('CURL_CA_BUNDLE', None), True]
-                    if item is not None)
+    def get_ca_path() -> Union[str, bool]:
+        """Returns REQUESTS_CA_BUNDLE, CURL_CA_BUNDLE, or True"""
+        return next(item for item in [os.getenv('REQUESTS_CA_BUNDLE', None), 
+                                    os.getenv('CURL_CA_BUNDLE', None), 
+                                    True]
+                   if item is not None)
 
-    def is_included(self, node):
+    def is_included(self, node: Node) -> bool:
         '''
         returns True if the node should be included.
         if there are no include patterns then everything is included
@@ -63,7 +80,7 @@ class GitlabTree:
         else:
             return True
 
-    def is_excluded(self, node):
+    def is_excluded(self, node: Node) -> bool:
         '''
         returns True if the node should be excluded
         if the are no exclude patterns then nothing is excluded
@@ -77,7 +94,7 @@ class GitlabTree:
         
         return False
 
-    def filter_tree(self, parent):
+    def filter_tree(self, parent: Node) -> None:
         for child in parent.children:
             if not child.is_leaf:
                 self.filter_tree(child)
@@ -92,15 +109,15 @@ class GitlabTree:
                 if self.is_excluded(child):
                     child.parent = None
 
-    def root_path(self, node):
+    def root_path(self, node: Node) -> str:
         return "/".join([str(n.name) for n in node.path])
 
-    def make_node(self, type, name, parent, url):
+    def make_node(self, type: str, name: str, parent: Node, url: str) -> Node:
         node = Node(name=name, parent=parent, url=url, type=type)
         node.root_path = self.root_path(node)
         return node
 
-    def add_projects(self, parent, projects):
+    def add_projects(self, parent: Node, projects: List[Project]) -> None:
         for project in projects:
             project_id = project.name if self.naming == FolderNaming.NAME else project.path
             project_url = project.ssh_url_to_repo if self.method is CloneMethod.SSH else project.http_url_to_repo
@@ -114,7 +131,7 @@ class GitlabTree:
                                   url=project_url)
             self.progress.show_progress(node.name, 'project')
 
-    def get_projects(self, group, parent):
+    def get_projects(self, group: Group, parent: Node) -> None:
         try:
             projects = group.projects.list(archived=self.archived, with_shared=self.include_shared, get_all=True)
             self.progress.update_progress_length(len(projects))
@@ -127,7 +144,7 @@ class GitlabTree:
         except GitlabListError as error:
             log.error(f"Error getting projects on {group.name} id: [{group.id}]  error message: [{error.error_message}]")
 
-    def get_subgroups(self, group, parent):
+    def get_subgroups(self, group: Group, parent: Node) -> None:
         try:
             subgroups = group.subgroups.list(as_list=False, get_all=True)
             self.progress.update_progress_length(len(subgroups))
@@ -151,7 +168,7 @@ class GitlabTree:
             else:
                 raise error
 
-    def load_gitlab_tree(self):
+    def load_gitlab_tree(self) -> None:
         log.debug(f"Starting group search with archived: {self.archived} search term: {self.group_search}")
                     
         groups = self.gitlab.groups.list(as_list=False, archived=self.archived, get_all=True, search=self.group_search)
@@ -167,12 +184,12 @@ class GitlabTree:
         elapsed = self.progress.finish_progress()
         log.debug("Loading projects tree from gitlab took [%s]", elapsed)
 
-    def load_file_tree(self):
+    def load_file_tree(self) -> None:
         with open(self.in_file, 'r') as stream:
             dct = yaml.safe_load(stream)
             self.root = DictImporter().import_(dct)
 
-    def load_user_tree(self):
+    def load_user_tree(self) -> None:
         log.debug(f"Starting user project search with archived: {self.archived}")
         self.gitlab.auth()
         user = self.gitlab.users.get(self.gitlab.user.id)
@@ -183,7 +200,7 @@ class GitlabTree:
         self.add_projects(root, projects)
 
 
-    def load_tree(self):
+    def load_tree(self) -> None:
         if self.in_file:
             log.debug("Loading tree from file [%s]", self.in_file)
             self.load_file_tree()
@@ -198,7 +215,7 @@ class GitlabTree:
             self.root.leaves))
         self.filter_tree(self.root)
 
-    def print_tree(self, format=PrintFormat.TREE):
+    def print_tree(self, format: PrintFormat = PrintFormat.TREE) -> None:
         if format is PrintFormat.TREE:
             self.print_tree_native()
         elif format is PrintFormat.YAML:
@@ -208,7 +225,7 @@ class GitlabTree:
         else:
             log.fatal("Invalid print format [%s]", format)
 
-    def print_tree_native(self):
+    def print_tree_native(self) -> None:
         for pre, _, node in RenderTree(self.root):
             line = ""
             if node.is_root:
@@ -217,20 +234,20 @@ class GitlabTree:
                 line = "%s%s [%s]" % (pre, node.name, node.root_path)
             print(line)
 
-    def print_tree_yaml(self):
+    def print_tree_yaml(self) -> None:
         dct = DictExporter().export(self.root)
         print(yaml.dump(dct, default_flow_style=False))
 
-    def print_tree_json(self):
+    def print_tree_json(self) -> None:
         exporter = JsonExporter(indent=2, sort_keys=True)
         print(exporter.export(self.root))
 
-    def sync_tree(self, dest):
+    def sync_tree(self, dest: str) -> None:
         log.debug("Going to clone/pull [%s] groups and [%s] projects" %
                   (len(self.root.descendants) - len(self.root.leaves), len(self.root.leaves)))
         sync_tree(self.root, dest, concurrency=self.concurrency,
                   disable_progress=self.disable_progress, recursive=self.recursive,
                   use_fetch=self.use_fetch, hide_token=self.hide_token)
 
-    def is_empty(self):
+    def is_empty(self) -> bool:
         return self.root.height < 1

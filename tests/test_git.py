@@ -24,7 +24,7 @@ def create_tree():
 @mock.patch('gitlabber.git.clone_or_pull_project')
 @mock.patch('gitlabber.git.progress')
 def test_create_new_user_dir(mock_progress, mock_clone_or_pull_project, mock_git, mock_os):
-    # git.git = mock.MagicMock()
+    git.git = mock.MagicMock()
     
     mock_os.path.exists.return_value = False
 
