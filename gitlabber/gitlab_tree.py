@@ -318,7 +318,6 @@ class GitlabTree:
         """
         log.debug("Starting user project search with archived: %s", self.archived)
         try:
-            self.gitlab.auth()
             user = self.gitlab.users.get(self.gitlab.user.id)
             username = user.username
             projects = user.projects.list(as_list=False, archived=self.archived, get_all=True)

@@ -254,3 +254,44 @@ def test_get_projects_404(mock_gitlab: mock.Mock) -> None:
     gl = gitlab_util.create_test_gitlab(mock_gitlab)
     gl.load_tree()
     assert gl.root.height == 0
+
+@mock.patch('gitlabber.gitlab_tree.Gitlab')
+def test_load_user_tree(mock_gitlab):
+    gl = gitlab_util.create_test_gitlab(mock_gitlab)
+    
+    # Create mock user
+    mock_user = mock.Mock()
+    mock_user.id = 123
+    mock_user.username = "testuser"
+    
+    # Create mock projects
+    mock_project1 = mock.Mock()
+    mock_project1.name = "project1"
+    mock_project1.path = "project1"
+    mock_project1.ssh_url_to_repo = "git@gitlab.my.com:testuser/project1.git"
+    mock_project1.http_url_to_repo = "http://gitlab.my.com/testuser/project1.git"
+    
+    mock_project2 = mock.Mock()
+    mock_project2.name = "project2"
+    mock_project2.path = "project2"
+    mock_project2.ssh_url_to_repo = "git@gitlab.my.com:testuser/project2.git"
+    mock_project2.http_url_to_repo = "http://gitlab.my.com/testuser/project2.git"
+    
+    # Mock the user object and its projects
+    gl.gitlab.user = mock_user
+    gl.gitlab.users.get.return_value = mock_user
+    mock_user.projects.list.return_value = [mock_project1, mock_project2]
+    
+    # Set user_projects to True to trigger load_user_tree
+    gl.user_projects = True
+    
+    # Load the tree
+    gl.load_tree()
+    
+    # Verify the tree structure
+    assert gl.root.name == ""
+    assert len(gl.root.children) == 1
+    assert gl.root.children[0].name == "testuser-personal-projects"
+    assert len(gl.root.children[0].children) == 2
+    assert gl.root.children[0].children[0].name == "project1"
+    assert gl.root.children[0].children[1].name == "project2"
