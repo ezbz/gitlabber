@@ -32,14 +32,35 @@ Gitlabber clones or pulls all projects under a subset of groups / subgroups by b
 Installation
 ------------
 
-* You can install Gitlabber from `PyPi <https://pypi.org/project/gitlabber>`_:
+System Requirements
+~~~~~~~~~~~~~~~~~
+* Python 3.7 or higher
+* Git 2.0 or higher
+* Network access to GitLab instance
 
-.. code-block:: bash
+Installation Methods
+~~~~~~~~~~~~~~~~~~
+* PyPI (recommended):
+  .. code-block:: bash
+      pip install gitlabber
 
-    pip install gitlabber
+* From source:
+  .. code-block:: bash
+      git clone https://github.com/ezbz/gitlabber.git
+      cd gitlabber
+      pip install -e .
 
 * You'll need to create an `access token <https://docs.gitlab.com/ee/user/profile/personal_access_tokens.html>`_ from GitLab with API scopes `read_repository`
   and ``read_api`` (or ``api``, for GitLab versions <12.0)
+
+Quick Start
+-----------
+.. code-block:: bash
+    # Install gitlabber
+    pip install gitlabber
+    
+    # Clone all your GitLab projects
+    gitlabber -t <your-token> -u <gitlab-url> .
 
 Usage
 -----
@@ -153,7 +174,19 @@ Usage
         perform a shallow clone of the git repositories
         gitlabber -o "\-\-depth=1," .
 
+Common Use Cases
+---------------
+Clone Specific Groups
+~~~~~~~~~~~~~~~~~~
+.. code-block:: bash
+    # Clone only projects from a specific group
+    gitlabber -i '/MyGroup/**' .
 
+Exclude Archived Projects
+~~~~~~~~~~~~~~~~~~~~~~
+.. code-block:: bash
+    # Clone all non-archived projects
+    gitlabber -a exclude .
 
 Debugging
 ---------
