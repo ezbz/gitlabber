@@ -55,12 +55,12 @@ Installation Methods
 
 Quick Start
 -----------
-.. code-block:: bash
-    # Install gitlabber
-    pip install gitlabber
-    
-    # Clone all your GitLab projects
-    gitlabber -t <your-token> -u <gitlab-url> .
+    .. code-block:: bash
+        # Install gitlabber
+        pip install gitlabber
+
+        # Clone all your GitLab projects
+        gitlabber -t <your-token> -u <gitlab-url> .
 
 Usage
 -----
@@ -85,17 +85,18 @@ Usage
 
 * To view the tree run the command with your includes/excludes and the ``-p`` flag. It will print your tree like so:
 
-.. code-block:: bash
+    .. code-block:: bash
 
-    root [http://gitlab.my.com]
-    ├── group1 [/group1]
-    │   └── subgroup1 [/group1/subgroup1]
-    │       └── project1 [/group1/subgroup1/project1]
-    └── group2 [/group2]
-        ├── subgroup1 [/group2/subgroup1]
-        │   └── project2 [/group2/subgroup1/project2]
-        ├── subgroup2 [/group2/subgroup2]
-        └── subgroup3 [/group2/subgroup3]
+        root [http://gitlab.my.com]
+        ├── group1 [/group1]
+        │   └── subgroup1 [/group1/subgroup1]
+        │       └── project1 [/group1/subgroup1/project1]
+        └── group2 [/group2]
+            ├── subgroup1 [/group2/subgroup1]
+            │   └── project2 [/group2/subgroup1/project2]
+            ├── subgroup2 [/group2/subgroup2]
+            └── subgroup3 [/group2/subgroup3]
+
 
 * To see how to use glob patterns and regex to filter tree nodes, see the `globre project page <https://pypi.org/project/globre/#details>`_.
 
@@ -180,25 +181,24 @@ Common Use Cases
 Clone Specific Groups
 ---------------------
 
-.. code-block:: bash
-    # Clone only projects from a specific group
-    gitlabber -i '/MyGroup/**' .
+    .. code-block:: bash
+        # Clone only projects from a specific group
+        gitlabber -i '/MyGroup/**' .
 
 Exclude Archived Projects
 -------------------------
 
-.. code-block:: bash
-    # Clone all non-archived projects
-    gitlabber -a exclude .
+    .. code-block:: bash
+        # Clone all non-archived projects
+        gitlabber -a exclude .
 
 Debugging
 ---------
 * You can use the ``--verbose`` flag to print Gitlabber debug messages
 * For more verbose GitLab messages, you can get the `GitPython <https://gitpython.readthedocs.io/en/stable>`_ module to print more debug messages by setting the environment variable:
 
-.. code-block:: bash
-
-    export GIT_PYTHON_TRACE='full'
+    .. code-block:: bash
+        export GIT_PYTHON_TRACE='full'
 
 Troubleshooting
 ---------------
