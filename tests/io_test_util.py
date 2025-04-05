@@ -30,6 +30,15 @@ def execute(args: List[str], timeout: Optional[int] = None) -> str:
     """
     cmd = ["gitlabber"] + args
     env = os.environ.copy()
+    
+    # Print the command being executed
+    print(f"Executing command: {' '.join(cmd)}")
+    
+    # Check if gitlabber is in PATH
+    import shutil
+    gitlabber_path = shutil.which("gitlabber")
+    print(f"gitlabber path: {gitlabber_path}")
+    
     result = subprocess.run(
         cmd,
         env=env,
@@ -38,4 +47,10 @@ def execute(args: List[str], timeout: Optional[int] = None) -> str:
         timeout=timeout,
         text=True
     )
+    
+    # Print stderr if the command failed
+    if result.returncode != 0:
+        print(f"Command failed with return code {result.returncode}")
+        print(f"STDERR: {result.stderr}")
+        
     return result.stdout

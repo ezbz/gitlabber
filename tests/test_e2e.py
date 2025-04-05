@@ -77,7 +77,7 @@ def test_user_personal_projects():
     os.environ['GITLAB_URL'] = 'https://gitlab.com/'
     output = io_util.execute(['-p', '--print-format', 'json', '-n', 'path', '--user-projects'], 90)
     obj = json.loads(output)
-    assert obj['children'][0]['name'] == 'erezmazor-prsonal-projects'
+    assert obj['children'][0]['name'] == 'erezmazor-personal-projects'
     assert obj['children'][0]['children'][0]['name'] == 'gitlabber-personal-project'
     
 
