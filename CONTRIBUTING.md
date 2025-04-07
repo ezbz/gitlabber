@@ -18,8 +18,8 @@ Setup
 ```
 python3 -m venv .pyvenv
 source ./.pyvenv/bin/activate
-pip install -r requirements.txt
 pip install pytest pytest-cov pytest-integration wheel
+python -m build
 ```
 
 * Run Tests
