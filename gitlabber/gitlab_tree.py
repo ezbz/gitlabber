@@ -223,9 +223,6 @@ class GitlabTree:
         Args:
             group: Group to get projects for
             parent: Parent node
-            
-        Raises:
-            GitlabTreeError: If project retrieval fails
         """
         try:
             projects = group.projects.list(archived=self.archived, with_shared=self.include_shared, get_all=True)
@@ -239,7 +236,7 @@ class GitlabTree:
         except GitlabListError as error:
             log.error("Error getting projects on %s id: [%s] error message: [%s]", 
                      group.name, group.id, error.error_message)
-            raise GitlabTreeError(f"Failed to get projects for group {group.name}: {error.error_message}")
+            # Continue execution instead of raising an exception
 
     def get_subgroups(self, group: Group, parent: Node) -> None:
         """Get subgroups for a group.
@@ -247,9 +244,6 @@ class GitlabTree:
         Args:
             group: Group to get subgroups for
             parent: Parent node
-            
-        Raises:
-            GitlabTreeError: If subgroup retrieval fails
         """
         try:
             subgroups = group.subgroups.list(as_list=False, get_all=True)
@@ -266,56 +260,52 @@ class GitlabTree:
                     if error.response_code == 404:
                         log.error(f"{error.response_code} error while getting subgroup with name: {group.name} [id: {group.id}]. Check your permissions as you may not have access to it. Message: {error.error_message}")
                         continue
-                    raise error
+                    log.error(f"Error getting subgroup: {error.error_message}")
+                    continue
         except GitlabListError as error:
             if error.response_code == 404:
                 log.error(f"{error.response_code} error while listing subgroup with name: {group.name} [id: {group.id}]. Check your permissions as you may not have access to it. Message: {error.error_message}")
             else:
-                raise GitlabTreeError(f"Failed to get subgroups for group {group.name}: {error.error_message}")
+                log.error(f"Failed to get subgroups for group {group.name}: {error.error_message}")
+            # Continue execution instead of raising an exception
 
     def load_gitlab_tree(self) -> None:
-        """Load the GitLab tree structure.
-        
-        Raises:
-            GitlabTreeError: If tree loading fails
-        """
+        """Load the GitLab tree structure."""
         log.debug("Starting group search with archived: %s search term: %s", self.archived, self.group_search)
                     
         try:
             groups = self.gitlab.groups.list(as_list=False, archived=self.archived, get_all=True, search=self.group_search)
             self.progress.init_progress(len(groups))
             for group in groups:
-                if group.parent_id is None:
-                    group_id = group.name if self.naming == FolderNaming.NAME else group.path
-                    node = self.make_node("group", group_id, self.root, url=group.web_url)
-                    self.progress.show_progress(node.name, 'group')
-                    self.get_subgroups(group, node)
-                    self.get_projects(group, node)        
+                try:
+                    if group.parent_id is None:
+                        group_id = group.name if self.naming == FolderNaming.NAME else group.path
+                        node = self.make_node("group", group_id, self.root, url=group.web_url)
+                        self.progress.show_progress(node.name, 'group')
+                        self.get_subgroups(group, node)
+                        self.get_projects(group, node)
+                except Exception as e:
+                    log.error(f"Error processing group {group.name}: {str(e)}")
+                    continue
 
             elapsed = self.progress.finish_progress()
             log.debug("Loading projects tree from gitlab took [%s]", elapsed)
         except Exception as e:
-            raise GitlabTreeError(f"Failed to load GitLab tree: {str(e)}")
+            log.error(f"Failed to load GitLab tree: {str(e)}")
+            # Continue execution instead of raising an exception
 
     def load_file_tree(self) -> None:
-        """Load tree structure from a YAML file.
-        
-        Raises:
-            GitlabTreeError: If file loading fails
-        """
+        """Load tree structure from a YAML file."""
         try:
             with open(self.in_file, 'r') as stream:
                 dct = yaml.safe_load(stream)
                 self.root = DictImporter().import_(dct)
         except Exception as e:
-            raise GitlabTreeError(f"Failed to load tree from file {self.in_file}: {str(e)}")
+            log.error(f"Failed to load tree from file {self.in_file}: {str(e)}")
+            # Continue execution instead of raising an exception
 
     def load_user_tree(self) -> None:
-        """Load user's personal projects.
-        
-        Raises:
-            GitlabTreeError: If user projects loading fails
-        """
+        """Load user's personal projects."""
         log.debug("Starting user project search with archived: %s", self.archived)
         try:
             user = self.gitlab.users.get(self.gitlab.user.id)
@@ -325,14 +315,11 @@ class GitlabTree:
             root = self.make_node("group", f"{username}-personal-projects", self.root, url=f"{self.url}/users/{username}/projects")
             self.add_projects(root, projects)
         except Exception as e:
-            raise GitlabTreeError(f"Failed to load user projects: {str(e)}")
+            log.error(f"Failed to load user projects: {str(e)}")
+            # Continue execution instead of raising an exception
 
     def load_tree(self) -> None:
-        """Load the tree structure from appropriate source.
-        
-        Raises:
-            GitlabTreeError: If tree loading fails
-        """
+        """Load the tree structure from appropriate source."""
         try:
             if self.in_file:
                 log.debug("Loading tree from file [%s]", self.in_file)
@@ -347,7 +334,8 @@ class GitlabTree:
             log.debug("Fetched root node with [%d] projects", len(self.root.leaves))
             self.filter_tree(self.root)
         except Exception as e:
-            raise GitlabTreeError(f"Failed to load tree: {str(e)}")
+            log.error(f"Failed to load tree: {str(e)}")
+            # Continue execution instead of raising an exception
 
     def print_tree(self, format: PrintFormat = PrintFormat.TREE) -> None:
         """Print the tree in specified format.
