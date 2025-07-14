@@ -181,5 +181,23 @@ export GIT_PYTHON_TRACE='full'
 * Folder naming strategy: Consecutively running Gitlabber with different values for the `-n` parameter will produce undesirable results. Use the same value as previous runs, or simply don't change it from the default (project name).
 * If you're going to clone a large number of projects, observe rate limits [for gitlab.com](https://docs.gitlab.com/ee/user/gitlab_com/index.html#gitlabcom-specific-rate-limits/), and [for on-premise installations](https://docs.gitlab.com/ee/security/rate_limits.html).
 
+
+### Branch Synchronization Issues
+Gitlabber's default pull behavior (`git pull -v -- origin`) may fail when you have a local branch checked out that no longer exists on the remote repository. This commonly occurs after:
+
+- Merging a merge request where the remote branch is automatically deleted
+- Manual deletion of remote branches
+
+**Error Example:**
+```
+git.exc.GitCommandError: Cmd('git') failed due to: exit code(1)
+cmdline: git pull -v -- origin
+```
+
+**Workaround:** Use the `--use-fetch` flag instead of the default pull behavior:
+```bash
+gitlabber --use-fetch -t <your-token> -u <gitlab-url> .
+```
+
 ## Links
 * Gitlabber [tutorial](https://medium.com/@natskvi/clone-all-your-gitlab-groups-repos-before-starting-to-code-dd559ec5c8d6) by nsk 
