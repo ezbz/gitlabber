@@ -14,7 +14,7 @@
     :target: https://pypi.python.org/pypi/gitlabber/
 
 .. image:: https://readthedocs.org/projects/gitlabber/badge/?version=latest&style=plastic
-    :target: https://gitlabber.readthedocs.io/en/latest/README.html
+    :target: https://app.readthedocs.org/projects/gitlabber/
 
 
 Gitlabber
@@ -32,14 +32,35 @@ Gitlabber clones or pulls all projects under a subset of groups / subgroups by b
 Installation
 ------------
 
-* You can install Gitlabber from `PyPi <https://pypi.org/project/gitlabber>`_:
+System Requirements
+~~~~~~~~~~~~~~~~~
+* Python 3.7 or higher
+* Git 2.0 or higher
+* Network access to GitLab instance
 
-.. code-block:: bash
+Installation Methods
+~~~~~~~~~~~~~~~~~~
+* PyPI (recommended):
+  .. code-block:: bash
+      pip install gitlabber
 
-    pip install gitlabber
+* From source:
+  .. code-block:: bash
+      git clone https://github.com/ezbz/gitlabber.git
+      cd gitlabber
+      pip install -e .
 
 * You'll need to create an `access token <https://docs.gitlab.com/ee/user/profile/personal_access_tokens.html>`_ from GitLab with API scopes `read_repository`
   and ``read_api`` (or ``api``, for GitLab versions <12.0)
+
+Quick Start
+-----------
+    .. code-block:: bash
+        # Install gitlabber
+        pip install gitlabber
+
+        # Clone all your GitLab projects
+        gitlabber -t <your-token> -u <gitlab-url> .
 
 Usage
 -----
@@ -64,17 +85,18 @@ Usage
 
 * To view the tree run the command with your includes/excludes and the ``-p`` flag. It will print your tree like so:
 
-.. code-block:: bash
+    .. code-block:: bash
 
-    root [http://gitlab.my.com]
-    ├── group1 [/group1]
-    │   └── subgroup1 [/group1/subgroup1]
-    │       └── project1 [/group1/subgroup1/project1]
-    └── group2 [/group2]
-        ├── subgroup1 [/group2/subgroup1]
-        │   └── project2 [/group2/subgroup1/project2]
-        ├── subgroup2 [/group2/subgroup2]
-        └── subgroup3 [/group2/subgroup3]
+        root [http://gitlab.my.com]
+        ├── group1 [/group1]
+        │   └── subgroup1 [/group1/subgroup1]
+        │       └── project1 [/group1/subgroup1/project1]
+        └── group2 [/group2]
+            ├── subgroup1 [/group2/subgroup1]
+            │   └── project2 [/group2/subgroup1/project2]
+            ├── subgroup2 [/group2/subgroup2]
+            └── subgroup3 [/group2/subgroup3]
+
 
 * To see how to use glob patterns and regex to filter tree nodes, see the `globre project page <https://pypi.org/project/globre/#details>`_.
 
@@ -147,22 +169,36 @@ Usage
         clone projects that start with a case insensitive 'w' using a regular expression:
         gitlabber -i '/{[w].*}' .
 
-        clone the user personal projects to username-personal-projects
+        clone the personal projects to username-personal-projects
         gitlabber -U .
 
         perform a shallow clone of the git repositories
         gitlabber -o "\-\-depth=1," .
 
+Common Use Cases
+----------------
 
+Clone Specific Groups
+---------------------
+
+    .. code-block:: bash
+        # Clone only projects from a specific group
+        gitlabber -i '/MyGroup/**' .
+
+Exclude Archived Projects
+-------------------------
+
+    .. code-block:: bash
+        # Clone all non-archived projects
+        gitlabber -a exclude .
 
 Debugging
 ---------
 * You can use the ``--verbose`` flag to print Gitlabber debug messages
 * For more verbose GitLab messages, you can get the `GitPython <https://gitpython.readthedocs.io/en/stable>`_ module to print more debug messages by setting the environment variable:
 
-.. code-block:: bash
-
-    export GIT_PYTHON_TRACE='full'
+    .. code-block:: bash
+        export GIT_PYTHON_TRACE='full'
 
 Troubleshooting
 ---------------
@@ -175,6 +211,26 @@ Known Limitations
 * Folder naming strategy: Consecutively running Gitlabber with different values for the ``-n`` parameter will produce undesirable results. Use the same value as previous runs, or simply don't change it from the default (project name).
 * If you're going to clone a large number of projects, observe rate limits `for gitlab.com <https://docs.gitlab.com/ee/user/gitlab_com/index.html#gitlabcom-specific-rate-limits/>`_, and `for on-premise installations <https://docs.gitlab.com/ee/security/rate_limits.html>`_.
 
+Branch Synchronization Issues
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Gitlabber's default pull behavior (``git pull -v -- origin``) may fail when you have a local branch checked out that no longer exists on the remote repository. This commonly occurs after:
+
+- Merging a merge request where the remote branch is automatically deleted
+- Manual deletion of remote branches
+
+**Error Example:**
+
+.. code-block:: text
+
+   git.exc.GitCommandError: Cmd('git') failed due to: exit code(1)
+   cmdline: git pull -v -- origin
+
+**Workaround:** Use the ``--use-fetch`` flag instead of the default pull behavior:
+
+.. code-block:: bash
+
+   gitlabber --use-fetch -t <your-token> -u <gitlab-url> .
 
 Links
 -----
