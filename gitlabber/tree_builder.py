@@ -276,7 +276,7 @@ class GitlabTreeBuilder:
         node = self._make_node("group", group_id, root, group.web_url)
         self.progress.show_progress_detailed(node.name, "group", "processing")
         
-        # Phase 2: Parallelize subgroups and projects fetching within the group
+        # Fetch subgroups and projects concurrently
         if self.api_concurrency > 1:
             with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
                 subgroup_future = executor.submit(self.get_subgroups, group, node)
@@ -390,7 +390,7 @@ class GitlabTreeBuilder:
             self._handle_error(error_msg, error)
 
     def get_subgroups(self, group, parent: Node) -> None:
-        """Get subgroups for a group, with parallel detail fetching (Phase 2).
+        """Get subgroups for a group, fetching details concurrently when multiple subgroups exist.
         
         Args:
             group: GitLab group object
@@ -404,9 +404,9 @@ class GitlabTreeBuilder:
             if not subgroups:
                 return
             
-            # Phase 2: Batch fetch subgroup details in parallel
+            # Fetch all subgroup details concurrently
             if self.api_concurrency > 1 and len(subgroups) > 1:
-                # Fetch all subgroup details in parallel
+                # Fetch subgroup details in parallel
                 with concurrent.futures.ThreadPoolExecutor(max_workers=min(self.api_concurrency, len(subgroups))) as executor:
                     # Map futures to indices to preserve order
                     future_to_index = {
@@ -429,7 +429,7 @@ class GitlabTreeBuilder:
                                 exc,
                             )
                     
-                    # Process fetched subgroups in parallel (Phase 2 enhancement)
+                    # Process fetched subgroups concurrently
                     # This parallelizes the recursive processing of each subgroup
                     if len(fetched_subgroups) > 1:
                         with concurrent.futures.ThreadPoolExecutor(max_workers=min(self.api_concurrency, len(fetched_subgroups))) as executor:
@@ -550,9 +550,9 @@ class GitlabTreeBuilder:
             "subgroup", subgroup_id, parent, subgroup.web_url
         )
         self.progress.show_progress_detailed(node.name, "subgroup", "processing")
-        # Recursively process subgroups and projects (with parallelization if enabled)
+        # Recursively process subgroups and projects
         if self.api_concurrency > 1:
-            # Parallelize subgroups and projects fetching within the subgroup
+            # Fetch subgroups and projects concurrently
             with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
                 subgroup_future = executor.submit(self.get_subgroups, subgroup, node)
                 project_future = executor.submit(self.get_projects, subgroup, node)
