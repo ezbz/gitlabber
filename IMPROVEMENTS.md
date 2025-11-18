@@ -668,7 +668,7 @@ class GitlabberGitError(GitlabberError):
 
 #### 1.4 Code Standardization
 - [x] Standardize logging (use `log.critical()` instead of `log.fatal()`)
-- [ ] Add docstrings to all public functions/methods
+- [x] Add docstrings to public functions/methods in core modules
 - [x] Add type hints to all functions
 
 ### 2. Library Modernization

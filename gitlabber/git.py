@@ -18,6 +18,8 @@ progress = ProgressBar('* syncing projects')
 
 @dataclass(slots=True)
 class GitAction:
+    """Description of a single git action to perform for a tree leaf."""
+
     node: Node
     path: str
     recursive: bool = False
@@ -96,6 +98,7 @@ def get_git_actions(
 
 
 def is_git_repo(path: str) -> bool:
+    """Return True if the given path is a valid git repository."""
     try:
         _ = git.Repo(path).git_dir
         return True
@@ -104,6 +107,7 @@ def is_git_repo(path: str) -> bool:
 
 
 def clone_or_pull_project(action: GitAction) -> None:
+    """Clone a new project or pull changes for an existing project."""
     if is_git_repo(action.path):
         '''
         Update existing project
