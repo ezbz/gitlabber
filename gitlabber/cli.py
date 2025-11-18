@@ -9,7 +9,7 @@ import typer
 from . import __version__ as VERSION
 from .archive import ArchivedResults
 from .auth import TokenAuthProvider
-from .config import GitlabberConfig
+from .config import GitlabberConfig, GitlabberSettings
 from .format import PrintFormat
 from .gitlab_tree import GitlabTree
 from .method import CloneMethod
@@ -108,7 +108,7 @@ def run_gitlabber(
     url: Optional[str],
     verbose: bool,
     file: Optional[str],
-    concurrency: int,
+    concurrency: Optional[int],
     print_tree_only: bool,
     print_format: PrintFormat,
     naming: FolderNaming,
@@ -123,13 +123,14 @@ def run_gitlabber(
     user_projects: bool,
     git_options: Optional[str],
     fail_fast: bool,
+    settings: GitlabberSettings,
 ) -> None:
     token_value = _require(
-        token,
+        token or settings.token,
         "Please specify a valid token with -t/--token or the GITLAB_TOKEN environment variable.",
     )
     url_value = _require(
-        url,
+        url or settings.url,
         "Please specify a valid gitlab base url with -u/--url or the GITLAB_URL environment variable.",
     )
     if not print_tree_only and dest is None and not user_projects:
@@ -139,38 +140,50 @@ def run_gitlabber(
         )
         raise typer.Exit(1)
 
+    method_value = method or settings.method or CloneMethod.SSH
+    naming_value = naming or settings.naming or FolderNaming.NAME
+    includes_value = _split_csv(include)
+    if includes_value is None:
+        includes_value = settings.includes
+    excludes_value = _split_csv(exclude)
+    if excludes_value is None:
+        excludes_value = settings.excludes
+    concurrency_value = concurrency or settings.concurrency or 1
+
     config_logging(verbose, print_tree_only)
 
-    args_print = {
-        "dest": dest,
-        "url": url_value,
-        "token": "__hidden__",
-        "print": print_tree_only,
-        "print_format": print_format,
-        "method": method,
-        "naming": naming,
-        "archived": archived,
-        "recursive": recursive,
-        "include_shared": include_shared,
-        "use_fetch": use_fetch,
-        "hide_token": hide_token,
-        "user_projects": user_projects,
-        "group_search": group_search,
-        "fail_fast": fail_fast,
-    }
-    log.debug("running with args [%s]", args_print)
+    log.debug(
+        "running with args [%s]",
+        {
+            "dest": dest,
+            "url": url_value,
+            "token": "__hidden__",
+            "print": print_tree_only,
+            "print_format": print_format,
+            "method": method_value,
+            "naming": naming_value,
+            "archived": archived,
+            "recursive": recursive,
+            "include_shared": include_shared,
+            "use_fetch": use_fetch,
+            "hide_token": hide_token,
+            "user_projects": user_projects,
+            "group_search": group_search,
+            "fail_fast": fail_fast,
+        },
+    )
 
     auth_provider = TokenAuthProvider(token_value)
     config = GitlabberConfig(
         url=url_value,
         token=token_value,
-        method=method,
-        naming=naming,
+        method=method_value,
+        naming=naming_value,
         archived=archived.api_value,
-        includes=_split_csv(include),
-        excludes=_split_csv(exclude),
+        includes=includes_value,
+        excludes=excludes_value,
         in_file=file,
-        concurrency=concurrency,
+        concurrency=concurrency_value,
         recursive=recursive,
         disable_progress=verbose,
         include_shared=include_shared,
@@ -209,7 +222,6 @@ def cli(
         None,
         "-t",
         "--token",
-        envvar="GITLAB_TOKEN",
         help="GitLab personal access token",
     ),
     hide_token: bool = typer.Option(
@@ -222,7 +234,6 @@ def cli(
         None,
         "-u",
         "--url",
-        envvar="GITLAB_URL",
         callback=lambda value: _validate_url(value) if value else value,
         help="Base GitLab URL (e.g. https://gitlab.example.com)",
     ),
@@ -238,12 +249,11 @@ def cli(
         help="Load tree definition from YAML file instead of querying GitLab",
         show_default=False,
     ),
-    concurrency: int = typer.Option(
-        1,
+    concurrency: Optional[int] = typer.Option(
+        None,
         "-c",
         "--concurrency",
-        envvar="GITLABBER_GIT_CONCURRENCY",
-        callback=_validate_positive_int,
+        callback=lambda v: _validate_positive_int(v) if v is not None else v,
         help="Number of concurrent git operations",
     ),
     print_tree_only: bool = typer.Option(
@@ -263,15 +273,15 @@ def cli(
         "--fail-fast",
         help="Exit immediately when encountering discovery errors",
     ),
-    naming: FolderNaming = typer.Option(
-        FolderNaming.NAME,
+    naming: Optional[FolderNaming] = typer.Option(
+        None,
         "-n",
         "--naming",
         case_sensitive=False,
         help="Folder naming strategy for projects",
     ),
-    method: CloneMethod = typer.Option(
-        CloneMethod.SSH,
+    method: Optional[CloneMethod] = typer.Option(
+        None,
         "-m",
         "--method",
         case_sensitive=False,
@@ -288,14 +298,12 @@ def cli(
         None,
         "-i",
         "--include",
-        envvar="GITLABBER_INCLUDE",
         help="Comma-delimited list of glob patterns to include",
     ),
     exclude: Optional[str] = typer.Option(
         None,
         "-x",
         "--exclude",
-        envvar="GITLABBER_EXCLUDE",
         help="Comma-delimited list of glob patterns to exclude",
     ),
     recursive: bool = typer.Option(
@@ -341,6 +349,8 @@ def cli(
         help="Print version and exit",
     ),
 ) -> None:
+    settings = GitlabberSettings()
+
     run_gitlabber(
         dest=dest,
         token=token,
@@ -363,6 +373,7 @@ def cli(
         user_projects=user_projects,
         git_options=git_options,
         fail_fast=fail_fast,
+        settings=settings,
     )
 
 
