@@ -16,6 +16,7 @@ from .exceptions import GitlabberTreeError
 from .method import CloneMethod
 from .naming import FolderNaming
 from .progress import ProgressBar
+from .url_builder import build_project_url
 
 
 # Functional predicate builders
@@ -272,19 +273,14 @@ class GitlabTreeBuilder:
                     if self.naming == FolderNaming.NAME
                     else project.path
                 )
-                project_url = (
-                    project.ssh_url_to_repo
-                    if self.method is CloneMethod.SSH
-                    else project.http_url_to_repo
+                project_url = build_project_url(
+                    http_url=project.http_url_to_repo,
+                    ssh_url=project.ssh_url_to_repo,
+                    method=self.method,
+                    token=self.token,
+                    hide_token=self.hide_token,
+                    logger=self.log,
                 )
-                if self.token and self.method is CloneMethod.HTTP:
-                    if not self.hide_token:
-                        project_url = project_url.replace(
-                            "://", f"://gitlab-token:{self.token}@"
-                        )
-                        self.log.debug("Generated URL: %s", project_url)
-                    else:
-                        self.log.debug("Hiding token from project url: %s", project_url)
                 node = self._make_node("project", project_id, parent, project_url)
                 self.progress.show_progress(node.name, "project")
             except AttributeError as exc:
