@@ -29,6 +29,7 @@ dependencies = [
     "anytree",
     "globre",
     "pyyaml",
+    "typer>=0.12",
     "rich",
     "GitPython",
     "python-gitlab",

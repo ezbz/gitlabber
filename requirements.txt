@@ -4,4 +4,5 @@ python-gitlab==7.0.0
 globre==0.1.5
 PyYAML==6.0.3
 rich==14.2.0
+typer==0.12.5
 urllib3==2.3.0

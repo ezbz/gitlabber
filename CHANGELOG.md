@@ -7,6 +7,7 @@
 - Convert CLI enums to `enum.StrEnum` for clearer string semantics
 - Update dependencies: anytree 2.13.0, GitPython 3.1.45, python-gitlab 7.0.0, PyYAML 6.0.3
 - Replace tqdm-based progress bars with Rich for improved CLI UX
+- Migrate CLI implementation from argparse to Typer for modern option parsing and help output
 ## [1.2.8] - 25/3/2025
 ### Added
 - Add support for shared projects fetching

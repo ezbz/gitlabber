@@ -1,310 +1,371 @@
-from typing import Optional, Any
-import os
-import sys
+from __future__ import annotations
+
 import logging
-import logging.handlers
-import enum
-from argparse import ArgumentParser, RawTextHelpFormatter, FileType, SUPPRESS, Namespace, ArgumentTypeError
-from .gitlab_tree import GitlabTree
-from .format import PrintFormat
-from .method import CloneMethod
-from .naming import FolderNaming
+import os
+from typing import Optional
+
+import typer
+
+from . import __version__ as VERSION
 from .archive import ArchivedResults
 from .auth import TokenAuthProvider
 from .config import GitlabberConfig
-from . import __version__ as VERSION
+from .format import PrintFormat
+from .gitlab_tree import GitlabTree
+from .method import CloneMethod
+from .naming import FolderNaming
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+)
 log = logging.getLogger(__name__)
 
-def validate_positive_int(value: str) -> int:
-    """Validate that the input is a positive integer."""
-    try:
-        int_value = int(value)
-        if int_value <= 0:
-            raise ArgumentTypeError(f"{value} is not a positive integer")
-        return int_value
-    except ValueError:
-        raise ArgumentTypeError(f"{value} is not a valid integer")
+app = typer.Typer(
+    add_completion=False,
+    context_settings={"help_option_names": ["-h", "--help"]},
+)
 
-def validate_url(value: str) -> str:
-    """Validate that the input is a valid URL."""
+
+def _validate_positive_int(value: int) -> int:
+    if value <= 0:
+        raise typer.BadParameter("Value must be a positive integer")
+    return value
+
+
+def _validate_url(value: str) -> str:
     from urllib.parse import urlparse
-    
+
     if not value or not value.strip():
-        raise ArgumentTypeError("URL cannot be empty")
-    
+        raise typer.BadParameter("URL cannot be empty")
+
     parsed = urlparse(value.strip())
     if not parsed.scheme or not parsed.netloc:
-        raise ArgumentTypeError(f"{value} is not a valid URL. Must include scheme (http:// or https://) and hostname")
-    
-    if parsed.scheme not in ('http', 'https'):
-        raise ArgumentTypeError(f"{value} is not a valid URL. Scheme must be http:// or https://")
-    
+        raise typer.BadParameter(
+            "URL must include scheme (http:// or https://) and hostname"
+        )
+
+    if parsed.scheme not in ("http", "https"):
+        raise typer.BadParameter("Scheme must be http:// or https://")
+
     return value.strip()
 
-def validate_path(value: str) -> str:
-    """Validate and normalize the path."""
-    if value.endswith('/'):
+
+def _normalize_path(value: Optional[str]) -> Optional[str]:
+    if value and value.endswith("/"):
         return value[:-1]
     return value
 
-def split(csv: Optional[str]) -> Optional[list[str]]:
-    """Split comma-separated values into a list, removing empty values and whitespace.
-    
-    Args:
-        csv: Comma-separated string to split
-        
-    Returns:
-        List of non-empty strings, or None if input is empty/None
-    """
+
+def _split_csv(csv: Optional[str]) -> Optional[list[str]]:
     if not csv or not csv.strip():
         return None
-    # Split, strip each item, and filter out empty strings
-    result = [item.strip() for item in csv.split(",") if item.strip()]
-    return result if result else None
+    values = [item.strip() for item in csv.split(",") if item.strip()]
+    return values or None
 
-def config_logging(args: Namespace) -> None:
-    """Configure logging based on command line arguments"""
-    if args.verbose:
-        handler = logging.StreamHandler(sys.stdout)
+
+def config_logging(verbose: bool, print_mode: bool) -> None:
+    if verbose:
+        handler = logging.StreamHandler()
         logging.root.handlers = []
-        handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
+        handler.setFormatter(
+            logging.Formatter(
+                "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+            )
+        )
         logging.root.addHandler(handler)
-        level = logging.ERROR if args.print else logging.DEBUG
+        level = logging.ERROR if print_mode else logging.DEBUG
         logging.root.setLevel(level)
-        log.debug("verbose=[%s], print=[%s], log level set to [%s] level", args.verbose, args.print, level)
-        os.environ["GIT_PYTHON_TRACE"] = 'full'
-        logging.getLogger().setLevel(logging.DEBUG)
+        log.debug(
+            "verbose=[%s], print=[%s], log level set to [%s] level",
+            verbose,
+            print_mode,
+            level,
+        )
+        os.environ["GIT_PYTHON_TRACE"] = "full"
     else:
         logging.getLogger().setLevel(logging.INFO)
 
-def main() -> None:
-    """Main entry point for the application."""
-    args = parse_args(argv=None if sys.argv[1:] else ['--help'])
-    if args.version:
-        print(VERSION)
-        sys.exit(0) 
 
-    if args.token is None:
-        print('Please specify a valid token with the -t flag or the \'GITLAB_TOKEN\' environment variable')
-        sys.exit(1)
+def _version_callback(value: bool) -> None:
+    if value:
+        typer.echo(VERSION)
+        raise typer.Exit()
 
-    if args.url is None:
-        print('Please specify a valid gitlab base url with the -u flag or the \'GITLAB_URL\' environment variable')
-        sys.exit(1)
 
-    elif args.dest is None and args.print is False:
-        print('Please specify a destination for the gitlab tree')
-        sys.exit(1)
+def _require(value: Optional[str], message: str) -> str:
+    if not value:
+        typer.secho(message, err=True)
+        raise typer.Exit(1)
+    return value
 
-    config_logging(args)
-    includes = split(args.include)
-    excludes = split(args.exclude)
 
-    args_print: dict[str, Any] = vars(args).copy()
-    args_print['token'] = '__hidden__'
+def run_gitlabber(
+    *,
+    dest: Optional[str],
+    token: Optional[str],
+    hide_token: bool,
+    url: Optional[str],
+    verbose: bool,
+    file: Optional[str],
+    concurrency: int,
+    print_tree_only: bool,
+    print_format: PrintFormat,
+    naming: FolderNaming,
+    method: CloneMethod,
+    archived: ArchivedResults,
+    include: Optional[str],
+    exclude: Optional[str],
+    recursive: bool,
+    use_fetch: bool,
+    include_shared: bool,
+    group_search: Optional[str],
+    user_projects: bool,
+    git_options: Optional[str],
+    fail_fast: bool,
+) -> None:
+    token_value = _require(
+        token,
+        "Please specify a valid token with -t/--token or the GITLAB_TOKEN environment variable.",
+    )
+    url_value = _require(
+        url,
+        "Please specify a valid gitlab base url with -u/--url or the GITLAB_URL environment variable.",
+    )
+    if not print_tree_only and dest is None and not user_projects:
+        typer.secho(
+            "Please specify a destination for the gitlab tree.",
+            err=True,
+        )
+        raise typer.Exit(1)
+
+    config_logging(verbose, print_tree_only)
+
+    args_print = {
+        "dest": dest,
+        "url": url_value,
+        "token": "__hidden__",
+        "print": print_tree_only,
+        "print_format": print_format,
+        "method": method,
+        "naming": naming,
+        "archived": archived,
+        "recursive": recursive,
+        "include_shared": include_shared,
+        "use_fetch": use_fetch,
+        "hide_token": hide_token,
+        "user_projects": user_projects,
+        "group_search": group_search,
+        "fail_fast": fail_fast,
+    }
     log.debug("running with args [%s]", args_print)
 
-    # Create a token-based auth provider
-    auth_provider = TokenAuthProvider(args.token)
-
-    # Create configuration object
+    auth_provider = TokenAuthProvider(token_value)
     config = GitlabberConfig(
-        url=args.url,
-        token=args.token,
-        method=args.method,
-        naming=args.naming,
-        archived=args.archived.api_value,
-        includes=includes,
-        excludes=excludes,
-        in_file=args.file,
-        concurrency=args.concurrency,
-        recursive=args.recursive,
-        disable_progress=args.verbose,
-        include_shared=args.include_shared,
-        use_fetch=args.use_fetch,
-        hide_token=args.hide_token,
-        user_projects=args.user_projects,
-        group_search=args.group_search,
-        git_options=args.git_options,
+        url=url_value,
+        token=token_value,
+        method=method,
+        naming=naming,
+        archived=archived.api_value,
+        includes=_split_csv(include),
+        excludes=_split_csv(exclude),
+        in_file=file,
+        concurrency=concurrency,
+        recursive=recursive,
+        disable_progress=verbose,
+        include_shared=include_shared,
+        use_fetch=use_fetch,
+        hide_token=hide_token,
+        user_projects=user_projects,
+        group_search=group_search,
+        git_options=git_options,
         auth_provider=auth_provider,
-        fail_fast=args.fail_fast
+        fail_fast=fail_fast,
     )
 
     tree = GitlabTree(config=config)
     tree.load_tree()
 
     if tree.is_empty():
-        log.fatal("The tree is empty, check your include/exclude patterns or run with more verbosity for debugging")
-        sys.exit(1) 
+        log.critical(
+            "The tree is empty, check your include/exclude patterns or run with more verbosity for debugging",
+        )
+        raise typer.Exit(1)
 
-    if args.print:
-        tree.print_tree(args.print_format)
+    if print_tree_only:
+        tree.print_tree(print_format)
     else:
-        tree.sync_tree(args.dest)
+        tree.sync_tree(dest or ".")
 
-def parse_args(argv: Optional[list[str]] = None) -> Namespace:
-    """Parse command line arguments."""
-    example_text = r'''examples:
 
-    clone an entire gitlab tree using a url and a token:
-    gitlabber -t <personal access token> -u <gitlab url>
+@app.command()
+def cli(
+    dest: Optional[str] = typer.Argument(
+        None,
+        callback=_normalize_path,
+        help="Destination path for the cloned tree (created if it doesn't exist)",
+    ),
+    token: Optional[str] = typer.Option(
+        None,
+        "-t",
+        "--token",
+        envvar="GITLAB_TOKEN",
+        help="GitLab personal access token",
+    ),
+    hide_token: bool = typer.Option(
+        False,
+        "-T",
+        "--hide-token",
+        help="Use inline URL token (avoids storing the token in .git/config)",
+    ),
+    url: Optional[str] = typer.Option(
+        None,
+        "-u",
+        "--url",
+        envvar="GITLAB_URL",
+        callback=lambda value: _validate_url(value) if value else value,
+        help="Base GitLab URL (e.g. https://gitlab.example.com)",
+    ),
+    verbose: bool = typer.Option(
+        False,
+        "--verbose",
+        help="Print more verbose output",
+    ),
+    file: Optional[str] = typer.Option(
+        None,
+        "-f",
+        "--file",
+        help="Load tree definition from YAML file instead of querying GitLab",
+        show_default=False,
+    ),
+    concurrency: int = typer.Option(
+        1,
+        "-c",
+        "--concurrency",
+        envvar="GITLABBER_GIT_CONCURRENCY",
+        callback=_validate_positive_int,
+        help="Number of concurrent git operations",
+    ),
+    print_tree_only: bool = typer.Option(
+        False,
+        "-p",
+        "--print",
+        help="Print the tree without cloning",
+    ),
+    print_format: PrintFormat = typer.Option(
+        PrintFormat.TREE,
+        "--print-format",
+        case_sensitive=False,
+        help="Print format",
+    ),
+    fail_fast: bool = typer.Option(
+        False,
+        "--fail-fast",
+        help="Exit immediately when encountering discovery errors",
+    ),
+    naming: FolderNaming = typer.Option(
+        FolderNaming.NAME,
+        "-n",
+        "--naming",
+        case_sensitive=False,
+        help="Folder naming strategy for projects",
+    ),
+    method: CloneMethod = typer.Option(
+        CloneMethod.SSH,
+        "-m",
+        "--method",
+        case_sensitive=False,
+        help="Git transport method to use for cloning",
+    ),
+    archived: ArchivedResults = typer.Option(
+        ArchivedResults.INCLUDE,
+        "-a",
+        "--archived",
+        case_sensitive=False,
+        help="Include archived projects and groups in the results",
+    ),
+    include: Optional[str] = typer.Option(
+        None,
+        "-i",
+        "--include",
+        envvar="GITLABBER_INCLUDE",
+        help="Comma-delimited list of glob patterns to include",
+    ),
+    exclude: Optional[str] = typer.Option(
+        None,
+        "-x",
+        "--exclude",
+        envvar="GITLABBER_EXCLUDE",
+        help="Comma-delimited list of glob patterns to exclude",
+    ),
+    recursive: bool = typer.Option(
+        False,
+        "-r",
+        "--recursive",
+        help="Clone/pull git submodules recursively",
+    ),
+    use_fetch: bool = typer.Option(
+        False,
+        "-F",
+        "--use-fetch",
+        help="Use git fetch instead of pull (mirrored repositories)",
+    ),
+    include_shared: bool = typer.Option(
+        True,
+        "--include-shared/--no-include-shared",
+        help="Include shared projects in the results",
+    ),
+    group_search: Optional[str] = typer.Option(
+        None,
+        "-g",
+        "--group-search",
+        help="Only include groups matching the search term (API level filtering)",
+    ),
+    user_projects: bool = typer.Option(
+        False,
+        "-U",
+        "--user-projects",
+        help="Fetch only user personal projects (group parameters ignored)",
+    ),
+    git_options: Optional[str] = typer.Option(
+        None,
+        "-o",
+        "--git-options",
+        help="Additional options as CSV for the git command (e.g., --depth=1)",
+    ),
+    version: bool = typer.Option(
+        False,
+        "--version",
+        callback=_version_callback,
+        is_eager=True,
+        help="Print version and exit",
+    ),
+) -> None:
+    run_gitlabber(
+        dest=dest,
+        token=token,
+        hide_token=hide_token,
+        url=url,
+        verbose=verbose,
+        file=file,
+        concurrency=concurrency,
+        print_tree_only=print_tree_only,
+        print_format=print_format,
+        naming=naming,
+        method=method,
+        archived=archived,
+        include=include,
+        exclude=exclude,
+        recursive=recursive,
+        use_fetch=use_fetch,
+        include_shared=include_shared,
+        group_search=group_search,
+        user_projects=user_projects,
+        git_options=git_options,
+        fail_fast=fail_fast,
+    )
 
-    only print the gitlab tree:
-    gitlabber -p .
 
-    clone only projects under subgroup 'MySubGroup' to location '~/GitlabRoot':
-    gitlabber -i '/MyGroup/MySubGroup**' ~/GitlabRoot
-
-    clone only projects under group 'MyGroup' excluding any projects under subgroup 'MySubGroup':
-    gitlabber -i '/MyGroup**' -x '/MyGroup/MySubGroup**' .
-
-    clone an entire gitlab tree except projects under groups named 'ArchiveGroup':
-    gitlabber -x '/ArchiveGroup**' .
-
-    clone projects that start with a case insensitive 'w' using a regular expression:
-    gitlabber -i '/{[w].*}' .
-    
-    clone the user personal projects to username-personal-projects
-    gitlabber -U .
-    
-    perform a shallow clone of the git repositories
-    gitlabber -o "\-\-depth=1," .
-    '''
-
-    parser = ArgumentParser(
-        description='Gitlabber - clones or pulls entire groups/projects tree from gitlab',
-        prog="gitlabber",
-        epilog=example_text,
-        formatter_class=RawTextHelpFormatter)    
-    parser.add_argument(
-        'dest',
-        nargs='?', 
-        type=validate_path,
-        help='destination path for the cloned tree (created if doesn\'t exist)')
-    parser.add_argument(
-        '-t',
-        '--token',
-        metavar=('token'),
-        default=os.environ.get('GITLAB_TOKEN'),
-        help='gitlab personal access token https://docs.gitlab.com/ee/user/profile/personal_access_tokens.html')
-    parser.add_argument(
-        '-T',
-        '--hide-token',
-        action='store_true',
-        default=False,
-        help='use an inline URL token (avoids storing the gitlab personal access token in the .git/config)')
-    parser.add_argument(
-        '-u',
-        '--url',
-        metavar=('url'),
-        type=validate_url,
-        default=os.environ.get('GITLAB_URL'),
-        help='base gitlab url (e.g.: \'http://gitlab.mycompany.com\')')
-    parser.add_argument(
-        '--verbose',
-        action='store_true',
-        help='print more verbose output')
-    parser.add_argument(
-        '-f',
-        '--file',
-        metavar=('file'),
-        help=SUPPRESS)    
-    parser.add_argument(
-        '-c',
-        '--concurrency',
-        default=os.environ.get('GITLABBER_GIT_CONCURRENCY', 1),
-        type=validate_positive_int,
-        metavar=('concurrency'),
-        help=SUPPRESS)
-    parser.add_argument(
-        '-p',
-        '--print',
-        action='store_true',
-        help='print the tree without cloning')
-    parser.add_argument(
-        '--print-format', 
-        type=PrintFormat.argparse,
-        default=PrintFormat.TREE,
-        choices=list(PrintFormat),
-        help='print format (default: \'tree\')')
-    parser.add_argument(
-        '--fail-fast',
-        action='store_true',
-        default=False,
-        help='exit immediately when encountering discovery errors')
-    parser.add_argument(
-        '-n',
-        '--naming',
-        type=FolderNaming.argparse,
-        choices=list(FolderNaming),
-        default=FolderNaming.argparse(os.environ.get('GITLABBER_FOLDER_NAMING', "name")),
-        help='the folder naming strategy for projects from the gitlab API attributes (default: "name")')
-    parser.add_argument(
-        '-m',
-        '--method',
-        type=CloneMethod.argparse,
-        choices=list(CloneMethod),
-        default=os.environ.get('GITLABBER_CLONE_METHOD', "ssh"),
-        help='the git transport method to use for cloning (default: "ssh")')
-    parser.add_argument(
-        '-a',
-        '--archived',
-        type=ArchivedResults.argparse,
-        choices=list(ArchivedResults),
-        default=ArchivedResults.INCLUDE,
-        help='include archived projects and groups in the results (default: "include")')
-    parser.add_argument(
-        '-i',
-        '--include',
-        metavar=('csv'),
-        default=os.environ.get('GITLABBER_INCLUDE', ""),
-        help='comma delimited list of glob patterns of paths to projects or groups to clone/pull')
-    parser.add_argument(
-        '-x',
-        '--exclude',
-        metavar=('csv'),
-        default=os.environ.get('GITLABBER_EXCLUDE', ""),
-        help='comma delimited list of glob patterns of paths to projects or groups to exclude from clone/pull')
-    parser.add_argument(
-        '-r',
-        '--recursive',
-        action='store_true',
-        default=False,
-        help='clone/pull git submodules recursively')
-    parser.add_argument(
-        '-F',
-        '--use-fetch',
-        action='store_true',
-        default=False,
-        help='clone/fetch git repository (mirrored repositories)')
-    parser.add_argument(
-        '-s',
-        '--include-shared',
-        action='store_true',
-        default=True,
-        help='include shared projects in the results')
-    parser.add_argument(
-        '-g',
-        '--group-search',
-        metavar=('term'),
-        help='only include groups matching the search term, filtering done at the API level (useful for large projects, see: https://docs.gitlab.com/ee/api/groups.html#search-for-group works with partial names of path or name)')
-    parser.add_argument(
-        '-U',
-        '--user-projects',
-        action='store_true',
-        default=False,
-        help='fetch only user personal projects (skips the group tree altogether, group related parameters are ignored). Clones personal projects to \'{gitlab-username}-personal-projects\'')
-    parser.add_argument(
-        '-o',
-        '--git-options',
-        metavar=('options'),
-        help='Additional options as CSV for the git command (e.g., --depth=1). See: clone/multi_options https://gitpython.readthedocs.io/en/stable/reference.html#')
-    parser.add_argument(
-        '--version',
-        action='store_true',
-        help='print the version')
-
-    return parser.parse_args(argv)
+def main() -> None:
+    app()
 

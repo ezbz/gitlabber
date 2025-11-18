@@ -681,8 +681,8 @@ class GitlabberGitError(GitlabberError):
 - [x] Update `anytree` to latest version
 
 #### 2.2 Alternative Libraries
-- [ ] Consider `rich` for better CLI experience
-- [ ] Consider `typer` or `click` for CLI
+- [x] Consider `rich` for better CLI experience
+- [x] Migrate CLI from argparse to Typer for modern UX
 - [ ] Consider `pydantic` for configuration
 - [ ] Consider `httpx` for HTTP requests (if needed)
 

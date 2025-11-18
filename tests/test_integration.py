@@ -37,10 +37,10 @@ def captured_output():
 @pytest.mark.integration_test
 def test_help():
     output = io_util.execute(["-h"])
-    assert "usage:" in output
-    assert "examples:" in output
-    assert "positional arguments:" in output
-    assert "Gitlabber - clones or pulls entire groups/projects tree from gitlab" in output
+    lowered = output.lower()
+    assert "usage:" in lowered
+    assert "options" in lowered
+    assert "gitlabber" in lowered
 
 @pytest.mark.integration_test
 def test_version():
