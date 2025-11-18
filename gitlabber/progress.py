@@ -28,6 +28,6 @@ class ProgressBar:
         if self.progress is not None:
             self.progress.close()
         end = time.time()   
-        hours, rem = divmod(end-self.start, 3600)
+        hours, rem = divmod(end - self.start, 3600)
         minutes, seconds = divmod(rem, 60)
-        return "{:0>2}:{:0>2}:{:05.2f}".format(int(hours), int(minutes), seconds)
+        return f"{int(hours):02}:{int(minutes):02}:{seconds:05.2f}"

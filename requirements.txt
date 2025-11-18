@@ -4,5 +4,4 @@ python-gitlab==5.6.0
 globre==0.1.5
 PyYAML==6.0.2
 tqdm==4.67.1
-docopt==0.6.2
 urllib3==2.3.0
