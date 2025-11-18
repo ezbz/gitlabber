@@ -1,4 +1,4 @@
-from typing import List, Optional, Union, Any, Dict, Iterator
+from typing import Optional, Any, Union
 from gitlab import Gitlab
 from gitlab.exceptions import GitlabGetError, GitlabListError, GitlabAuthenticationError
 from gitlab.v4.objects import Group, Project, User
@@ -11,6 +11,13 @@ from .method import CloneMethod
 from .naming import FolderNaming
 from .progress import ProgressBar
 from .auth import AuthProvider, TokenAuthProvider
+from .config import GitlabberConfig
+from .exceptions import (
+    GitlabberTreeError,
+    GitlabberAPIError,
+    GitlabberAuthenticationError as GitlabberAuthError,
+    GitlabberGitError
+)
 import yaml
 import globre
 import logging
@@ -19,19 +26,15 @@ from pathlib import Path
 
 log = logging.getLogger(__name__)
 
-class GitlabTreeError(Exception):
-    """Base exception for GitlabTree errors."""
-    pass
-
 class GitlabTree:
-    def __init__(self, 
-                 url: str,
-                 token: str,
-                 method: CloneMethod,
+    def __init__(self,
+                 url: Optional[str] = None,
+                 token: Optional[str] = None,
+                 method: Optional[CloneMethod] = None,
                  naming: Optional[FolderNaming] = None,
                  archived: Optional[bool] = None,
-                 includes: Optional[List[str]] = None,
-                 excludes: Optional[List[str]] = None,
+                 includes: Optional[list[str]] = None,
+                 excludes: Optional[list[str]] = None,
                  in_file: Optional[str] = None,
                  concurrency: int = 1,
                  recursive: bool = False,
@@ -42,32 +45,63 @@ class GitlabTree:
                  user_projects: bool = False,
                  group_search: Optional[str] = None,
                  git_options: Optional[str] = None,
-                 auth_provider: Optional[AuthProvider] = None) -> None:
+                 auth_provider: Optional[AuthProvider] = None,
+                 fail_fast: bool = False,
+                 config: Optional[GitlabberConfig] = None) -> None:
         """Initialize GitlabTree.
         
         Args:
-            url: GitLab instance URL
-            token: Personal access token
-            method: Clone method (SSH or HTTP)
-            naming: Folder naming strategy
-            archived: Whether to include archived projects
-            includes: List of glob patterns to include
-            excludes: List of glob patterns to exclude
-            in_file: YAML file to load tree from
-            concurrency: Number of concurrent git operations
-            recursive: Whether to clone recursively
-            disable_progress: Whether to disable progress bar
-            include_shared: Whether to include shared projects
-            use_fetch: Whether to use git fetch instead of pull
-            hide_token: Whether to hide token in URLs
-            user_projects: Whether to fetch only user projects
-            group_search: Search term for filtering groups
-            git_options: Additional git options as CSV string
-            auth_provider: Authentication provider (defaults to TokenAuthProvider)
+            config: GitlabberConfig object (preferred method)
+            url: GitLab instance URL (used if config not provided)
+            token: Personal access token (used if config not provided)
+            method: Clone method (SSH or HTTP) (used if config not provided)
+            naming: Folder naming strategy (used if config not provided)
+            archived: Whether to include archived projects (used if config not provided)
+            includes: List of glob patterns to include (used if config not provided)
+            excludes: List of glob patterns to exclude (used if config not provided)
+            in_file: YAML file to load tree from (used if config not provided)
+            concurrency: Number of concurrent git operations (used if config not provided)
+            recursive: Whether to clone recursively (used if config not provided)
+            disable_progress: Whether to disable progress bar (used if config not provided)
+            include_shared: Whether to include shared projects (used if config not provided)
+            use_fetch: Whether to use git fetch instead of pull (used if config not provided)
+            hide_token: Whether to hide token in URLs (used if config not provided)
+            user_projects: Whether to fetch only user projects (used if config not provided)
+            group_search: Search term for filtering groups (used if config not provided)
+            git_options: Additional git options as CSV string (used if config not provided)
+            auth_provider: Authentication provider (used if config not provided)
+            fail_fast: Whether to abort on the first discovery error
+            config: Optional GitlabberConfig to provide settings
             
         Raises:
-            GitlabTreeError: If initialization fails
+            GitlabberAuthenticationError: If authentication fails
+            GitlabberAPIError: If GitLab client initialization fails
         """
+        # Use config if provided, otherwise use individual parameters
+        if config:
+            url = config.url
+            token = config.token
+            method = config.method
+            naming = config.naming
+            archived = config.archived
+            includes = config.includes
+            excludes = config.excludes
+            in_file = config.in_file
+            concurrency = config.concurrency
+            recursive = config.recursive
+            disable_progress = config.disable_progress
+            include_shared = config.include_shared
+            use_fetch = config.use_fetch
+            hide_token = config.hide_token
+            user_projects = config.user_projects
+            group_search = config.group_search
+            git_options = config.git_options
+            auth_provider = config.auth_provider
+            fail_fast = config.fail_fast
+        
+        if not url or not token or not method:
+            raise GitlabberAPIError("url, token, and method are required (either via config or individual parameters)")
+        
         self.includes = includes or []
         self.excludes = excludes or []
         self.url = url
@@ -82,9 +116,13 @@ class GitlabTree:
             # Authenticate using the provider
             self.auth_provider.authenticate(self.gitlab)
         except GitlabAuthenticationError as e:
-            raise GitlabTreeError(f"Failed to authenticate with GitLab: {str(e)}")
+            error_msg = f"Failed to authenticate with GitLab at {url}: {str(e)}"
+            log.error(error_msg)
+            raise GitlabberAuthError(error_msg) from e
         except Exception as e:
-            raise GitlabTreeError(f"Failed to initialize GitLab client: {str(e)}")
+            error_msg = f"Failed to initialize GitLab client for {url}: {str(e)}"
+            log.error(error_msg, exc_info=True)
+            raise GitlabberAPIError(error_msg) from e
             
         self.method = method
         self.naming = naming
@@ -101,6 +139,16 @@ class GitlabTree:
         self.user_projects = user_projects
         self.group_search = group_search
         self.git_options = git_options
+        self.fail_fast = fail_fast
+
+    def handle_error(self, message: str, exc: Optional[Exception] = None) -> None:
+        """Handle an error according to fail_fast settings."""
+        if self.fail_fast:
+            raise GitlabberTreeError(message) from exc
+        if exc:
+            log.error(message, exc_info=True)
+        else:
+            log.error(message)
 
     @staticmethod
     def get_ca_path() -> Union[str, bool]:
@@ -191,7 +239,7 @@ class GitlabTree:
         node.root_path = self.root_path(node)
         return node
 
-    def add_projects(self, parent: Node, projects: List[Project]) -> None:
+    def add_projects(self, parent: Node, projects: list[Project]) -> None:
         """Add projects to the tree.
         
         Args:
@@ -199,7 +247,7 @@ class GitlabTree:
             projects: List of projects to add
             
         Raises:
-            GitlabTreeError: If project addition fails
+            GitlabberAPIError: If project addition fails
         """
         for project in projects:
             try:
@@ -213,8 +261,15 @@ class GitlabTree:
                         log.debug("Hiding token from project url: %s", project_url)
                 node = self.make_node("project", project_id, parent, url=project_url)
                 self.progress.show_progress(node.name, 'project')
+            except AttributeError as e:
+                error_msg = f"Failed to add project '{project.name if hasattr(project, 'name') else 'unknown'}': missing required attribute - {str(e)}"
+                log.error(error_msg)
+                # Continue with other projects rather than failing completely
+                continue
             except Exception as e:
-                log.error("Failed to add project %s: %s", project.name, str(e))
+                error_msg = f"Failed to add project '{project.name if hasattr(project, 'name') else 'unknown'}': {str(e)}"
+                log.error(error_msg, exc_info=True)
+                # Continue with other projects rather than failing completely
                 continue
 
     def get_projects(self, group: Group, parent: Node) -> None:
@@ -234,9 +289,9 @@ class GitlabTree:
                 self.progress.update_progress_length(len(shared_projects))
                 self.add_projects(parent, shared_projects)
         except GitlabListError as error:
-            log.error("Error getting projects on %s id: [%s] error message: [%s]", 
-                     group.name, group.id, error.error_message)
-            # Continue execution instead of raising an exception
+            message = (f"Error getting projects on {group.name} id: [{group.id}] "
+                       f"error message: [{error.error_message}]")
+            self.handle_error(message, error)
 
     def get_subgroups(self, group: Group, parent: Node) -> None:
         """Get subgroups for a group.
@@ -258,16 +313,21 @@ class GitlabTree:
                     self.get_projects(subgroup, node)
                 except GitlabGetError as error:
                     if error.response_code == 404:
-                        log.error(f"{error.response_code} error while getting subgroup with name: {group.name} [id: {group.id}]. Check your permissions as you may not have access to it. Message: {error.error_message}")
-                        continue
-                    log.error(f"Error getting subgroup: {error.error_message}")
+                        message = (f"{error.response_code} error while getting subgroup with name: "
+                                   f"{group.name} [id: {group.id}]. Check your permissions as you "
+                                   f"may not have access to it. Message: {error.error_message}")
+                    else:
+                        message = f"Error getting subgroup: {error.error_message}"
+                    self.handle_error(message, error)
                     continue
         except GitlabListError as error:
             if error.response_code == 404:
-                log.error(f"{error.response_code} error while listing subgroup with name: {group.name} [id: {group.id}]. Check your permissions as you may not have access to it. Message: {error.error_message}")
+                message = (f"{error.response_code} error while listing subgroup with name: "
+                           f"{group.name} [id: {group.id}]. Check your permissions as you may not "
+                           f"have access to it. Message: {error.error_message}")
             else:
-                log.error(f"Failed to get subgroups for group {group.name}: {error.error_message}")
-            # Continue execution instead of raising an exception
+                message = f"Failed to get subgroups for group {group.name}: {error.error_message}"
+            self.handle_error(message, error)
 
     def load_gitlab_tree(self) -> None:
         """Load the GitLab tree structure."""
@@ -285,24 +345,41 @@ class GitlabTree:
                         self.get_subgroups(group, node)
                         self.get_projects(group, node)
                 except Exception as e:
-                    log.error(f"Error processing group {group.name}: {str(e)}")
+                    message = f"Error processing group {group.name}: {str(e)}"
+                    self.handle_error(message, e)
                     continue
 
             elapsed = self.progress.finish_progress()
             log.debug("Loading projects tree from gitlab took [%s]", elapsed)
         except Exception as e:
-            log.error(f"Failed to load GitLab tree: {str(e)}")
-            # Continue execution instead of raising an exception
+            message = f"Failed to load GitLab tree: {str(e)}"
+            self.handle_error(message, e)
 
     def load_file_tree(self) -> None:
         """Load tree structure from a YAML file."""
         try:
-            with open(self.in_file, 'r') as stream:
+            file_path = Path(self.in_file)
+            if not file_path.exists():
+                error_msg = f"Tree file does not exist: {self.in_file}"
+                log.error(error_msg)
+                raise GitlabberTreeError(error_msg)
+            with file_path.open('r') as stream:
                 dct = yaml.safe_load(stream)
                 self.root = DictImporter().import_(dct)
+        except GitlabberTreeError:
+            raise
+        except FileNotFoundError as e:
+            error_msg = f"Tree file not found: {self.in_file}"
+            log.error(error_msg)
+            raise GitlabberTreeError(error_msg) from e
+        except yaml.YAMLError as e:
+            error_msg = f"Failed to parse YAML file {self.in_file}: {str(e)}"
+            log.error(error_msg)
+            raise GitlabberTreeError(error_msg) from e
         except Exception as e:
-            log.error(f"Failed to load tree from file {self.in_file}: {str(e)}")
-            # Continue execution instead of raising an exception
+            error_msg = f"Failed to load tree from file {self.in_file}: {str(e)}"
+            log.error(error_msg, exc_info=True)
+            raise GitlabberTreeError(error_msg) from e
 
     def load_user_tree(self) -> None:
         """Load user's personal projects."""
@@ -315,8 +392,8 @@ class GitlabTree:
             root = self.make_node("group", f"{username}-personal-projects", self.root, url=f"{self.url}/users/{username}/projects")
             self.add_projects(root, projects)
         except Exception as e:
-            log.error(f"Failed to load user projects: {str(e)}")
-            # Continue execution instead of raising an exception
+            message = f"Failed to load user projects: {str(e)}"
+            self.handle_error(message, e)
 
     def load_tree(self) -> None:
         """Load the tree structure from appropriate source."""
@@ -334,8 +411,8 @@ class GitlabTree:
             log.debug("Fetched root node with [%d] projects", len(self.root.leaves))
             self.filter_tree(self.root)
         except Exception as e:
-            log.error(f"Failed to load tree: {str(e)}")
-            # Continue execution instead of raising an exception
+            message = f"Failed to load tree: {str(e)}"
+            self.handle_error(message, e)
 
     def print_tree(self, format: PrintFormat = PrintFormat.TREE) -> None:
         """Print the tree in specified format.
@@ -344,7 +421,7 @@ class GitlabTree:
             format: Print format to use
             
         Raises:
-            GitlabTreeError: If printing fails
+            GitlabberTreeError: If printing fails
         """
         try:
             if format is PrintFormat.TREE:
@@ -354,9 +431,15 @@ class GitlabTree:
             elif format is PrintFormat.JSON:
                 self.print_tree_json()
             else:
-                raise GitlabTreeError(f"Invalid print format: {format}")
+                error_msg = f"Invalid print format: {format}"
+                log.error(error_msg)
+                raise GitlabberTreeError(error_msg)
+        except GitlabberTreeError:
+            raise
         except Exception as e:
-            raise GitlabTreeError(f"Failed to print tree: {str(e)}")
+            error_msg = f"Failed to print tree: {str(e)}"
+            log.error(error_msg, exc_info=True)
+            raise GitlabberTreeError(error_msg) from e
 
     def print_tree_native(self) -> None:
         """Print tree in native format."""
@@ -385,16 +468,23 @@ class GitlabTree:
             dest: Destination path
             
         Raises:
-            GitlabTreeError: If sync fails
+            GitlabberGitError: If git operations fail
+            GitlabberTreeError: If sync fails
         """
         try:
             log.debug("Going to clone/pull [%s] groups and [%s] projects",
                      len(self.root.descendants) - len(self.root.leaves), len(self.root.leaves))
             sync_tree(self.root, dest, concurrency=self.concurrency,
                      disable_progress=self.disable_progress, recursive=self.recursive,
-                     use_fetch=self.use_fetch, hide_token=self.hide_token)
+                     use_fetch=self.use_fetch, hide_token=self.hide_token,
+                     git_options=self.git_options)
+        except GitlabberGitError:
+            # Re-raise git errors as-is
+            raise
         except Exception as e:
-            raise GitlabTreeError(f"Failed to sync tree: {str(e)}")
+            error_msg = f"Failed to sync tree to {dest}: {str(e)}"
+            log.error(error_msg, exc_info=True)
+            raise GitlabberTreeError(error_msg) from e
 
     def is_empty(self) -> bool:
         """Check if the tree is empty.

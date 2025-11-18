@@ -1,4 +1,4 @@
-from typing import Optional, List, Any, Dict, Union
+from typing import Optional, Any
 import os
 import sys
 import logging
@@ -11,6 +11,7 @@ from .method import CloneMethod
 from .naming import FolderNaming
 from .archive import ArchivedResults
 from .auth import TokenAuthProvider
+from .config import GitlabberConfig
 from . import __version__ as VERSION
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -28,9 +29,19 @@ def validate_positive_int(value: str) -> int:
 
 def validate_url(value: str) -> str:
     """Validate that the input is a valid URL."""
-    if not value.startswith(('http://', 'https://')):
-        raise ArgumentTypeError(f"{value} is not a valid URL. Must start with http:// or https://")
-    return value
+    from urllib.parse import urlparse
+    
+    if not value or not value.strip():
+        raise ArgumentTypeError("URL cannot be empty")
+    
+    parsed = urlparse(value.strip())
+    if not parsed.scheme or not parsed.netloc:
+        raise ArgumentTypeError(f"{value} is not a valid URL. Must include scheme (http:// or https://) and hostname")
+    
+    if parsed.scheme not in ('http', 'https'):
+        raise ArgumentTypeError(f"{value} is not a valid URL. Scheme must be http:// or https://")
+    
+    return value.strip()
 
 def validate_path(value: str) -> str:
     """Validate and normalize the path."""
@@ -38,9 +49,20 @@ def validate_path(value: str) -> str:
         return value[:-1]
     return value
 
-def split(csv: Optional[str]) -> Optional[List[str]]:
-    """Split comma-separated values into a list"""
-    return csv.split(",") if csv and csv.strip() else None
+def split(csv: Optional[str]) -> Optional[list[str]]:
+    """Split comma-separated values into a list, removing empty values and whitespace.
+    
+    Args:
+        csv: Comma-separated string to split
+        
+    Returns:
+        List of non-empty strings, or None if input is empty/None
+    """
+    if not csv or not csv.strip():
+        return None
+    # Split, strip each item, and filter out empty strings
+    result = [item.strip() for item in csv.split(",") if item.strip()]
+    return result if result else None
 
 def config_logging(args: Namespace) -> None:
     """Configure logging based on command line arguments"""
@@ -80,14 +102,15 @@ def main() -> None:
     includes = split(args.include)
     excludes = split(args.exclude)
 
-    args_print: Dict[str, Any] = vars(args).copy()
+    args_print: dict[str, Any] = vars(args).copy()
     args_print['token'] = '__hidden__'
     log.debug("running with args [%s]", args_print)
 
     # Create a token-based auth provider
     auth_provider = TokenAuthProvider(args.token)
 
-    tree = GitlabTree(
+    # Create configuration object
+    config = GitlabberConfig(
         url=args.url,
         token=args.token,
         method=args.method,
@@ -105,8 +128,11 @@ def main() -> None:
         user_projects=args.user_projects,
         group_search=args.group_search,
         git_options=args.git_options,
-        auth_provider=auth_provider
+        auth_provider=auth_provider,
+        fail_fast=args.fail_fast
     )
+
+    tree = GitlabTree(config=config)
     tree.load_tree()
 
     if tree.is_empty():
@@ -118,7 +144,7 @@ def main() -> None:
     else:
         tree.sync_tree(args.dest)
 
-def parse_args(argv: Optional[List[str]] = None) -> Namespace:
+def parse_args(argv: Optional[list[str]] = None) -> Namespace:
     """Parse command line arguments."""
     example_text = r'''examples:
 
@@ -203,6 +229,11 @@ def parse_args(argv: Optional[List[str]] = None) -> Namespace:
         default=PrintFormat.TREE,
         choices=list(PrintFormat),
         help='print format (default: \'tree\')')
+    parser.add_argument(
+        '--fail-fast',
+        action='store_true',
+        default=False,
+        help='exit immediately when encountering discovery errors')
     parser.add_argument(
         '-n',
         '--naming',

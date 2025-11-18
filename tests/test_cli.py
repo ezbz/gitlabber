@@ -54,7 +54,8 @@ def create_mock_args(overrides: Dict[str, Any] = None) -> mock.Mock:
         "hide_token": None,
         "user_projects": None,
         "group_search": None,
-        "git_options": None
+        "git_options": None,
+        "fail_fast": False
     }
     if overrides:
         base_args.update(overrides)
@@ -75,7 +76,7 @@ def test_args_logging(
     mock_sys: mock.Mock,
     mock_logging: mock.Mock
 ) -> None:
-    args_mock = create_mock_args({"verbose": True, "naming": FolderNaming.PATH})
+    args_mock = create_mock_args({"verbose": True, "naming": FolderNaming.PATH, "fail_fast": True})
     cli.parse_args = args_mock
 
     mock_streamhandler = mock.Mock()
@@ -88,6 +89,9 @@ def test_args_logging(
 
     mock_streamhandler.assert_called_once_with(mock_sys.stdout)
     mock_formatter.assert_called_once()
+    mock_tree.assert_called_once()
+    config_arg = mock_tree.call_args.kwargs["config"]
+    assert config_arg.fail_fast is True
 
 
 @mock.patch("gitlabber.cli.GitlabTree")
