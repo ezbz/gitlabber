@@ -20,8 +20,8 @@ def test_naming_argparse() -> None:
 
 
 def test_naming_repr() -> None:
-    assert repr(FolderNaming.NAME) == "FolderNaming.NAME"
-    assert repr(FolderNaming.PATH) == "FolderNaming.PATH"
+    assert repr(FolderNaming.NAME) == "<FolderNaming.NAME: 'name'>"
+    assert repr(FolderNaming.PATH) == "<FolderNaming.PATH: 'path'>"
 
 
 def test_naming_value_access() -> None:

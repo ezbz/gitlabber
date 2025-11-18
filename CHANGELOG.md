@@ -5,6 +5,8 @@
 ### Changed
 - Require Python 3.11 or newer (dropped Python 3.9 and 3.10 support)
 - Convert CLI enums to `enum.StrEnum` for clearer string semantics
+- Update dependencies: anytree 2.13.0, GitPython 3.1.45, python-gitlab 7.0.0, PyYAML 6.0.3
+- Replace tqdm-based progress bars with Rich for improved CLI UX
 ## [1.2.8] - 25/3/2025
 ### Added
 - Add support for shared projects fetching

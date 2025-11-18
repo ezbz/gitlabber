@@ -204,7 +204,8 @@ def test_get_subgroups_404_error(monkeypatch):
     with mock.patch("gitlabber.gitlab_tree.log.error") as mock_log_error:
         gl.get_subgroups(mock_group, gl.root)
         mock_log_error.assert_called_once_with(
-            f"404 error while getting subgroup with name: mock_group [id: 123]. Check your permissions as you may not have access to it. Message: Not Found"
+            "404 error while getting subgroup with name: mock_group [id: 123]. Check your permissions as you may not have access to it. Message: Not Found",
+            exc_info=True,
         )
 
 def test_hide_token_in_project_url_both_cases(monkeypatch):

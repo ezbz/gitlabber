@@ -161,13 +161,11 @@ This document outlines comprehensive suggestions for improving the Gitlabber cod
 
 ### 2.2 Alternative Libraries
 
-#### Consider `rich` for Better CLI Experience
-- **Current**: Uses `tqdm` for progress bars
-- **Recommendation**: Consider `rich` library for:
-  - Better progress bars
-  - Better console output formatting
-  - Tree visualization (could replace custom tree printing)
-  - Better error messages
+#### Adopt `rich` for Better CLI Experience
+- **Status**: ✅ Migrated progress reporting to `rich` for improved UI
+- **Next ideas**:
+  - Expand use of `rich` for tree printing or structured logs
+  - Enhance error messaging with styled output
 
 #### Consider `click` or `typer` for CLI
 - **Current**: Uses `argparse`
@@ -676,11 +674,11 @@ class GitlabberGitError(GitlabberError):
 #### 2.1 Dependency Updates
 - [x] Remove unused `typing` dependency
 - [x] Remove unused `docopt` dependency
-- [ ] Update `python-gitlab` to latest version
-- [ ] Update `GitPython` to latest version
-- [ ] Update `PyYAML` or consider `ruamel.yaml`
-- [ ] Update `tqdm` to latest version
-- [ ] Update `anytree` to latest version
+- [x] Update `python-gitlab` to latest version
+- [x] Update `GitPython` to latest version
+- [x] Update `PyYAML` to latest version (kept PyYAML; no ruamel change yet)
+- [x] Update `tqdm` to latest version
+- [x] Update `anytree` to latest version
 
 #### 2.2 Alternative Libraries
 - [ ] Consider `rich` for better CLI experience

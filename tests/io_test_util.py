@@ -28,16 +28,13 @@ def execute(args: List[str], timeout: Optional[int] = None) -> str:
     Returns:
         Command output as string
     """
-    cmd = ["gitlabber"] + args
+    cmd = [sys.executable, "-m", "gitlabber"] + args
     env = os.environ.copy()
     
     # Print the command being executed
     print(f"Executing command: {' '.join(cmd)}")
     
-    # Check if gitlabber is in PATH
-    import shutil
-    gitlabber_path = shutil.which("gitlabber")
-    print(f"gitlabber path: {gitlabber_path}")
+    print(f"Using interpreter: {sys.executable}")
     
     result = subprocess.run(
         cmd,

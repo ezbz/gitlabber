@@ -21,9 +21,9 @@ def test_format_argparse() -> None:
 
 
 def test_format_repr() -> None:
-    assert repr(PrintFormat.JSON) == "PrintFormat.JSON"
-    assert repr(PrintFormat.YAML) == "PrintFormat.YAML"
-    assert repr(PrintFormat.TREE) == "PrintFormat.TREE"
+    assert repr(PrintFormat.JSON) == "<PrintFormat.JSON: 'json'>"
+    assert repr(PrintFormat.YAML) == "<PrintFormat.YAML: 'yaml'>"
+    assert repr(PrintFormat.TREE) == "<PrintFormat.TREE: 'tree'>"
 
 
 def test_format_value_access() -> None:

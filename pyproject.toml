@@ -29,7 +29,7 @@ dependencies = [
     "anytree",
     "globre",
     "pyyaml",
-    "tqdm",
+    "rich",
     "GitPython",
     "python-gitlab",
 ]

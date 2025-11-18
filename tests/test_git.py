@@ -2,9 +2,11 @@
 
 from gitlabber import git
 from gitlabber.git import GitAction
+from gitlabber.exceptions import GitlabberGitError
 from unittest import mock
 from anytree import Node
 import pytest
+import git as gitpython
 
 DEST="./test_dest"
 GROUP_PATH = "/group"
@@ -19,27 +21,16 @@ def create_tree():
     return root
 
 
-@mock.patch('gitlabber.git.os')
-@mock.patch('gitlabber.git.git')
 @mock.patch('gitlabber.git.clone_or_pull_project')
-@mock.patch('gitlabber.git.progress')
-def test_create_new_user_dir(mock_progress, mock_clone_or_pull_project, mock_git, mock_os):
-    git.git = mock.MagicMock()
-    
-    mock_os.path.exists.return_value = False
-
+def test_create_new_user_dir(mock_clone_or_pull_project, tmp_path):
     root = create_tree()
-    git.sync_tree(root,DEST)
-    
-    assert 3 == mock_os.path.exists.call_count
-    mock_os.path.exists.assert_has_calls(
-        [mock.call(DEST+GROUP_PATH), mock.call(DEST+SUBGROUP_PATH), mock.call(DEST+PROJECT_PATH)])
+    git.sync_tree(root, str(tmp_path))
 
-    assert 3 == mock_os.makedirs.call_count
-    mock_os.makedirs.assert_has_calls(
-        [mock.call(DEST+GROUP_PATH), mock.call(DEST+SUBGROUP_PATH), mock.call(DEST+PROJECT_PATH)])
+    assert (tmp_path / "group").is_dir()
+    assert (tmp_path / "group" / "subgroup").is_dir()
+    assert (tmp_path / "group" / "subgroup" / "project").is_dir()
 
-    assert 1 == git.clone_or_pull_project.call_count
+    mock_clone_or_pull_project.assert_called_once()
 
 
 @mock.patch('gitlabber.git.git')
@@ -105,13 +96,15 @@ def test_pull_repo_recursive(mock_git):
 def test_pull_repo_exception(mock_git):
     mock_repo = mock.Mock()
     mock_git.Repo = mock_repo
+    mock_git.exc = gitpython.exc
     git.is_git_repo = mock.MagicMock(return_value=True)
 
     repo_instance = mock_git.Repo.return_value
     repo_instance.remotes.origin.pull.side_effect=Exception('pull test exception')
 
-    git.clone_or_pull_project(GitAction(
-        Node(type="project", name="dummy_url", url="dummy_url"), "dummy_dir"))
+    with pytest.raises(GitlabberGitError):
+        git.clone_or_pull_project(GitAction(
+            Node(type="project", name="dummy_url", url="dummy_url"), "dummy_dir"))
 
     mock_git.Repo.assert_called_once_with("dummy_dir")
     repo_instance.remotes.origin.pull.assert_called_once()
