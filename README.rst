@@ -209,6 +209,7 @@ Clone Specific Groups
 ---------------------
 
     .. code-block:: bash
+
         # Clone only projects from a specific group
         gitlabber -i '/MyGroup/**' .
 
@@ -216,6 +217,7 @@ Exclude Archived Projects
 -------------------------
 
     .. code-block:: bash
+
         # Clone all non-archived projects
         gitlabber -a exclude .
 
