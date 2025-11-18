@@ -31,7 +31,7 @@ import yaml
 log = logging.getLogger(__name__)
 
 class GitlabTree:
-    def __init__(self,
+    def __init__(self, 
                  url: Optional[str] = None,
                  token: Optional[str] = None,
                  method: Optional[CloneMethod] = None,

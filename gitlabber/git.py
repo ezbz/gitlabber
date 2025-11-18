@@ -224,9 +224,9 @@ class GitActionCollector:
     def __init__(
         self,
         dest: str,
-        recursive: bool = False,
-        use_fetch: bool = False,
-        hide_token: bool = False,
+                 recursive: bool = False,
+                 use_fetch: bool = False,
+                 hide_token: bool = False,
         git_options: Optional[str] = None
     ):
         """Initialize the collector.
@@ -338,12 +338,12 @@ class GitSyncManager:
 # Backward compatibility functions
 def sync_tree(
     root: Node, 
-    dest: str, 
-    concurrency: int = 1,
-    disable_progress: bool = False,
-    recursive: bool = False,
-    use_fetch: bool = False,
-    hide_token: bool = False,
+              dest: str, 
+              concurrency: int = 1,
+              disable_progress: bool = False,
+              recursive: bool = False,
+              use_fetch: bool = False,
+              hide_token: bool = False,
     git_options: Optional[str] = None
 ) -> None:
     """

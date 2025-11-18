@@ -88,7 +88,7 @@ def test_shared_group_and_project():
     obj = json.loads(output)
     assert obj['children'][0]['name'] == 'Shared Group'
     assert obj['children'][0]['children'][0]['name'] == 'Shared Project'
-
+    
 
 @pytest.mark.slow_integration_test
 def test_api_concurrency_functionality():

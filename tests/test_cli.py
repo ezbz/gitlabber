@@ -12,7 +12,15 @@ runner = CliRunner()
 
 def _invoke(args: list[str], env: Optional[dict[str, str]] = None):
     """Helper to invoke CLI with given arguments."""
-    return runner.invoke(cli.app, args, env=env, catch_exceptions=False)
+    # Clear environment variables that might interfere with tests
+    if env is None:
+        env = {}
+    # Ensure these are not set unless explicitly provided
+    env.setdefault("GITLAB_TOKEN", "")
+    env.setdefault("GITLAB_URL", "")
+    env.setdefault("GITLABBER_TOKEN", "")
+    env.setdefault("GITLABBER_URL", "")
+    return runner.invoke(cli.app, args, env=env)
 
 
 def test_version_option():
