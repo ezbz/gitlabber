@@ -46,7 +46,8 @@ def test_clone_subgroup_only_archived():
         assert obj['children'][0]['children'][0]['children'][0]['name'] == 'archived-project'
     else:
         # If no archived projects found, tree should be empty but valid JSON
-        assert 'children' in obj or obj.get('children') == []
+        # Empty tree may not have 'children' key at all, or it may be an empty list
+        assert 'children' not in obj or obj.get('children') == [] or len(obj.get('children', [])) == 0
 
 
 @pytest.mark.slow_integration_test
