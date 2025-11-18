@@ -35,10 +35,24 @@ def mock_gitlab_tree() -> Generator[mock.Mock, None, None]:
 
 
 @pytest.fixture
-def mock_gitlabber_settings() -> Generator[mock.Mock, None, None]:
+def mock_gitlabber_settings(monkeypatch) -> Generator[mock.Mock, None, None]:
     """Fixture providing a mocked GitlabberSettings instance."""
-    with mock.patch("gitlabber.cli.GitlabberSettings") as mock_settings:
-        mock_instance = mock.Mock(spec=GitlabberSettings)
+    import os
+    # Clear environment variables that might interfere
+    env_vars = [
+        "GITLAB_TOKEN", "GITLAB_URL", "GITLABBER_TOKEN", "GITLABBER_URL",
+        "GITLABBER_INCLUDE", "GITLABBER_EXCLUDE", "GITLABBER_API_CONCURRENCY",
+        "GITLABBER_API_RATE_LIMIT", "GITLABBER_GIT_CONCURRENCY",
+        "GITLABBER_CLONE_METHOD", "GITLABBER_FOLDER_NAMING"
+    ]
+    original = {}
+    for var in env_vars:
+        if var in os.environ:
+            original[var] = os.environ[var]
+            monkeypatch.delenv(var, raising=False)
+    
+    with mock.patch("gitlabber.cli.GitlabberSettings", autospec=False) as mock_settings:
+        mock_instance = mock.Mock()
         mock_instance.token = None
         mock_instance.url = None
         mock_instance.method = None
@@ -50,6 +64,10 @@ def mock_gitlabber_settings() -> Generator[mock.Mock, None, None]:
         mock_instance.api_rate_limit = None
         mock_settings.return_value = mock_instance
         yield mock_settings
+    
+    # Restore original environment
+    for var, value in original.items():
+        os.environ[var] = value
 
 
 @pytest.fixture

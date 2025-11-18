@@ -122,7 +122,7 @@ def config_logging(verbose: bool, print_mode: bool) -> None:
 def _version_callback(value: bool) -> None:
     if value:
         typer.echo(VERSION)
-        sys.exit(0)
+        raise typer.Exit(code=0)
 
 
 def _require(value: Optional[str], message: str) -> str:
