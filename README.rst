@@ -227,6 +227,7 @@ Debugging
 * For more verbose GitLab messages, you can get the `GitPython <https://gitpython.readthedocs.io/en/stable>`_ module to print more debug messages by setting the environment variable:
 
     .. code-block:: bash
+
         export GIT_PYTHON_TRACE='full'
 
 Troubleshooting
