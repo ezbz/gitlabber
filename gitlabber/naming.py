@@ -1,19 +1,18 @@
-from typing import Union
-import enum 
+"""Folder naming strategy enumeration.
 
-class FolderNaming(enum.IntEnum):
-    NAME = 1
-    PATH = 2
+This module defines how project folders should be named when cloning
+the GitLab project hierarchy.
+"""
 
-    def __str__(self) -> str:
-        return self.name.lower()
+import enum
 
-    def __repr__(self) -> str:
-        return str(self)
 
-    @staticmethod
-    def argparse(s: str) -> Union['FolderNaming', str]:
-        try:
-            return FolderNaming[s.upper()]
-        except KeyError:
-            return s
+class FolderNaming(enum.StrEnum):
+    """Strategy for naming project folders.
+    
+    Attributes:
+        NAME: Use the project name only (e.g., "my-project")
+        PATH: Use the full project path (e.g., "group/subgroup/my-project")
+    """
+    NAME = "name"
+    PATH = "path"

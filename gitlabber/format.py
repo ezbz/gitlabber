@@ -1,20 +1,20 @@
-from typing import Union
-import enum 
+"""Output format enumeration for tree printing.
 
-class PrintFormat(enum.IntEnum):
-    JSON = 1
-    YAML = 2
-    TREE = 3
+This module defines the available output formats for displaying
+the GitLab project tree structure.
+"""
 
-    def __str__(self) -> str:
-        return self.name.lower()
+import enum
 
-    def __repr__(self) -> str:
-        return str(self)
 
-    @staticmethod
-    def argparse(s: str) -> Union['PrintFormat', str]:
-        try:
-            return PrintFormat[s.upper()]
-        except KeyError:
-            return s
+class PrintFormat(enum.StrEnum):
+    """Output format for tree printing operations.
+    
+    Attributes:
+        JSON: Output as JSON format
+        YAML: Output as YAML format
+        TREE: Output as a hierarchical tree structure
+    """
+    JSON = "json"
+    YAML = "yaml"
+    TREE = "tree"

@@ -1,3 +1,10 @@
+"""Authentication providers for GitLab API access.
+
+This module defines the authentication interface and implementations
+for authenticating with GitLab instances. It supports token-based
+authentication and provides a no-op provider for testing.
+"""
+
 from abc import ABC, abstractmethod
 from typing import Optional
 from gitlab import Gitlab

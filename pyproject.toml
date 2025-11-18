@@ -4,10 +4,10 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "gitlabber"
-version = "1.2.8"
+version = "2.0.0"
 description = "A Gitlab clone/pull utility for backing up or cloning Gitlab groups"
 readme = "README.rst"
-requires-python = ">=3"
+requires-python = ">=3.11"
 license = {text = "MIT"}
 authors = [
     {name = "Erez Mazor", email = "erezmazor@gmail.com"},
@@ -21,19 +21,18 @@ classifiers = [
     "Natural Language :: English",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.9",
-    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
 ]
 dependencies = [
-    "typing",
-    "docopt",
     "anytree",
     "globre",
     "pyyaml",
-    "tqdm",
+    "pydantic>=2.7",
+    "pydantic-settings>=2.7",
+    "typer>=0.12",
+    "rich",
     "GitPython",
     "python-gitlab",
 ]
@@ -79,3 +78,22 @@ testpaths = ["tests"]
 
 [tool.coverage.run]
 parallel = true
+source = ["gitlabber"]
+omit = [
+    "*/tests/*",
+    "*/test_*.py",
+    "*/__pycache__/*",
+    "*/playground/*",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+    "class .*\\bProtocol\\):",
+    "@(abc\\.)?abstractmethod",
+]

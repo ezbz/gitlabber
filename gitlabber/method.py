@@ -1,20 +1,18 @@
-from typing import Union
+"""Git clone method enumeration.
+
+This module defines the available methods for cloning Git repositories
+from GitLab (SSH or HTTP/HTTPS).
+"""
+
 import enum
 
 
-class CloneMethod(enum.IntEnum):
-    SSH = 1
-    HTTP = 2
-
-    def __str__(self) -> str:
-        return self.name.lower()
-
-    def __repr__(self) -> str:
-        return str(self)
-
-    @staticmethod
-    def argparse(s: str) -> Union['CloneMethod', str]:
-        try:
-            return CloneMethod[s.upper()]
-        except KeyError:
-            return s
+class CloneMethod(enum.StrEnum):
+    """Git transport method for cloning repositories.
+    
+    Attributes:
+        SSH: Clone using SSH protocol (requires SSH keys)
+        HTTP: Clone using HTTP/HTTPS protocol (supports token authentication)
+    """
+    SSH = "ssh"
+    HTTP = "http"

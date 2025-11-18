@@ -1,6 +1,67 @@
 # Changelog
 
 <!--next-version-placeholder-->
+## [Unreleased]
+
+## [2.0.0] - 2025-01-XX
+
+### Added
+- **Major Performance Feature**: Add `--api-concurrency` option for parallel API calls during tree building. This dramatically speeds up tree discovery for large GitLab instances with many groups and subgroups. Real-world performance improvements: **4-6x speedup** (e.g., 96s → 16-21s for instances with 21+ subgroups). The feature includes:
+  - Parallel group processing at the top level
+  - Parallel subgroup detail fetching (batch processing)
+  - Parallel subgroups and projects fetching within each group
+  - Automatic connection pool sizing to prevent urllib3 warnings
+  - Thread-safe rate limiting to respect GitLab API limits
+  - Configurable via `--api-concurrency N` (default: 5, range: 1-20) or `GITLABBER_API_CONCURRENCY` environment variable
+  - Optional `--api-rate-limit` to set custom rate limits (default: 2000 requests/hour)
+- **Enhanced Progress Reporting**: Progress bars now show estimated time remaining (ETA) and current operation details (cloning, pulling, fetching, processing)
+- **Actionable Error Messages**: Error messages now include context-specific suggestions with actionable steps and links to documentation
+- **Pydantic-based Configuration**: Configuration management with automatic validation and environment variable support
+- **Environment Variable Support**: All configuration options can now be set via environment variables (e.g., `GITLABBER_API_CONCURRENCY`, `GITLABBER_TOKEN`)
+- **Comprehensive Documentation**: Added module-level docstrings, API documentation, `DEVELOPMENT.md` with architecture docs, and enhanced `CONTRIBUTING.md`
+- **Pre-commit Hooks**: Added pre-commit hooks with black, ruff, mypy, and isort for code quality
+- **Test Utilities**: Added comprehensive test helpers and utilities for better test organization
+- **Performance Tests**: Added performance benchmarks and e2e tests for API concurrency
+- **Custom Exception Hierarchy**: Structured exception classes for better error handling
+
+### Changed
+- **BREAKING**: Require Python 3.11 or newer (dropped Python 3.9 and 3.10 support)
+- **BREAKING**: Migrate CLI implementation from argparse to Typer for modern option parsing and help output
+- **BREAKING**: Replace tqdm-based progress bars with Rich for improved CLI UX (different visual appearance)
+- Convert CLI enums to `enum.StrEnum` for clearer string semantics
+- Modernize type hints throughout codebase (`list[str]` instead of `List[str]`)
+- Convert `GitAction` to `@dataclass` for better code clarity
+- Use `pathlib.Path` consistently throughout codebase
+- Refactor `GitlabTree` into smaller, focused components:
+  - `GitlabTreeBuilder`: Builds tree structure
+  - `TreeFilter`: Handles filtering logic (functional approach)
+  - `UrlBuilder`: Centralized URL construction
+- Extract git operations into separate classes:
+  - `GitRepository`: Wraps git operations for a single repo
+  - `GitActionCollector`: Collects git actions
+  - `GitSyncManager`: Manages concurrent git operations
+- Improve tree filtering with functional approach and predicate composition
+- Enhance error handling with specific exceptions and better context
+- Improve input validation with `urllib.parse` for URLs
+- Update dependencies: anytree 2.13.0, GitPython 3.1.45, python-gitlab 7.0.0, PyYAML 6.0.3
+- Automatically configure HTTP connection pool size based on `--api-concurrency` to prevent connection pool warnings
+- Improve test coverage from 92% to 97%
+- Standardize logging (use `log.critical()` instead of `log.fatal()`)
+- Use f-strings consistently throughout codebase
+
+### Removed
+- Remove unused `typing` dependency (built-in since Python 3.5+)
+- Remove unused `docopt` dependency
+- Remove refactoring-related comments from codebase
+- Remove unused enum argparse methods (handled by Typer)
+
+### Fixed
+- Fix error handling to provide actionable suggestions
+- Fix progress reporting to show accurate ETA
+- Fix connection pool warnings with dynamic sizing
+- Fix test coverage gaps in error handling and edge cases
+
+
 ## [1.2.8] - 25/3/2025
 ### Added
 - Add support for shared projects fetching

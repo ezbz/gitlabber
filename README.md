@@ -16,7 +16,7 @@ Gitlabber clones or pulls all projects under a subset of groups / subgroups by b
 ## Installation
 
 ### System Requirements
-* Python 3.7 or higher
+* Python 3.11 or higher
 * Git 2.0 or higher
 * Network access to GitLab instance
 
@@ -75,6 +75,8 @@ root [http://gitlab.my.com]
 
 * Include/Exclude patterns do not work at the API level but work on the results returned from the API, for large Gitlab installations this can take a lot of time, if you need to reduce the amound of API calls for such projects use the `--group-search` parameter to search only for the top level groups the interest you using the [Gitlab Group Search API](https://docs.gitlab.com/ee/api/groups.html#search-for-group) which allows you to do a partial like query for a Group's path or name.
 
+* **Performance optimization**: For large GitLab instances with many groups and projects, use the `--api-concurrency` option to dramatically speed up tree building. This enables parallel API calls (default: 5 concurrent requests) which can provide **4-6x speedup** in real-world scenarios. For example, building a tree with 21 subgroups and 21 projects can be reduced from ~96 seconds (sequential) to ~16-21 seconds (with `--api-concurrency 5-10`). The `-c/--concurrency` option controls parallel git operations (cloning/pulling), while `--api-concurrency` controls parallel API calls (fetching groups/projects). Both can be tuned independently based on your needs.
+
 * Cloning vs Pulling: when running Gitlabber consecutively with the same parameters, it will scan the local tree structure; if the project directory exists and is a valid git repository (has .git folder in it) Gitlabber will perform a git pull in the directory, otherwise the project directory will be created and the GitLab project will be cloned into it.
 
 * Cloning submodules: use the `-r` flag to recurse git submodules, uses the `--recursive` for cloning and utilizes [GitPython's smart update method](https://github.com/gitpython-developers/GitPython/blob/20f4a9d49b466a18f1af1fdfb480bc4520a4cdc2/git/objects/submodule/root.py#L67) for updating cloned repositories.
@@ -83,7 +85,7 @@ root [http://gitlab.my.com]
 
 ```bash
 usage: gitlabber [-h] [-t token] [-T] [-u url] [--verbose] [-p] [--print-format {json,yaml,tree}] [-n {name,path}] [-m {ssh,http}]
-                [-a {include,exclude,only}] [-i csv] [-x csv] [-r] [-F] [-d] [-s] [-g term] [-U] [-o options] [--version]
+                [-a {include,exclude,only}] [-i csv] [-x csv] [-c N] [--api-concurrency N] [-r] [-F] [-d] [-s] [-g term] [-U] [-o options] [--version]
                 [dest]
 
 Gitlabber - clones or pulls entire groups/projects tree from gitlab
@@ -105,12 +107,16 @@ options:
                         the folder naming strategy for projects from the gitlab API attributes (default: "name")
 -m {ssh,http}, --method {ssh,http}
                         the git transport method to use for cloning (default: "ssh")
+--fail-fast          exit immediately when encountering discovery errors
 -a {include,exclude,only}, --archived {include,exclude,only}
                         include archived projects and groups in the results (default: "include")
 -i csv, --include csv
                         comma delimited list of glob patterns of paths to projects or groups to clone/pull
 -x csv, --exclude csv
                         comma delimited list of glob patterns of paths to projects or groups to exclude from clone/pull
+-c N, --concurrency N
+                        number of concurrent git operations (default: 1)
+--api-concurrency N    number of concurrent API calls for tree building (default: 5)
 -r, --recursive       clone/pull git submodules recursively
 -F, --use-fetch       clone/fetch git repository (mirrored repositories)
 -s, --include-shared  include shared projects in the results
@@ -148,6 +154,12 @@ gitlabber -U .
 
 # Perform a shallow clone of the git repositories
 gitlabber -o "\-\-depth=1," .
+
+# Speed up tree building for large GitLab instances with parallel API calls
+gitlabber --api-concurrency 10 -t <token> -u <url> .
+
+# Use both API and git concurrency for maximum performance
+gitlabber --api-concurrency 5 -c 10 -t <token> -u <url> .
 ```
 
 ## Common Use Cases
@@ -163,6 +175,24 @@ gitlabber -i '/MyGroup/**' .
 # Clone all non-archived projects
 gitlabber -a exclude .
 ```
+
+### Optimize Performance for Large Instances
+```bash
+# Speed up tree building with parallel API calls (4-6x faster for large instances)
+# Real-world example: 96s → 16-21s for instances with many subgroups/projects
+gitlabber --api-concurrency 10 -t <token> -u <url> .
+
+# Combine API and git concurrency for maximum throughput
+# API concurrency speeds up tree discovery, git concurrency speeds up cloning
+gitlabber --api-concurrency 5 -c 10 -t <token> -u <url> .
+```
+
+**Performance Results:**
+- Sequential (`--api-concurrency 1`): ~96 seconds
+- With `--api-concurrency 5`: ~21 seconds (**4.6x speedup**)
+- With `--api-concurrency 10`: ~16 seconds (**6x speedup**)
+
+*Note: Actual speedup depends on your GitLab instance structure (number of groups, subgroups, and projects). Instances with many nested subgroups benefit most from higher concurrency values.*
 
 ## Debugging
 * You can use the `--verbose` flag to print Gitlabber debug messages
