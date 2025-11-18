@@ -7,7 +7,7 @@ name = "gitlabber"
 version = "1.2.8"
 description = "A Gitlab clone/pull utility for backing up or cloning Gitlab groups"
 readme = "README.rst"
-requires-python = ">=3"
+requires-python = ">=3.11"
 license = {text = "MIT"}
 authors = [
     {name = "Erez Mazor", email = "erezmazor@gmail.com"},
@@ -21,15 +21,11 @@ classifiers = [
     "Natural Language :: English",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.9",
-    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
 ]
 dependencies = [
-    "typing",
-    "docopt",
     "anytree",
     "globre",
     "pyyaml",

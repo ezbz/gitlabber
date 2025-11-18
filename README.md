@@ -16,7 +16,7 @@ Gitlabber clones or pulls all projects under a subset of groups / subgroups by b
 ## Installation
 
 ### System Requirements
-* Python 3.7 or higher
+* Python 3.11 or higher
 * Git 2.0 or higher
 * Network access to GitLab instance
 
@@ -56,6 +56,7 @@ Arguments can be provided via the CLI arguments directly or via environment vari
 | naming   | -n   | `GITLABBER_FOLDER_NAMING` |
 | include  | -i   | `GITLABBER_INCLUDE` |
 | exclude  | -x   | `GITLABBER_EXCLUDE` |
+| fail-fast | --fail-fast | _N/A_ |
 
 To view the tree run the command with your includes/excludes and the `-p` flag. It will print your tree like so:
 
@@ -105,6 +106,7 @@ options:
                         the folder naming strategy for projects from the gitlab API attributes (default: "name")
 -m {ssh,http}, --method {ssh,http}
                         the git transport method to use for cloning (default: "ssh")
+--fail-fast          exit immediately when encountering discovery errors
 -a {include,exclude,only}, --archived {include,exclude,only}
                         include archived projects and groups in the results (default: "include")
 -i csv, --include csv

@@ -1,6 +1,10 @@
 # Changelog
 
 <!--next-version-placeholder-->
+## [Unreleased]
+### Changed
+- Require Python 3.11 or newer (dropped Python 3.9 and 3.10 support)
+- Convert CLI enums to `enum.StrEnum` for clearer string semantics
 ## [1.2.8] - 25/3/2025
 ### Added
 - Add support for shared projects fetching
