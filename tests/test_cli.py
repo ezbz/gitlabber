@@ -1,5 +1,6 @@
 """Tests for CLI using improved mocking patterns."""
 from typing import Optional
+import pytest
 from typer.testing import CliRunner
 from gitlabber import cli
 from gitlabber import __version__ as VERSION
@@ -73,3 +74,34 @@ def test_sync_tree(mock_gitlab_tree, mock_gitlabber_settings):
     )
     assert result.exit_code == 0
     mock_gitlab_tree.return_value.sync_tree.assert_called_once_with("/tmp/gitlabber")
+
+
+def test_convert_archived():
+    """Test _convert_archived function."""
+    from gitlabber.cli import _convert_archived
+    from gitlabber.archive import ArchivedResults
+    
+    assert _convert_archived("include") == ArchivedResults.INCLUDE
+    assert _convert_archived("exclude") == ArchivedResults.EXCLUDE
+    assert _convert_archived("only") == ArchivedResults.ONLY
+    assert _convert_archived("INCLUDE") == ArchivedResults.INCLUDE  # Case insensitive
+    assert _convert_archived("ExClUdE") == ArchivedResults.EXCLUDE  # Case insensitive
+
+
+def test_convert_archived_invalid():
+    """Test _convert_archived with invalid value."""
+    from gitlabber.cli import _convert_archived
+    from typer import BadParameter
+    
+    with pytest.raises(BadParameter):
+        _convert_archived("invalid")
+
+
+def test_cli_main_function():
+    """Test main() function calls app()."""
+    from unittest import mock
+    from gitlabber.cli import main, app
+    
+    with mock.patch('gitlabber.cli.app') as mock_app:
+        main()
+        mock_app.assert_called_once()
