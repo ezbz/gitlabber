@@ -59,6 +59,29 @@ def _validate_url(value: str) -> str:
     return value.strip()
 
 
+def _convert_archived(value: str) -> ArchivedResults:
+    """Convert string to ArchivedResults enum.
+    
+    Args:
+        value: String value (case-insensitive): 'include', 'exclude', or 'only'
+        
+    Returns:
+        ArchivedResults enum value
+        
+    Raises:
+        typer.BadParameter: If value is not a valid enum name
+    """
+    if not isinstance(value, str):
+        return value
+    value_lower = value.lower()
+    for enum_value in ArchivedResults:
+        if enum_value.name.lower() == value_lower:
+            return enum_value
+    raise typer.BadParameter(
+        f"'{value}' is not a valid value. Choose from: {', '.join(e.name.lower() for e in ArchivedResults)}"
+    )
+
+
 def _normalize_path(value: Optional[str]) -> Optional[str]:
     if value and value.endswith("/"):
         return value[:-1]
@@ -330,12 +353,13 @@ def cli(
         case_sensitive=False,
         help="Git transport method to use for cloning",
     ),
-    archived: ArchivedResults = typer.Option(
-        ArchivedResults.INCLUDE,
+    archived: str = typer.Option(
+        "include",
         "-a",
         "--archived",
         case_sensitive=False,
-        help="Include archived projects and groups in the results",
+        callback=_convert_archived,
+        help="Include archived projects and groups in the results (options: include, exclude, only)",
     ),
     include: Optional[str] = typer.Option(
         None,
