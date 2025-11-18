@@ -693,7 +693,7 @@ class GitlabberGitError(GitlabberError):
 - [x] Extract configuration class (`GitlabberConfig`)
 - [x] Separate concerns in `GitlabTree` (split into smaller components)
 - [x] Extract git operations into separate classes
-- [ ] Improve tree filtering logic (functional approach)
+- [x] Improve tree filtering logic (functional approach)
 - [ ] Extract URL building logic
 - [ ] Improve progress reporting (context manager, multiple bars)
 - [ ] Simplify enum argparse methods (base class)

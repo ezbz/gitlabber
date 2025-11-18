@@ -18,39 +18,140 @@ from .naming import FolderNaming
 from .progress import ProgressBar
 
 
+# Functional predicate builders
+def create_pattern_matcher(patterns: List[str]) -> Callable[[str], bool]:
+    """Create a pure function that matches a path against glob patterns.
+    
+    Args:
+        patterns: List of glob patterns to match against
+        
+    Returns:
+        A function that takes a path and returns True if it matches any pattern
+    """
+    if not patterns:
+        return lambda _: False
+    
+    compiled_patterns = patterns
+    
+    def matches(path: str) -> bool:
+        return any(globre.match(pattern, path) for pattern in compiled_patterns)
+    
+    return matches
+
+
+def create_include_predicate(includes: Optional[List[str]]) -> Callable[[Node], bool]:
+    """Create a predicate function that checks if a node should be included.
+    
+    Args:
+        includes: List of include patterns (None or empty means include all)
+        
+    Returns:
+        A function that takes a Node and returns True if it should be included
+    """
+    if not includes:
+        return lambda _: True
+    
+    matcher = create_pattern_matcher(includes)
+    return lambda node: matcher(node.root_path)
+
+
+def create_exclude_predicate(excludes: Optional[List[str]]) -> Callable[[Node], bool]:
+    """Create a predicate function that checks if a node should be excluded.
+    
+    Args:
+        excludes: List of exclude patterns
+        
+    Returns:
+        A function that takes a Node and returns True if it should be excluded
+    """
+    if not excludes:
+        return lambda _: False
+    
+    matcher = create_pattern_matcher(excludes)
+    return lambda node: matcher(node.root_path)
+
+
+def compose_predicates(
+    include_pred: Callable[[Node], bool],
+    exclude_pred: Callable[[Node], bool]
+) -> Callable[[Node], bool]:
+    """Compose include and exclude predicates into a single filter predicate.
+    
+    Args:
+        include_pred: Predicate for inclusion check
+        exclude_pred: Predicate for exclusion check
+        
+    Returns:
+        A function that returns True if node should be kept (included and not excluded)
+    """
+    def should_keep(node: Node) -> bool:
+        if exclude_pred(node):
+            return False
+        return include_pred(node)
+    
+    return should_keep
+
+
+def filter_tree_functional(
+    root: Node,
+    should_keep: Callable[[Node], bool]
+) -> None:
+    """Filter a tree in-place using a functional predicate.
+    
+    This function traverses the tree and removes nodes that don't match
+    the predicate. It processes children first (post-order traversal) to
+    ensure parent nodes are evaluated after their children.
+    
+    Args:
+        root: Root node of the tree to filter
+        should_keep: Predicate function that determines if a node should be kept
+    """
+    def process_node(node: Node) -> None:
+        # Process children first (post-order traversal)
+        for child in list(node.children):
+            if not child.is_leaf:
+                process_node(child)
+                # After processing children, check if this node should be kept
+                # (it might be a leaf now if all children were removed)
+                if child.is_leaf and not should_keep(child):
+                    child.parent = None
+            else:
+                # Leaf node - check if it should be kept
+                if not should_keep(child):
+                    child.parent = None
+    
+    process_node(root)
+
+
 class TreeFilter:
-    """Apply include/exclude filters to a tree."""
+    """Apply include/exclude filters to a tree using a functional approach."""
 
     def __init__(
         self,
         includes: Optional[List[str]] = None,
         excludes: Optional[List[str]] = None,
     ):
+        """Initialize the filter with include/exclude patterns.
+        
+        Args:
+            includes: List of glob patterns to include (None/empty = include all)
+            excludes: List of glob patterns to exclude
+        """
         self.includes = includes or []
         self.excludes = excludes or []
+        
+        # Build functional predicates
+        include_pred = create_include_predicate(self.includes)
+        exclude_pred = create_exclude_predicate(self.excludes)
+        self._should_keep = compose_predicates(include_pred, exclude_pred)
 
     def apply(self, root: Node) -> None:
-        for child in list(root.children):
-            if not child.is_leaf:
-                self.apply(child)
-                if child.is_leaf and not self._should_keep(child):
-                    child.parent = None
-            else:
-                if not self._should_keep(child):
-                    child.parent = None
-
-    def _should_keep(self, node: Node) -> bool:
-        if self._is_excluded(node):
-            return False
-        if not self.includes:
-            return True
-        return self._is_included(node)
-
-    def _is_included(self, node: Node) -> bool:
-        return any(globre.match(include, node.root_path) for include in self.includes)
-
-    def _is_excluded(self, node: Node) -> bool:
-        return any(globre.match(exclude, node.root_path) for exclude in self.excludes)
+        """Apply the filter to the tree, removing nodes that don't match.
+        
+        Args:
+            root: Root node of the tree to filter
+        """
+        filter_tree_functional(root, self._should_keep)
 
 
 class GitlabTreeBuilder:
