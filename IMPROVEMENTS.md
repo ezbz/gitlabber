@@ -714,9 +714,9 @@ class GitlabberGitError(GitlabberError):
 - [ ] Add performance tests
 
 #### 4.3 Test Quality
-- [ ] Use mocking more effectively
-- [ ] Add test utilities/helpers
-- [ ] Improve test organization
+- [x] Use mocking more effectively
+- [x] Add test utilities/helpers
+- [x] Improve test organization
 
 ### 5. Other Improvements
 
