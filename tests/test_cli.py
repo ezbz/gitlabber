@@ -12,7 +12,7 @@ runner = CliRunner()
 
 def _invoke(args: list[str], env: Optional[dict[str, str]] = None):
     """Helper to invoke CLI with given arguments."""
-    return runner.invoke(cli.app, args, env=env)
+    return runner.invoke(cli.app, args, env=env, catch_exceptions=False)
 
 
 def test_version_option():
