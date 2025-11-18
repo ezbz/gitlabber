@@ -680,18 +680,18 @@ class GitlabberGitError(GitlabberError):
 #### 2.2 Alternative Libraries
 - [x] Consider `rich` for better CLI experience
 - [x] Migrate CLI from argparse to Typer for modern UX
-- [ ] Consider `pydantic` for configuration
-- [ ] Consider `httpx` for HTTP requests (if needed)
+- [x] Consider `pydantic` for configuration
+- [-] Consider `httpx` for HTTP requests (not applicable; python-gitlab covers all HTTP usage)
 
 #### 2.3 Library-Specific Improvements
-- [ ] Improve GitPython usage (context managers, retry logic)
-- [ ] Implement rate limiting/retry logic for python-gitlab
-- [ ] Use async API if available
+- [-] Improve GitPython usage (context managers, retry logic) – deferred, out of scope
+- [-] Implement rate limiting/retry logic for python-gitlab – deferred, out of scope
+- [-] Use async API if available – deferred, out of scope
 
 ### 3. Refactoring Suggestions
 
 - [x] Extract configuration class (`GitlabberConfig`)
-- [ ] Separate concerns in `GitlabTree` (split into smaller components)
+- [x] Separate concerns in `GitlabTree` (split into smaller components)
 - [ ] Extract git operations into separate classes
 - [ ] Improve tree filtering logic (functional approach)
 - [ ] Extract URL building logic

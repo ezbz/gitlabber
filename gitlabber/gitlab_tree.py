@@ -1,10 +1,8 @@
 from typing import Optional, Any, Union
 from gitlab import Gitlab
-from gitlab.exceptions import GitlabGetError, GitlabListError, GitlabAuthenticationError
-from gitlab.v4.objects import Group, Project, User
+from gitlab.exceptions import GitlabAuthenticationError
 from anytree import Node, RenderTree
 from anytree.exporter import DictExporter, JsonExporter
-from anytree.importer import DictImporter
 from .git import sync_tree
 from .format import PrintFormat
 from .method import CloneMethod
@@ -18,11 +16,10 @@ from .exceptions import (
     GitlabberAuthenticationError as GitlabberAuthError,
     GitlabberGitError
 )
-import yaml
-import globre
+from .tree_builder import GitlabTreeBuilder, TreeFilter
 import logging
 import os
-from pathlib import Path
+import yaml
 
 log = logging.getLogger(__name__)
 
@@ -158,258 +155,48 @@ class GitlabTree:
                                     True]
                    if item is not None)
 
-    def is_included(self, node: Node) -> bool:
-        """Check if a node should be included based on include patterns.
-        
-        Args:
-            node: Node to check
-            
-        Returns:
-            True if node should be included, False otherwise
-        """
-        if not self.includes:
-            return True
-            
-        for include in self.includes:
-            log.debug("Checking requested include: %s with path: %s, match %s",
-                     include, node.root_path, globre.match(include, node.root_path))
-            if globre.match(include, node.root_path):
-                return True
-        return False
+    def _builder(self) -> GitlabTreeBuilder:
+        return GitlabTreeBuilder(
+            self.gitlab,
+            progress=self.progress,
+            naming=self.naming,
+            method=self.method,
+            archived=self.archived,
+            include_shared=self.include_shared,
+            hide_token=self.hide_token,
+            token=self.token,
+            logger=log,
+            error_handler=self.handle_error,
+        )
 
-    def is_excluded(self, node: Node) -> bool:
-        """Check if a node should be excluded based on exclude patterns.
-        
-        Args:
-            node: Node to check
-            
-        Returns:
-            True if node should be excluded, False otherwise
-        """
-        if not self.excludes:
-            return False
-            
-        for exclude in self.excludes:
-            log.debug("Checking requested exclude: %s with path: %s, match %s",
-                     exclude, node.root_path, globre.match(exclude, node.root_path))
-            if globre.match(exclude, node.root_path):
-                return True
-        return False
+    def add_projects(self, parent, projects) -> None:
+        """Expose builder project addition for testing/backwards compatibility."""
+        self._builder().add_projects(parent, projects)
 
-    def filter_tree(self, parent: Node) -> None:
-        """Filter the tree based on include/exclude patterns.
-        
-        Args:
-            parent: Parent node to filter
-        """
-        for child in parent.children:
-            if not child.is_leaf:
-                self.filter_tree(child)
-                if child.is_leaf:
-                    if not self.is_included(child) or self.is_excluded(child):
-                        child.parent = None
-            else:
-                if not self.is_included(child) or self.is_excluded(child):
-                    child.parent = None
+    def get_subgroups(self, group, parent) -> None:
+        self._builder().get_subgroups(group, parent)
 
-    def root_path(self, node: Node) -> str:
-        """Get the root path for a node.
-        
-        Args:
-            node: Node to get path for
-            
-        Returns:
-            Path string
-        """
-        return "/".join(str(n.name) for n in node.path)
-
-    def make_node(self, type: str, name: str, parent: Node, url: str) -> Node:
-        """Create a new node in the tree.
-        
-        Args:
-            type: Node type
-            name: Node name
-            parent: Parent node
-            url: Node URL
-            
-        Returns:
-            Created node
-        """
-        node = Node(name=name, parent=parent, url=url, type=type)
-        node.root_path = self.root_path(node)
-        return node
-
-    def add_projects(self, parent: Node, projects: list[Project]) -> None:
-        """Add projects to the tree.
-        
-        Args:
-            parent: Parent node
-            projects: List of projects to add
-            
-        Raises:
-            GitlabberAPIError: If project addition fails
-        """
-        for project in projects:
-            try:
-                project_id = project.name if self.naming == FolderNaming.NAME else project.path
-                project_url = project.ssh_url_to_repo if self.method is CloneMethod.SSH else project.http_url_to_repo
-                if self.token is not None and self.method is CloneMethod.HTTP:
-                    if not self.hide_token:
-                        project_url = project_url.replace('://', f'://gitlab-token:{self.token}@')
-                        log.debug("Generated URL: %s", project_url)
-                    else:
-                        log.debug("Hiding token from project url: %s", project_url)
-                node = self.make_node("project", project_id, parent, url=project_url)
-                self.progress.show_progress(node.name, 'project')
-            except AttributeError as e:
-                error_msg = f"Failed to add project '{project.name if hasattr(project, 'name') else 'unknown'}': missing required attribute - {str(e)}"
-                log.error(error_msg)
-                # Continue with other projects rather than failing completely
-                continue
-            except Exception as e:
-                error_msg = f"Failed to add project '{project.name if hasattr(project, 'name') else 'unknown'}': {str(e)}"
-                log.error(error_msg, exc_info=True)
-                # Continue with other projects rather than failing completely
-                continue
-
-    def get_projects(self, group: Group, parent: Node) -> None:
-        """Get projects for a group.
-        
-        Args:
-            group: Group to get projects for
-            parent: Parent node
-        """
-        try:
-            projects = group.projects.list(archived=self.archived, with_shared=self.include_shared, get_all=True)
-            self.progress.update_progress_length(len(projects))
-            self.add_projects(parent, projects)
-            
-            if self.include_shared and hasattr(group, 'shared_projects'):
-                shared_projects = group.shared_projects.list(get_all=True)
-                self.progress.update_progress_length(len(shared_projects))
-                self.add_projects(parent, shared_projects)
-        except GitlabListError as error:
-            message = (f"Error getting projects on {group.name} id: [{group.id}] "
-                       f"error message: [{error.error_message}]")
-            self.handle_error(message, error)
-
-    def get_subgroups(self, group: Group, parent: Node) -> None:
-        """Get subgroups for a group.
-        
-        Args:
-            group: Group to get subgroups for
-            parent: Parent node
-        """
-        try:
-            subgroups = group.subgroups.list(as_list=False, get_all=True)
-            self.progress.update_progress_length(len(subgroups))
-            for subgroup_def in subgroups:
-                try:
-                    subgroup = self.gitlab.groups.get(subgroup_def.id)
-                    subgroup_id = subgroup.name if self.naming == FolderNaming.NAME else subgroup.path
-                    node = self.make_node("subgroup", subgroup_id, parent, url=subgroup.web_url)
-                    self.progress.show_progress(node.name, 'group')
-                    self.get_subgroups(subgroup, node)
-                    self.get_projects(subgroup, node)
-                except GitlabGetError as error:
-                    if error.response_code == 404:
-                        message = (f"{error.response_code} error while getting subgroup with name: "
-                                   f"{group.name} [id: {group.id}]. Check your permissions as you "
-                                   f"may not have access to it. Message: {error.error_message}")
-                    else:
-                        message = f"Error getting subgroup: {error.error_message}"
-                    self.handle_error(message, error)
-                    continue
-        except GitlabListError as error:
-            if error.response_code == 404:
-                message = (f"{error.response_code} error while listing subgroup with name: "
-                           f"{group.name} [id: {group.id}]. Check your permissions as you may not "
-                           f"have access to it. Message: {error.error_message}")
-            else:
-                message = f"Failed to get subgroups for group {group.name}: {error.error_message}"
-            self.handle_error(message, error)
-
-    def load_gitlab_tree(self) -> None:
-        """Load the GitLab tree structure."""
-        log.debug("Starting group search with archived: %s search term: %s", self.archived, self.group_search)
-                    
-        try:
-            groups = self.gitlab.groups.list(as_list=False, archived=self.archived, get_all=True, search=self.group_search)
-            self.progress.init_progress(len(groups))
-            for group in groups:
-                try:
-                    if group.parent_id is None:
-                        group_id = group.name if self.naming == FolderNaming.NAME else group.path
-                        node = self.make_node("group", group_id, self.root, url=group.web_url)
-                        self.progress.show_progress(node.name, 'group')
-                        self.get_subgroups(group, node)
-                        self.get_projects(group, node)
-                except Exception as e:
-                    message = f"Error processing group {group.name}: {str(e)}"
-                    self.handle_error(message, e)
-                    continue
-
-            elapsed = self.progress.finish_progress()
-            log.debug("Loading projects tree from gitlab took [%s]", elapsed)
-        except Exception as e:
-            message = f"Failed to load GitLab tree: {str(e)}"
-            self.handle_error(message, e)
-
-    def load_file_tree(self) -> None:
-        """Load tree structure from a YAML file."""
-        try:
-            file_path = Path(self.in_file)
-            if not file_path.exists():
-                error_msg = f"Tree file does not exist: {self.in_file}"
-                log.error(error_msg)
-                raise GitlabberTreeError(error_msg)
-            with file_path.open('r') as stream:
-                dct = yaml.safe_load(stream)
-                self.root = DictImporter().import_(dct)
-        except GitlabberTreeError:
-            raise
-        except FileNotFoundError as e:
-            error_msg = f"Tree file not found: {self.in_file}"
-            log.error(error_msg)
-            raise GitlabberTreeError(error_msg) from e
-        except yaml.YAMLError as e:
-            error_msg = f"Failed to parse YAML file {self.in_file}: {str(e)}"
-            log.error(error_msg)
-            raise GitlabberTreeError(error_msg) from e
-        except Exception as e:
-            error_msg = f"Failed to load tree from file {self.in_file}: {str(e)}"
-            log.error(error_msg, exc_info=True)
-            raise GitlabberTreeError(error_msg) from e
-
-    def load_user_tree(self) -> None:
-        """Load user's personal projects."""
-        log.debug("Starting user project search with archived: %s", self.archived)
-        try:
-            user = self.gitlab.users.get(self.gitlab.user.id)
-            username = user.username
-            projects = user.projects.list(as_list=False, archived=self.archived, get_all=True)
-            self.progress.init_progress(len(projects))
-            root = self.make_node("group", f"{username}-personal-projects", self.root, url=f"{self.url}/users/{username}/projects")
-            self.add_projects(root, projects)
-        except Exception as e:
-            message = f"Failed to load user projects: {str(e)}"
-            self.handle_error(message, e)
+    def get_projects(self, group, parent) -> None:
+        self._builder().get_projects(group, parent)
 
     def load_tree(self) -> None:
         """Load the tree structure from appropriate source."""
+        builder = self._builder()
         try:
             if self.in_file:
                 log.debug("Loading tree from file [%s]", self.in_file)
-                self.load_file_tree()
+                self.root = builder.build_from_file(self.in_file)
             elif self.user_projects:
-                log.debug("Loading user personal projects from gitlab server [%s]", self.url)
-                self.load_user_tree()
+                log.debug(
+                    "Loading user personal projects from gitlab server [%s]", self.url
+                )
+                self.root = builder.build_from_user_projects(self.url)
             else:
                 log.debug("Loading projects tree from gitlab server [%s]", self.url)
-                self.load_gitlab_tree()
+                self.root = builder.build_from_gitlab(self.url, self.group_search)
 
+            TreeFilter(self.includes, self.excludes).apply(self.root)
             log.debug("Fetched root node with [%d] projects", len(self.root.leaves))
-            self.filter_tree(self.root)
         except Exception as e:
             message = f"Failed to load tree: {str(e)}"
             self.handle_error(message, e)
