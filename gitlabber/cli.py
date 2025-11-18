@@ -264,7 +264,7 @@ def run_gitlabber(
         api_concurrency=api_concurrency_value,
         recursive=recursive,
         disable_progress=verbose,
-        include_shared=not exclude_shared,
+        include_shared=include_shared,
         use_fetch=use_fetch,
         hide_token=hide_token,
         user_projects=user_projects,
