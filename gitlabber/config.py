@@ -1,36 +1,21 @@
 """Configuration classes for gitlabber."""
 
-from dataclasses import dataclass
+from __future__ import annotations
+
 from typing import Optional
+
+from pydantic import BaseModel, ConfigDict, Field, field_validator
+
+from .auth import AuthProvider
 from .method import CloneMethod
 from .naming import FolderNaming
-from .auth import AuthProvider
 
 
-@dataclass
-class GitlabberConfig:
-    """Configuration for Gitlabber operations.
-    
-    Attributes:
-        url: GitLab instance URL
-        token: Personal access token
-        method: Clone method (SSH or HTTP)
-        naming: Folder naming strategy
-        archived: Whether to include archived projects (None = include all)
-        includes: List of glob patterns to include
-        excludes: List of glob patterns to exclude
-        concurrency: Number of concurrent git operations
-        recursive: Whether to clone recursively
-        disable_progress: Whether to disable progress bar
-        include_shared: Whether to include shared projects
-        use_fetch: Whether to use git fetch instead of pull
-        hide_token: Whether to hide token in URLs
-        user_projects: Whether to fetch only user projects
-        group_search: Search term for filtering groups
-        git_options: Additional git options as comma-separated string
-        auth_provider: Authentication provider
-        in_file: YAML file to load tree from (optional)
-    """
+class GitlabberConfig(BaseModel):
+    """Validated configuration for Gitlabber operations."""
+
+    model_config = ConfigDict(frozen=True, arbitrary_types_allowed=True)
+
     url: str
     token: str
     method: CloneMethod
@@ -38,7 +23,7 @@ class GitlabberConfig:
     archived: Optional[bool] = None
     includes: Optional[list[str]] = None
     excludes: Optional[list[str]] = None
-    concurrency: int = 1
+    concurrency: int = Field(1, gt=0)
     recursive: bool = False
     disable_progress: bool = False
     include_shared: bool = True
@@ -51,3 +36,11 @@ class GitlabberConfig:
     auth_provider: Optional[AuthProvider] = None
     in_file: Optional[str] = None
 
+    @field_validator("includes", "excludes", mode="before")
+    @classmethod
+    def _ensure_str_list(cls, value):
+        if value in (None, "", []):
+            return None
+        if isinstance(value, str):
+            return [value]
+        return [str(item) for item in value if str(item)]

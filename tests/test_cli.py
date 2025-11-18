@@ -4,7 +4,6 @@ from typer.testing import CliRunner
 from gitlabber import cli
 from gitlabber import __version__ as VERSION
 from gitlabber.format import PrintFormat
-import pytest
 from unittest import mock
 
 runner = CliRunner()

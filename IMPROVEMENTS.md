@@ -175,12 +175,9 @@ This document outlines comprehensive suggestions for improving the Gitlabber cod
   - Easier testing
   - Modern Python CLI patterns
 
-#### Consider `pydantic` for Configuration
-- **Recommendation**: Use Pydantic for:
-  - Configuration validation
-  - Settings management
-  - Type-safe data models
-  - Better error messages
+#### Adopt `pydantic` for Configuration
+- **Status**: ✅ `GitlabberConfig` now uses Pydantic for validation/immutability
+- **Benefit**: automatic type coercion, stricter defaults, better error messages
 
 #### Consider `httpx` for HTTP Requests
 - **Note**: Currently using `python-gitlab` which handles HTTP, but if direct HTTP is needed, `httpx` is more modern than `requests`
