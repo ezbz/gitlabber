@@ -1,6 +1,8 @@
 """Tests for CLI using improved mocking patterns."""
 from typing import Optional
+import os
 import pytest
+from unittest import mock
 from typer.testing import CliRunner
 from gitlabber import cli
 from gitlabber import __version__ as VERSION
@@ -13,14 +15,41 @@ runner = CliRunner()
 def _invoke(args: list[str], env: Optional[dict[str, str]] = None):
     """Helper to invoke CLI with given arguments."""
     # Clear environment variables that might interfere with tests
+    # GitlabberSettings reads from os.environ directly, so we need to patch it
+    env_vars_to_clear = [
+        "GITLAB_TOKEN", "GITLAB_URL", 
+        "GITLABBER_TOKEN", "GITLABBER_URL",
+        "GITLABBER_INCLUDE", "GITLABBER_EXCLUDE",
+        "GITLABBER_API_CONCURRENCY", "GITLABBER_API_RATE_LIMIT",
+        "GITLABBER_GIT_CONCURRENCY", "GITLABBER_CLONE_METHOD",
+        "GITLABBER_FOLDER_NAMING"
+    ]
+    
+    # Create a clean environment dict
     if env is None:
         env = {}
-    # Ensure these are not set unless explicitly provided
-    env.setdefault("GITLAB_TOKEN", "")
-    env.setdefault("GITLAB_URL", "")
-    env.setdefault("GITLABBER_TOKEN", "")
-    env.setdefault("GITLABBER_URL", "")
-    return runner.invoke(cli.app, args, env=env)
+    else:
+        env = env.copy()
+    
+    # Remove the env vars from the passed env dict if they exist
+    for var in env_vars_to_clear:
+        env.pop(var, None)
+    
+    # Save original environment values
+    original_env = {var: os.environ.get(var) for var in env_vars_to_clear if var in os.environ}
+    
+    try:
+        # Remove env vars from os.environ
+        for var in env_vars_to_clear:
+            os.environ.pop(var, None)
+        
+        # Invoke with clean environment
+        return runner.invoke(cli.app, args, env=env)
+    finally:
+        # Restore original environment
+        for var, value in original_env.items():
+            if value is not None:
+                os.environ[var] = value
 
 
 def test_version_option():

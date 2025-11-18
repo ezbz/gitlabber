@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import logging
 import os
+import sys
 from typing import Optional
 
 import typer
@@ -121,7 +122,7 @@ def config_logging(verbose: bool, print_mode: bool) -> None:
 def _version_callback(value: bool) -> None:
     if value:
         typer.echo(VERSION)
-        raise typer.Exit(0)
+        sys.exit(0)
 
 
 def _require(value: Optional[str], message: str) -> str:
