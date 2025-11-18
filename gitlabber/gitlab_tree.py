@@ -142,13 +142,25 @@ class GitlabTree:
             # Authenticate using the provider
             self.auth_provider.authenticate(self.gitlab)
         except GitlabAuthenticationError as e:
-            error_msg = f"Failed to authenticate with GitLab at {url}: {str(e)}"
+            from .exceptions import format_error_with_suggestion
+            error_msg, suggestion = format_error_with_suggestion(
+                'api_auth',
+                f"Failed to authenticate with GitLab at {url}: {str(e)}",
+                {'url': url, 'token': '***' if token else None}
+            )
             log.error(error_msg)
-            raise GitlabberAuthError(error_msg) from e
+            raise GitlabberAuthError(error_msg, suggestion) from e
         except Exception as e:
-            error_msg = f"Failed to initialize GitLab client for {url}: {str(e)}"
+            error_str = str(e).lower()
+            error_type = 'api_503' if '503' in error_str or 'service unavailable' in error_str else None
+            from .exceptions import format_error_with_suggestion
+            error_msg, suggestion = format_error_with_suggestion(
+                error_type or 'api_auth',
+                f"Failed to initialize GitLab client for {url}: {str(e)}",
+                {'url': url}
+            )
             log.error(error_msg, exc_info=True)
-            raise GitlabberAPIError(error_msg) from e
+            raise GitlabberAPIError(error_msg, suggestion) from e
             
         self.method = method
         self.naming = naming

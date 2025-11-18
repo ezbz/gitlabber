@@ -274,7 +274,7 @@ class GitlabTreeBuilder:
             else group.path
         )
         node = self._make_node("group", group_id, root, group.web_url)
-        self.progress.show_progress(node.name, "group")
+        self.progress.show_progress_detailed(node.name, "group", "processing")
         
         # Phase 2: Parallelize subgroups and projects fetching within the group
         if self.api_concurrency > 1:
@@ -346,7 +346,7 @@ class GitlabTreeBuilder:
                     logger=self.log,
                 )
                 node = self._make_node("project", project_id, parent, project_url)
-                self.progress.show_progress(node.name, "project")
+                self.progress.show_progress_detailed(node.name, "project", "adding")
             except AttributeError as exc:
                 self._handle_error(
                     f"Failed to add project '{getattr(project, 'name', 'unknown')}': missing attribute - {exc}",
@@ -375,11 +375,19 @@ class GitlabTreeBuilder:
                 self.progress.update_progress_length(len(shared_projects))
                 self.add_projects(parent, shared_projects)
         except GitlabListError as error:
-            self._handle_error(
+            from .exceptions import format_error_with_suggestion
+            error_type = 'api_permission'
+            if error.response_code == 404:
+                error_type = 'api_404'
+            elif error.response_code == 503:
+                error_type = 'api_503'
+            error_msg, suggestion = format_error_with_suggestion(
+                error_type,
                 f"Error getting projects on {getattr(group, 'name', 'unknown')} id: "
                 f"[{getattr(group, 'id', 'unknown')}] error message: [{error.error_message}]",
-                error,
+                {'group_name': getattr(group, 'name', 'unknown'), 'response_code': error.response_code}
             )
+            self._handle_error(error_msg, error)
 
     def get_subgroups(self, group, parent: Node) -> None:
         """Get subgroups for a group, with parallel detail fetching (Phase 2).
@@ -451,31 +459,42 @@ class GitlabTreeBuilder:
                         subgroup = self.gitlab.groups.get(subgroup_def.id)
                         self._process_subgroup(subgroup, parent)
                     except GitlabGetError as error:
+                        from .exceptions import format_error_with_suggestion
                         if error.response_code == 404:
-                            self._handle_error(
+                            error_msg, suggestion = format_error_with_suggestion(
+                                'api_404',
                                 f"{error.response_code} error while getting subgroup with name: "
                                 f"{getattr(group, 'name', 'unknown')} [id: {getattr(group, 'id', 'unknown')}]. "
-                                f"Check your permissions as you may not have access to it. Message: {error.error_message}",
-                                error,
+                                f"Message: {error.error_message}",
+                                {'group_name': getattr(group, 'name', 'unknown')}
                             )
+                            self._handle_error(error_msg, error)
                         else:
-                            self._handle_error(
-                                f"Error getting subgroup: {error.error_message}", error
+                            error_msg, suggestion = format_error_with_suggestion(
+                                'api_permission',
+                                f"Error getting subgroup: {error.error_message}",
+                                {'response_code': error.response_code}
                             )
+                            self._handle_error(error_msg, error)
                         continue
         except GitlabListError as error:
+            from .exceptions import format_error_with_suggestion
             if error.response_code == 404:
-                self._handle_error(
+                error_msg, suggestion = format_error_with_suggestion(
+                    'api_404',
                     f"{error.response_code} error while listing subgroup with name: "
                     f"{getattr(group, 'name', 'unknown')} [id: {getattr(group, 'id', 'unknown')}]. "
-                    f"Check your permissions as you may not have access to it. Message: {error.error_message}",
-                    error,
+                    f"Message: {error.error_message}",
+                    {'group_name': getattr(group, 'name', 'unknown')}
                 )
+                self._handle_error(error_msg, error)
             else:
-                self._handle_error(
+                error_msg, suggestion = format_error_with_suggestion(
+                    'api_permission',
                     f"Failed to get subgroups for group {getattr(group, 'name', 'unknown')}: {error.error_message}",
-                    error,
+                    {'response_code': error.response_code}
                 )
+                self._handle_error(error_msg, error)
     
     def _fetch_subgroup_detail(self, subgroup_def) -> Optional[Any]:
         """Fetch subgroup detail with rate limiting.
@@ -490,17 +509,23 @@ class GitlabTreeBuilder:
             self.rate_limiter.acquire()
             return self.gitlab.groups.get(subgroup_def.id)
         except GitlabGetError as error:
+            from .exceptions import format_error_with_suggestion
             if error.response_code == 404:
-                self._handle_error(
+                error_msg, suggestion = format_error_with_suggestion(
+                    'api_404',
                     f"{error.response_code} error while getting subgroup with id: "
                     f"{getattr(subgroup_def, 'id', 'unknown')}. "
-                    f"Check your permissions as you may not have access to it. Message: {error.error_message}",
-                    error,
+                    f"Message: {error.error_message}",
+                    {'subgroup_id': getattr(subgroup_def, 'id', 'unknown')}
                 )
+                self._handle_error(error_msg, error)
             else:
-                self._handle_error(
-                    f"Error getting subgroup detail: {error.error_message}", error
+                error_msg, suggestion = format_error_with_suggestion(
+                    'api_permission',
+                    f"Error getting subgroup detail: {error.error_message}",
+                    {'response_code': error.response_code}
                 )
+                self._handle_error(error_msg, error)
             return None
         except Exception as exc:  # pragma: no cover
             self._handle_error(
@@ -524,7 +549,7 @@ class GitlabTreeBuilder:
         node = self._make_node(
             "subgroup", subgroup_id, parent, subgroup.web_url
         )
-        self.progress.show_progress(node.name, "group")
+        self.progress.show_progress_detailed(node.name, "subgroup", "processing")
         # Recursively process subgroups and projects (with parallelization if enabled)
         if self.api_concurrency > 1:
             # Parallelize subgroups and projects fetching within the subgroup

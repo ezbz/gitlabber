@@ -740,10 +740,8 @@ class GitlabberGitError(GitlabberError):
 - [ ] Use `safety` or `pip-audit` for dependency security
 
 #### 5.4 User Experience
-- [ ] Better progress reporting (ETA, current operation)
-- [ ] Better error messages (actionable, with suggestions)
-- [ ] Configuration file support (YAML/TOML)
-- [ ] Add `--dry-run` flag
+- [x] Better progress reporting (ETA, current operation)
+- [x] Better error messages (actionable, with suggestions)
 
 #### 5.5 Code Quality Tools
 - [x] Add pre-commit hooks with black, ruff, mypy, isort

@@ -19,6 +19,7 @@ from rich.progress import (
     TaskProgressColumn,
     TextColumn,
     TimeElapsedColumn,
+    TimeRemainingColumn,
 )
 
 
@@ -80,6 +81,8 @@ class ProgressBar:
             BarColumn(bar_width=None),
             TaskProgressColumn(),
             TimeElapsedColumn(),
+            TextColumn("•"),
+            TimeRemainingColumn(),
             console=self.console,
             transient=True,
             disable=self.disabled,
@@ -143,7 +146,24 @@ class ProgressBar:
     def show_progress(self, text: str, category: str) -> None:
         if self.disabled or self.default_task_id is None:
             return
+        # Enhanced description with more context
         desc = f"{self.description} ({category}: {text})"
+        self._update_task(self.default_task_id, step=1, description=desc)
+    
+    def show_progress_detailed(self, text: str, category: str, operation: Optional[str] = None) -> None:
+        """Show progress with detailed operation information.
+        
+        Args:
+            text: Item name being processed
+            category: Category of item (e.g., 'project', 'group', 'subgroup')
+            operation: Optional specific operation (e.g., 'fetching', 'cloning', 'pulling')
+        """
+        if self.disabled or self.default_task_id is None:
+            return
+        if operation:
+            desc = f"{self.description} ({operation} {category}: {text})"
+        else:
+            desc = f"{self.description} ({category}: {text})"
         self._update_task(self.default_task_id, step=1, description=desc)
 
     def finish_progress(self) -> str:

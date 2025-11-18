@@ -63,7 +63,7 @@ class GitRepository:
             return
             
         log.debug("cloning new project %s", action.path)
-        progress_bar.show_progress(action.node.name, 'clone')
+        progress_bar.show_progress_detailed(action.node.name, 'project', 'cloning')
         
         multi_options: list[str] = []
         if action.recursive:
@@ -79,10 +79,30 @@ class GitRepository:
             log.critical("User interrupted")
             sys.exit(0)
         except git.exc.GitCommandError as e:
-            error_msg = (f"Git clone command failed for project '{action.node.name}' "
-                        f"from {action.node.url} to {action.path}: {str(e)}")
+            error_str = str(e).lower()
+            error_type = 'git_clone_network'
+            suggestion = None
+            
+            # Determine error type and suggestion based on error message
+            if 'permission denied' in error_str or 'could not read' in error_str:
+                if 'ssh' in action.node.url.lower():
+                    error_type = 'git_clone_ssh'
+                else:
+                    error_type = 'git_clone_permission'
+            elif 'not found' in error_str or 'does not exist' in error_str:
+                error_type = 'git_clone_permission'
+            elif 'network' in error_str or 'connection' in error_str or 'timeout' in error_str:
+                error_type = 'git_clone_network'
+            
+            from .exceptions import format_error_with_suggestion
+            error_msg, suggestion = format_error_with_suggestion(
+                error_type,
+                f"Git clone command failed for project '{action.node.name}' "
+                f"from {action.node.url} to {action.path}: {str(e)}",
+                {'url': action.node.url, 'path': action.path}
+            )
             log.error(error_msg, exc_info=True)
-            raise GitlabberGitError(error_msg) from e
+            raise GitlabberGitError(error_msg, suggestion) from e
         except git.exc.GitError as e:
             error_msg = (f"Git error cloning project '{action.node.name}' "
                         f"from {action.node.url}: {str(e)}")
@@ -112,7 +132,8 @@ class GitRepository:
             GitlabberGitError: If pull operation fails
         """
         log.debug("updating existing project %s", action.path)
-        progress_bar.show_progress(action.node.name, 'pull')
+        operation = 'fetching' if action.use_fetch else 'pulling'
+        progress_bar.show_progress_detailed(action.node.name, 'project', operation)
         
         try:
             if repo is None:
@@ -127,10 +148,24 @@ class GitRepository:
             log.critical("User interrupted")
             sys.exit(0)
         except git.exc.GitCommandError as e:
-            error_msg = (f"Git command failed for project '{action.node.name}' "
-                        f"at {action.path}: {str(e)}")
+            error_str = str(e).lower()
+            error_type = 'git_pull_branch'
+            
+            # Check if it's a branch-related error
+            if 'branch' in error_str and ('not found' in error_str or 'does not exist' in error_str):
+                error_type = 'git_pull_branch'
+            elif 'permission' in error_str:
+                error_type = 'git_clone_permission'
+            
+            from .exceptions import format_error_with_suggestion
+            error_msg, suggestion = format_error_with_suggestion(
+                error_type,
+                f"Git command failed for project '{action.node.name}' "
+                f"at {action.path}: {str(e)}",
+                {'path': action.path, 'use_fetch': action.use_fetch}
+            )
             log.error(error_msg, exc_info=True)
-            raise GitlabberGitError(error_msg) from e
+            raise GitlabberGitError(error_msg, suggestion) from e
         except git.exc.InvalidGitRepositoryError as e:
             error_msg = (f"Invalid git repository at {action.path} "
                         f"for project '{action.node.name}'")

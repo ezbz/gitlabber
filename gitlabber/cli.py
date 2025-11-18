@@ -126,7 +126,15 @@ def _version_callback(value: bool) -> None:
 
 def _require(value: Optional[str], message: str) -> str:
     if not value:
-        typer.secho(message, err=True)
+        from .exceptions import format_error_with_suggestion
+        error_msg, suggestion = format_error_with_suggestion(
+            'config_missing',
+            message,
+            {}
+        )
+        typer.secho(error_msg, err=True)
+        if suggestion:
+            typer.secho(f"\n💡 Suggestion: {suggestion}", err=True)
         raise typer.Exit(1)
     return value
 
@@ -270,9 +278,13 @@ def run_gitlabber(
     tree.load_tree()
 
     if tree.is_empty():
-        log.critical(
-            "The tree is empty, check your include/exclude patterns or run with more verbosity for debugging",
+        from .exceptions import format_error_with_suggestion
+        error_msg, suggestion = format_error_with_suggestion(
+            'tree_empty',
+            "The tree is empty - no projects found matching your criteria.",
+            {}
         )
+        log.critical(error_msg)
         raise typer.Exit(1)
 
     if print_tree_only:
