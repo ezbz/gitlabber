@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 from pathlib import Path
+import concurrent.futures
 import logging
-from typing import Callable, List, Optional
+from typing import Any, Callable, List, Optional
 
 import globre
 import yaml
@@ -16,6 +17,7 @@ from .exceptions import GitlabberTreeError
 from .method import CloneMethod
 from .naming import FolderNaming
 from .progress import ProgressBar
+from .rate_limiter import RateLimitedExecutor
 from .url_builder import build_project_url
 
 
@@ -171,6 +173,8 @@ class GitlabTreeBuilder:
         token: str,
         logger: Optional[logging.Logger] = None,
         error_handler: Optional[Callable[[str, Optional[Exception]], None]] = None,
+        api_concurrency: int = 5,
+        api_rate_limit: Optional[int] = None,
     ):
         self.gitlab = gitlab
         self.progress = progress
@@ -182,6 +186,10 @@ class GitlabTreeBuilder:
         self.token = token
         self.log = logger or logging.getLogger(__name__)
         self.error_handler = error_handler
+        self.api_concurrency = api_concurrency
+        self.rate_limiter = RateLimitedExecutor(
+            max_requests_per_hour=api_rate_limit or 2000
+        )
 
     def _handle_error(self, message: str, exc: Optional[Exception]) -> None:
         if self.error_handler:
@@ -196,33 +204,89 @@ class GitlabTreeBuilder:
         self, base_url: str, group_search: Optional[str]
     ) -> Node:
         root = Node("", root_path="", url=base_url, type="root")
+        
+        # Rate limit the initial groups.list() call
+        self.rate_limiter.acquire()
         groups = self.gitlab.groups.list(
             as_list=False,
             archived=self.archived,
             get_all=True,
             search=group_search,
         )
-        self.progress.init_progress(len(groups))
-        for group in groups:
-            try:
-                if group.parent_id is None:
-                    group_id = (
-                        group.name
-                        if self.naming == FolderNaming.NAME
-                        else group.path
+        
+        # Filter to only top-level groups (parent_id is None)
+        top_level_groups = [g for g in groups if g.parent_id is None]
+        self.progress.init_progress(len(top_level_groups))
+        
+        # Process groups in parallel
+        if self.api_concurrency > 1 and len(top_level_groups) > 1:
+            with concurrent.futures.ThreadPoolExecutor(max_workers=self.api_concurrency) as executor:
+                futures = {
+                    executor.submit(self._process_group_with_rate_limit, group, root): group
+                    for group in top_level_groups
+                }
+                for future in concurrent.futures.as_completed(futures):
+                    try:
+                        future.result()
+                    except Exception as exc:  # pragma: no cover
+                        group = futures[future]
+                        self._handle_error(
+                            f"Error processing group {getattr(group, 'name', 'unknown')}: {exc}",
+                            exc,
+                        )
+        else:
+            # Sequential processing for single group or concurrency=1
+            for group in top_level_groups:
+                try:
+                    self._process_group(group, root)
+                except Exception as exc:  # pragma: no cover
+                    self._handle_error(
+                        f"Error processing group {getattr(group, 'name', 'unknown')}: {exc}",
+                        exc,
                     )
-                    node = self._make_node("group", group_id, root, group.web_url)
-                    self.progress.show_progress(node.name, "group")
-                    self.get_subgroups(group, node)
-                    self.get_projects(group, node)
-            except Exception as exc:  # pragma: no cover
-                self._handle_error(
-                    f"Error processing group {getattr(group, 'name', 'unknown')}: {exc}",
-                    exc,
-                )
-                continue
+                    continue
+        
         self.progress.finish_progress()
         return root
+    
+    def _process_group_with_rate_limit(self, group, root: Node) -> None:
+        """Process a group with rate limiting applied to API calls.
+        
+        This is a wrapper around _process_group that ensures rate limiting
+        is applied to all API calls made during group processing.
+        
+        Args:
+            group: GitLab group object
+            root: Root node of the tree
+        """
+        self._process_group(group, root)
+    
+    def _process_group(self, group, root: Node) -> None:
+        """Process a single group: create node and fetch subgroups/projects.
+        
+        Args:
+            group: GitLab group object
+            root: Root node of the tree
+        """
+        group_id = (
+            group.name
+            if self.naming == FolderNaming.NAME
+            else group.path
+        )
+        node = self._make_node("group", group_id, root, group.web_url)
+        self.progress.show_progress(node.name, "group")
+        
+        # Phase 2: Parallelize subgroups and projects fetching within the group
+        if self.api_concurrency > 1:
+            with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
+                subgroup_future = executor.submit(self.get_subgroups, group, node)
+                project_future = executor.submit(self.get_projects, group, node)
+                subgroup_future.result()
+                project_future.result()
+        else:
+            # Sequential for api_concurrency=1
+            self.get_subgroups(group, node)
+            self.get_projects(group, node)
 
     def build_from_file(self, path: str) -> Node:
         file_path = Path(path)
@@ -298,6 +362,7 @@ class GitlabTreeBuilder:
 
     def get_projects(self, group, parent: Node) -> None:
         try:
+            self.rate_limiter.acquire()
             projects = group.projects.list(
                 archived=self.archived, with_shared=self.include_shared, get_all=True
             )
@@ -305,6 +370,7 @@ class GitlabTreeBuilder:
             self.add_projects(parent, projects)
 
             if self.include_shared and hasattr(group, "shared_projects"):
+                self.rate_limiter.acquire()
                 shared_projects = group.shared_projects.list(get_all=True)
                 self.progress.update_progress_length(len(shared_projects))
                 self.add_projects(parent, shared_projects)
@@ -316,36 +382,87 @@ class GitlabTreeBuilder:
             )
 
     def get_subgroups(self, group, parent: Node) -> None:
+        """Get subgroups for a group, with parallel detail fetching (Phase 2).
+        
+        Args:
+            group: GitLab group object
+            parent: Parent node in the tree
+        """
         try:
+            self.rate_limiter.acquire()
             subgroups = group.subgroups.list(as_list=False, get_all=True)
             self.progress.update_progress_length(len(subgroups))
-            for subgroup_def in subgroups:
-                try:
-                    subgroup = self.gitlab.groups.get(subgroup_def.id)
-                    subgroup_id = (
-                        subgroup.name
-                        if self.naming == FolderNaming.NAME
-                        else subgroup.path
-                    )
-                    node = self._make_node(
-                        "subgroup", subgroup_id, parent, subgroup.web_url
-                    )
-                    self.progress.show_progress(node.name, "group")
-                    self.get_subgroups(subgroup, node)
-                    self.get_projects(subgroup, node)
-                except GitlabGetError as error:
-                    if error.response_code == 404:
-                        self._handle_error(
-                            f"{error.response_code} error while getting subgroup with name: "
-                            f"{getattr(group, 'name', 'unknown')} [id: {getattr(group, 'id', 'unknown')}]. "
-                            f"Check your permissions as you may not have access to it. Message: {error.error_message}",
-                            error,
-                        )
+            
+            if not subgroups:
+                return
+            
+            # Phase 2: Batch fetch subgroup details in parallel
+            if self.api_concurrency > 1 and len(subgroups) > 1:
+                # Fetch all subgroup details in parallel
+                with concurrent.futures.ThreadPoolExecutor(max_workers=min(self.api_concurrency, len(subgroups))) as executor:
+                    # Map futures to indices to preserve order
+                    future_to_index = {
+                        executor.submit(self._fetch_subgroup_detail, subgroup_def): idx
+                        for idx, subgroup_def in enumerate(subgroups)
+                    }
+                    
+                    # Store results in list to preserve order
+                    fetched_subgroups = [None] * len(subgroups)
+                    for future in concurrent.futures.as_completed(future_to_index):
+                        idx = future_to_index[future]
+                        try:
+                            subgroup = future.result()
+                            if subgroup:
+                                fetched_subgroups[idx] = subgroup
+                        except Exception as exc:  # pragma: no cover
+                            subgroup_def = subgroups[idx]
+                            self._handle_error(
+                                f"Error fetching subgroup detail for {getattr(subgroup_def, 'name', 'unknown')}: {exc}",
+                                exc,
+                            )
+                    
+                    # Process fetched subgroups in parallel (Phase 2 enhancement)
+                    # This parallelizes the recursive processing of each subgroup
+                    if len(fetched_subgroups) > 1:
+                        with concurrent.futures.ThreadPoolExecutor(max_workers=min(self.api_concurrency, len(fetched_subgroups))) as executor:
+                            futures = []
+                            for subgroup in fetched_subgroups:
+                                if subgroup:
+                                    futures.append(executor.submit(self._process_subgroup, subgroup, parent))
+                            # Wait for all to complete
+                            for future in concurrent.futures.as_completed(futures):
+                                try:
+                                    future.result()
+                                except Exception as exc:  # pragma: no cover
+                                    self._handle_error(
+                                        f"Error processing subgroup: {exc}",
+                                        exc,
+                                    )
                     else:
-                        self._handle_error(
-                            f"Error getting subgroup: {error.error_message}", error
-                        )
-                    continue
+                        # Single subgroup - process sequentially
+                        for subgroup in fetched_subgroups:
+                            if subgroup:
+                                self._process_subgroup(subgroup, parent)
+            else:
+                # Sequential processing for single subgroup or api_concurrency=1
+                for subgroup_def in subgroups:
+                    try:
+                        self.rate_limiter.acquire()
+                        subgroup = self.gitlab.groups.get(subgroup_def.id)
+                        self._process_subgroup(subgroup, parent)
+                    except GitlabGetError as error:
+                        if error.response_code == 404:
+                            self._handle_error(
+                                f"{error.response_code} error while getting subgroup with name: "
+                                f"{getattr(group, 'name', 'unknown')} [id: {getattr(group, 'id', 'unknown')}]. "
+                                f"Check your permissions as you may not have access to it. Message: {error.error_message}",
+                                error,
+                            )
+                        else:
+                            self._handle_error(
+                                f"Error getting subgroup: {error.error_message}", error
+                            )
+                        continue
         except GitlabListError as error:
             if error.response_code == 404:
                 self._handle_error(
@@ -359,4 +476,65 @@ class GitlabTreeBuilder:
                     f"Failed to get subgroups for group {getattr(group, 'name', 'unknown')}: {error.error_message}",
                     error,
                 )
+    
+    def _fetch_subgroup_detail(self, subgroup_def) -> Optional[Any]:
+        """Fetch subgroup detail with rate limiting.
+        
+        Args:
+            subgroup_def: Subgroup definition from list
+            
+        Returns:
+            Subgroup object or None if error
+        """
+        try:
+            self.rate_limiter.acquire()
+            return self.gitlab.groups.get(subgroup_def.id)
+        except GitlabGetError as error:
+            if error.response_code == 404:
+                self._handle_error(
+                    f"{error.response_code} error while getting subgroup with id: "
+                    f"{getattr(subgroup_def, 'id', 'unknown')}. "
+                    f"Check your permissions as you may not have access to it. Message: {error.error_message}",
+                    error,
+                )
+            else:
+                self._handle_error(
+                    f"Error getting subgroup detail: {error.error_message}", error
+                )
+            return None
+        except Exception as exc:  # pragma: no cover
+            self._handle_error(
+                f"Unexpected error fetching subgroup detail: {exc}",
+                exc,
+            )
+            return None
+    
+    def _process_subgroup(self, subgroup, parent: Node) -> None:
+        """Process a fetched subgroup: create node and recursively fetch children.
+        
+        Args:
+            subgroup: GitLab subgroup object (fully fetched)
+            parent: Parent node in the tree
+        """
+        subgroup_id = (
+            subgroup.name
+            if self.naming == FolderNaming.NAME
+            else subgroup.path
+        )
+        node = self._make_node(
+            "subgroup", subgroup_id, parent, subgroup.web_url
+        )
+        self.progress.show_progress(node.name, "group")
+        # Recursively process subgroups and projects (with parallelization if enabled)
+        if self.api_concurrency > 1:
+            # Parallelize subgroups and projects fetching within the subgroup
+            with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
+                subgroup_future = executor.submit(self.get_subgroups, subgroup, node)
+                project_future = executor.submit(self.get_projects, subgroup, node)
+                subgroup_future.result()
+                project_future.result()
+        else:
+            # Sequential for api_concurrency=1
+            self.get_subgroups(subgroup, node)
+            self.get_projects(subgroup, node)
 

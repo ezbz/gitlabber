@@ -92,6 +92,8 @@ class GitlabTree:
             excludes = config.excludes
             in_file = config.in_file
             concurrency = config.concurrency
+            api_concurrency = config.api_concurrency
+            api_rate_limit = config.api_rate_limit
             recursive = config.recursive
             disable_progress = config.disable_progress
             include_shared = config.include_shared
@@ -102,6 +104,10 @@ class GitlabTree:
             git_options = config.git_options
             auth_provider = config.auth_provider
             fail_fast = config.fail_fast
+        else:
+            # Set defaults for api_concurrency and api_rate_limit when not using config
+            api_concurrency = 5
+            api_rate_limit = None
         
         if not url or not token or not method:
             raise GitlabberAPIError("url, token, and method are required (either via config or individual parameters)")
@@ -117,6 +123,22 @@ class GitlabTree:
         try:
             self.gitlab = Gitlab(url, private_token=token,
                                ssl_verify=GitlabTree.get_ca_path())
+            
+            # Configure connection pool size to match api_concurrency
+            # This prevents "Connection pool is full" warnings when making concurrent requests
+            # Set pool size to api_concurrency * 2 to provide headroom
+            pool_size = max(api_concurrency * 2, 10)  # At least 10, or 2x concurrency
+            if hasattr(self.gitlab, 'session'):
+                # Recreate adapters with larger connection pool
+                from requests.adapters import HTTPAdapter
+                # Create new adapters with larger pool size
+                https_adapter = HTTPAdapter(pool_connections=pool_size, pool_maxsize=pool_size)
+                http_adapter = HTTPAdapter(pool_connections=pool_size, pool_maxsize=pool_size)
+                # Mount the new adapters
+                self.gitlab.session.mount('https://', https_adapter)
+                self.gitlab.session.mount('http://', http_adapter)
+                log.debug(f"Configured connection pool: pool_maxsize={pool_size}")
+            
             # Authenticate using the provider
             self.auth_provider.authenticate(self.gitlab)
         except GitlabAuthenticationError as e:
@@ -133,6 +155,8 @@ class GitlabTree:
         self.archived = archived
         self.in_file = in_file
         self.concurrency = concurrency
+        self.api_concurrency = api_concurrency
+        self.api_rate_limit = api_rate_limit
         self.recursive = recursive
         self.disable_progress = disable_progress
         self.progress = ProgressBar('* loading tree', disable_progress)
@@ -174,6 +198,8 @@ class GitlabTree:
             token=self.token,
             logger=log,
             error_handler=self.handle_error,
+            api_concurrency=getattr(self, 'api_concurrency', 5),
+            api_rate_limit=getattr(self, 'api_rate_limit', None),
         )
 
     def add_projects(self, parent, projects) -> None:

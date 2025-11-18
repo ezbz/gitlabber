@@ -208,6 +208,8 @@ class TestConfigBuilder:
             "includes": None,
             "excludes": None,
             "concurrency": 1,
+            "api_concurrency": 5,
+            "api_rate_limit": None,
             "hide_token": True,
         }
         defaults.update(overrides)
@@ -231,6 +233,8 @@ class TestConfigBuilder:
             "includes": None,
             "excludes": None,
             "concurrency": None,
+            "api_concurrency": None,
+            "api_rate_limit": None,
         }
         defaults.update(overrides)
         return mock.Mock(spec=GitlabberSettings, **defaults)

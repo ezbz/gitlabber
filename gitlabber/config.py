@@ -44,6 +44,12 @@ class GitlabberSettings(BaseSettings):
     concurrency: Optional[int] = Field(
         default=None, validation_alias=AliasChoices("GITLABBER_GIT_CONCURRENCY")
     )
+    api_concurrency: Optional[int] = Field(
+        default=None, validation_alias=AliasChoices("GITLABBER_API_CONCURRENCY")
+    )
+    api_rate_limit: Optional[int] = Field(
+        default=None, validation_alias=AliasChoices("GITLABBER_API_RATE_LIMIT")
+    )
 
     @field_validator("includes", "excludes", mode="before")
     @classmethod
@@ -68,6 +74,8 @@ class GitlabberConfig(BaseModel):
     includes: Optional[list[str]] = None
     excludes: Optional[list[str]] = None
     concurrency: int = Field(1, gt=0)
+    api_concurrency: int = Field(5, ge=1, le=20)
+    api_rate_limit: Optional[int] = Field(None, ge=1)
     recursive: bool = False
     disable_progress: bool = False
     include_shared: bool = True

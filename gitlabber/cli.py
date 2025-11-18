@@ -140,6 +140,7 @@ def run_gitlabber(
     verbose: bool,
     file: Optional[str],
     concurrency: Optional[int],
+    api_concurrency: Optional[int],
     print_tree_only: bool,
     print_format: PrintFormat,
     naming: FolderNaming,
@@ -172,6 +173,7 @@ def run_gitlabber(
         verbose: Enable verbose logging
         file: Optional YAML file to load tree from
         concurrency: Number of concurrent git operations
+        api_concurrency: Number of concurrent API calls
         print_tree_only: If True, only print tree without cloning
         print_format: Format for tree output (JSON, YAML, or TREE)
         naming: Folder naming strategy (NAME or PATH)
@@ -215,6 +217,7 @@ def run_gitlabber(
     if excludes_value is None:
         excludes_value = settings.excludes
     concurrency_value = concurrency or settings.concurrency or 1
+    api_concurrency_value = api_concurrency or settings.api_concurrency or 5
 
     config_logging(verbose, print_tree_only)
 
@@ -250,6 +253,7 @@ def run_gitlabber(
         excludes=excludes_value,
         in_file=file,
         concurrency=concurrency_value,
+        api_concurrency=api_concurrency_value,
         recursive=recursive,
         disable_progress=verbose,
         include_shared=include_shared,
@@ -321,6 +325,12 @@ def cli(
         "--concurrency",
         callback=lambda v: _validate_positive_int(v) if v is not None else v,
         help="Number of concurrent git operations",
+    ),
+    api_concurrency: Optional[int] = typer.Option(
+        None,
+        "--api-concurrency",
+        callback=lambda v: _validate_positive_int(v) if v is not None else v,
+        help="Number of concurrent API calls (default: 5)",
     ),
     print_tree_only: bool = typer.Option(
         False,
@@ -432,6 +442,7 @@ def cli(
         verbose=verbose,
         file=file,
         concurrency=concurrency,
+        api_concurrency=api_concurrency,
         print_tree_only=print_tree_only,
         print_format=print_format,
         naming=naming,

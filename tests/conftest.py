@@ -27,7 +27,10 @@ def mock_git_repo() -> Generator[mock.Mock, None, None]:
 def mock_gitlab_tree() -> Generator[mock.Mock, None, None]:
     """Fixture providing a mocked GitlabTree instance."""
     with mock.patch("gitlabber.cli.GitlabTree") as mock_tree:
-        mock_tree.return_value.is_empty.return_value = False
+        mock_instance = mock_tree.return_value
+        mock_instance.is_empty.return_value = False
+        mock_instance.api_concurrency = 5
+        mock_instance.api_rate_limit = None
         yield mock_tree
 
 
@@ -43,6 +46,8 @@ def mock_gitlabber_settings() -> Generator[mock.Mock, None, None]:
         mock_instance.includes = None
         mock_instance.excludes = None
         mock_instance.concurrency = None
+        mock_instance.api_concurrency = None
+        mock_instance.api_rate_limit = None
         mock_settings.return_value = mock_instance
         yield mock_settings
 

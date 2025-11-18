@@ -285,6 +285,39 @@ GITLAB_TOKEN=your_token GITLAB_URL=https://gitlab.com/ pytest tests/test_e2e.py 
 **E2E Test Files:**
 - `tests/test_e2e.py`: Tests against real GitLab.com API with actual groups/projects
 - `tests/test_integration.py`: Integration tests that don't require external API access
+- `tests/test_performance.py`: Performance tests measuring API concurrency speedup
+
+**Performance Tests:**
+
+Performance tests measure the actual speedup achieved by parallel API calls:
+
+```bash
+# Run all performance tests
+pytest tests/test_performance.py -m slow_integration_test --with-slow-integration
+
+# Run specific performance test
+pytest tests/test_performance.py::test_api_concurrency_speedup -m slow_integration_test --with-slow-integration
+```
+
+**Performance Test Results:**
+
+The performance tests will output timing information showing:
+- Sequential execution time (api_concurrency=1)
+- Parallel execution time (api_concurrency=5)
+- Calculated speedup factor
+- Scaling analysis for different concurrency levels
+
+Example output:
+```
+============================================================
+API Concurrency Performance Test Results
+============================================================
+Group search: large-group-test
+Sequential time (api_concurrency=1): 45.23s
+Parallel time (api_concurrency=5): 12.34s
+Speedup: 3.67x
+============================================================
+```
 
 ### 4. Code Review Checklist
 

@@ -88,5 +88,43 @@ def test_shared_group_and_project():
     obj = json.loads(output)
     assert obj['children'][0]['name'] == 'Shared Group'
     assert obj['children'][0]['children'][0]['name'] == 'Shared Project'
+
+
+@pytest.mark.slow_integration_test
+def test_api_concurrency_functionality():
+    """Test that api_concurrency parameter works correctly in e2e scenario.
     
+    This test verifies that:
+    1. api_concurrency parameter is accepted
+    2. Tree structure is built correctly with parallel API calls
+    3. Results are consistent regardless of concurrency level
+    """
+    os.environ['GITLAB_URL'] = 'https://gitlab.com/'
+    
+    # Test with different concurrency levels
+    for api_concurrency in [1, 3, 5]:
+        output = io_util.execute(
+            [
+                '-p', '--print-format', 'json',
+                '--group-search', 'Group Test',
+                '--api-concurrency', str(api_concurrency),
+                '--verbose'
+            ],
+            120
+        )
+        obj = json.loads(output)
+        
+        # Verify tree structure is correct
+        assert obj['children'][0]['name'] == 'Group Test'
+        assert obj['children'][0]['children'][0]['name'] == 'Subgroup Test'
+        assert len(obj['children'][0]['children'][0]['children']) == 3
+        
+        # Verify projects are present
+        project_names = [child['name'] for child in obj['children'][0]['children'][0]['children']]
+        assert 'archived-project' in project_names
+        assert 'gitlab-project-submodule' in project_names
+        assert 'gitlabber-sample-submodule' in project_names
+    
+    print("\n✓ API concurrency functionality verified for all tested levels (1, 3, 5)")
+
     
