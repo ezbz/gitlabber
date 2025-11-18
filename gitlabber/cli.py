@@ -445,6 +445,10 @@ def cli(
     accepting all configuration options via command-line arguments.
     Options can also be provided via environment variables (see GitlabberSettings).
     """
+    # Early exit for version - don't instantiate settings or run main logic
+    if version:
+        return
+    
     settings = GitlabberSettings()
     include_shared_value = not exclude_shared
 
