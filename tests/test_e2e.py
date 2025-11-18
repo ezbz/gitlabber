@@ -84,7 +84,9 @@ def test_user_personal_projects():
 @pytest.mark.slow_integration_test
 def test_shared_group_and_project():
     os.environ['GITLAB_URL'] = 'https://gitlab.com/'
-    output = io_util.execute(['-p', '--print-format', 'json', '--include-shared', '--group-search', 'shared-group3', '--verbose'], 120)
+    # include_shared defaults to True, so we don't need to pass --include-shared
+    # (we changed it to --exclude-shared to avoid Typer boolean flag issues)
+    output = io_util.execute(['-p', '--print-format', 'json', '--group-search', 'shared-group3', '--verbose'], 120)
     obj = json.loads(output)
     assert obj['children'][0]['name'] == 'Shared Group'
     assert obj['children'][0]['children'][0]['name'] == 'Shared Project'

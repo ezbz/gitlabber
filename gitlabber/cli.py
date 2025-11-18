@@ -278,19 +278,20 @@ def run_gitlabber(
     tree = GitlabTree(config=config)
     tree.load_tree()
 
-    if tree.is_empty():
-        from .exceptions import format_error_with_suggestion
-        error_msg, suggestion = format_error_with_suggestion(
-            'tree_empty',
-            "The tree is empty - no projects found matching your criteria.",
-            {}
-        )
-        log.critical(error_msg)
-        raise typer.Exit(1)
-
     if print_tree_only:
+        # Always print tree, even if empty (so JSON output is valid)
         tree.print_tree(print_format)
     else:
+        # Only error if trying to sync an empty tree
+        if tree.is_empty():
+            from .exceptions import format_error_with_suggestion
+            error_msg, suggestion = format_error_with_suggestion(
+                'tree_empty',
+                "The tree is empty - no projects found matching your criteria.",
+                {}
+            )
+            log.critical(error_msg)
+            raise typer.Exit(1)
         tree.sync_tree(dest or ".")
 
 
