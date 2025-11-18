@@ -411,6 +411,7 @@ def cli(
         True,
         "--include-shared/--no-include-shared",
         help="Include shared projects in the results",
+        is_flag=True,
     ),
     group_search: Optional[str] = typer.Option(
         None,
