@@ -264,7 +264,7 @@ def run_gitlabber(
         api_concurrency=api_concurrency_value,
         recursive=recursive,
         disable_progress=verbose,
-        include_shared=include_shared,
+        include_shared=not exclude_shared,
         use_fetch=use_fetch,
         hide_token=hide_token,
         user_projects=user_projects,
@@ -407,11 +407,10 @@ def cli(
         "--use-fetch",
         help="Use git fetch instead of pull (mirrored repositories)",
     ),
-    include_shared: bool = typer.Option(
-        True,
-        "--include-shared/--no-include-shared",
-        help="Include shared projects in the results",
-        is_flag=True,
+    exclude_shared: bool = typer.Option(
+        False,
+        "--exclude-shared",
+        help="Exclude shared projects from the results",
     ),
     group_search: Optional[str] = typer.Option(
         None,
@@ -446,6 +445,7 @@ def cli(
     Options can also be provided via environment variables (see GitlabberSettings).
     """
     settings = GitlabberSettings()
+    include_shared_value = not exclude_shared
 
     run_gitlabber(
         dest=dest,
@@ -465,7 +465,7 @@ def cli(
         exclude=exclude,
         recursive=recursive,
         use_fetch=use_fetch,
-        include_shared=include_shared,
+        include_shared=include_shared_value,
         group_search=group_search,
         user_projects=user_projects,
         git_options=git_options,
