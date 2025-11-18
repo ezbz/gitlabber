@@ -1,5 +1,6 @@
-from typing import Optional, Union
+from typing import Optional
 import enum
+
 
 class ArchivedResults(enum.Enum):
     """Enumeration for handling archived results in GitLab projects.
@@ -31,17 +32,3 @@ class ArchivedResults(enum.Enum):
         """Return the string representation of the enum value."""
         return str(self)
 
-    @staticmethod
-    def argparse(s: str) -> Union['ArchivedResults', str]:
-        """Convert a string to an ArchivedResults enum value.
-        
-        Args:
-            s: String to convert
-            
-        Returns:
-            ArchivedResults enum value if successful, original string if not
-        """
-        try:
-            return ArchivedResults[s.upper()]
-        except KeyError:
-            return s

@@ -1,22 +1,13 @@
 from gitlabber.naming import FolderNaming
 
 
-def test_naming_parse():
-    assert FolderNaming.PATH == FolderNaming.argparse("PATH")
-
-
-def test_naming_string():
+def test_naming_string() -> None:
     assert str(FolderNaming.NAME) == "name"
 
 
-def test_naming_invalid():
-    assert FolderNaming.argparse("invalid_value") == "invalid_value"
-
-
-def test_naming_argparse() -> None:
-    assert FolderNaming.argparse("name") == FolderNaming.NAME
-    assert FolderNaming.argparse("path") == FolderNaming.PATH
-    assert FolderNaming.argparse("invalid") == "invalid"
+def test_naming_enum_lookup() -> None:
+    assert FolderNaming["NAME"] is FolderNaming.NAME
+    assert FolderNaming["PATH"] is FolderNaming.PATH
 
 
 def test_naming_repr() -> None:

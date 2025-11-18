@@ -696,7 +696,7 @@ class GitlabberGitError(GitlabberError):
 - [x] Improve tree filtering logic (functional approach)
 - [x] Extract URL building logic
 - [x] Improve progress reporting (context manager, multiple bars)
-- [ ] Simplify enum argparse methods (base class)
+- [x] Simplify enum argparse methods (base class)
 - [x] Create custom exception hierarchy
 
 ### 4. Testing Improvements

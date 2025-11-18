@@ -1,23 +1,14 @@
 from gitlabber.format import PrintFormat
 
 
-def test_format_parse():
-    assert PrintFormat.JSON == PrintFormat.argparse("JSON")
-
-
-def test_format_string():
+def test_format_string() -> None:
     assert str(PrintFormat.JSON) == "json"
 
 
-def test_format_invalid():
-    assert PrintFormat.argparse("invalid_value") == "invalid_value"
-
-
-def test_format_argparse() -> None:
-    assert PrintFormat.argparse("json") == PrintFormat.JSON
-    assert PrintFormat.argparse("yaml") == PrintFormat.YAML
-    assert PrintFormat.argparse("tree") == PrintFormat.TREE
-    assert PrintFormat.argparse("invalid") == "invalid"
+def test_format_enum_lookup() -> None:
+    assert PrintFormat["JSON"] is PrintFormat.JSON
+    assert PrintFormat["YAML"] is PrintFormat.YAML
+    assert PrintFormat["TREE"] is PrintFormat.TREE
 
 
 def test_format_repr() -> None:
