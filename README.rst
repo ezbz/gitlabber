@@ -33,19 +33,23 @@ Installation
 ------------
 
 System Requirements
-~~~~~~~~~~~~~~~~~
+-------------------
 * Python 3.11 or higher
 * Git 2.0 or higher
 * Network access to GitLab instance
 
 Installation Methods
-~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~
 * PyPI (recommended):
+
   .. code-block:: bash
+
       pip install gitlabber
 
 * From source:
+
   .. code-block:: bash
+
       git clone https://github.com/ezbz/gitlabber.git
       cd gitlabber
       pip install -e .
@@ -55,12 +59,14 @@ Installation Methods
 
 Quick Start
 -----------
-    .. code-block:: bash
-        # Install gitlabber
-        pip install gitlabber
 
-        # Clone all your GitLab projects
-        gitlabber -t <your-token> -u <gitlab-url> .
+.. code-block:: bash
+
+    # Install gitlabber
+    pip install gitlabber
+
+    # Clone all your GitLab projects
+    gitlabber -t <your-token> -u <gitlab-url> .
 
 Usage
 -----
