@@ -694,8 +694,8 @@ class GitlabberGitError(GitlabberError):
 - [x] Separate concerns in `GitlabTree` (split into smaller components)
 - [x] Extract git operations into separate classes
 - [x] Improve tree filtering logic (functional approach)
-- [ ] Extract URL building logic
-- [ ] Improve progress reporting (context manager, multiple bars)
+- [x] Extract URL building logic
+- [x] Improve progress reporting (context manager, multiple bars)
 - [ ] Simplify enum argparse methods (base class)
 - [x] Create custom exception hierarchy
 
