@@ -122,7 +122,7 @@ def config_logging(verbose: bool, print_mode: bool) -> None:
 def _version_callback(value: bool) -> None:
     if value:
         typer.echo(VERSION)
-        raise typer.Exit(code=0)
+        sys.exit(0)
 
 
 def _require(value: Optional[str], message: str) -> str:
@@ -446,8 +446,10 @@ def cli(
     Options can also be provided via environment variables (see GitlabberSettings).
     """
     # Early exit for version - don't instantiate settings or run main logic
+    # This is a safety check in case the callback doesn't prevent execution
     if version:
-        return
+        typer.echo(VERSION)
+        sys.exit(0)
     
     settings = GitlabberSettings()
     include_shared_value = not exclude_shared
