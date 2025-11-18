@@ -1,3 +1,9 @@
+"""Enumeration for handling archived GitLab projects and groups.
+
+This module provides the ArchivedResults enum which controls how archived
+projects and groups are handled during tree building and filtering.
+"""
+
 from typing import Optional
 import enum
 

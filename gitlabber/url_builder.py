@@ -21,7 +21,16 @@ def select_project_url(
     ssh_url: str,
     method: CloneMethod,
 ) -> str:
-    """Select the appropriate base URL for a project based on clone method."""
+    """Select the appropriate base URL for a project based on clone method.
+    
+    Args:
+        http_url: HTTP/HTTPS URL for the project
+        ssh_url: SSH URL for the project
+        method: Clone method to use (SSH or HTTP)
+        
+    Returns:
+        The appropriate URL based on the clone method
+    """
     if method is CloneMethod.SSH:
         return ssh_url
     return http_url
@@ -36,8 +45,23 @@ def build_project_url(
     hide_token: bool,
     logger: Optional[LogLike] = None,
 ) -> str:
-    """Return the final project URL (with optional token injection)."""
-
+    """Build the final project URL with optional token injection.
+    
+    This function selects the appropriate URL based on the clone method
+    and optionally injects a token for HTTP authentication. If hide_token
+    is True, the token is not included in the URL (for security).
+    
+    Args:
+        http_url: HTTP/HTTPS URL for the project
+        ssh_url: SSH URL for the project
+        method: Clone method to use (SSH or HTTP)
+        token: Optional personal access token for HTTP authentication
+        hide_token: If True, don't include token in URL even if provided
+        logger: Optional logger instance for debug messages
+        
+    Returns:
+        The final project URL ready for cloning
+    """
     log = logger or logging.getLogger(__name__)
     base_url = select_project_url(http_url=http_url, ssh_url=ssh_url, method=method)
 

@@ -1,3 +1,11 @@
+"""Command-line interface for gitlabber.
+
+This module provides the CLI interface using Typer, handling argument
+parsing, validation, and orchestrating the main application flow.
+It supports configuration via command-line arguments, environment
+variables, and configuration files.
+"""
+
 from __future__ import annotations
 
 import logging
@@ -125,6 +133,41 @@ def run_gitlabber(
     fail_fast: bool,
     settings: GitlabberSettings,
 ) -> None:
+    """Execute the main gitlabber workflow.
+    
+    This function orchestrates the complete gitlabber workflow:
+    - Validates required parameters (token, URL)
+    - Creates configuration from CLI args and environment settings
+    - Builds the GitLab project tree
+    - Either prints the tree or synchronizes repositories
+    
+    Args:
+        dest: Destination directory for cloned repositories
+        token: GitLab personal access token
+        hide_token: Whether to hide token in repository URLs
+        url: GitLab instance base URL
+        verbose: Enable verbose logging
+        file: Optional YAML file to load tree from
+        concurrency: Number of concurrent git operations
+        print_tree_only: If True, only print tree without cloning
+        print_format: Format for tree output (JSON, YAML, or TREE)
+        naming: Folder naming strategy (NAME or PATH)
+        method: Clone method (SSH or HTTP)
+        archived: How to handle archived projects
+        include: Comma-separated glob patterns to include
+        exclude: Comma-separated glob patterns to exclude
+        recursive: Clone submodules recursively
+        use_fetch: Use git fetch instead of pull
+        include_shared: Include shared projects
+        group_search: Search term for filtering groups at API level
+        user_projects: Fetch only user personal projects
+        git_options: Additional git options as comma-separated string
+        fail_fast: Exit immediately on discovery errors
+        settings: Settings loaded from environment variables
+        
+    Raises:
+        typer.Exit: If required parameters are missing or tree is empty
+    """
     token_value = _require(
         token or settings.token,
         "Please specify a valid token with -t/--token or the GITLAB_TOKEN environment variable.",
@@ -349,6 +392,12 @@ def cli(
         help="Print version and exit",
     ),
 ) -> None:
+    """Main CLI command for gitlabber.
+    
+    This command provides the command-line interface for gitlabber,
+    accepting all configuration options via command-line arguments.
+    Options can also be provided via environment variables (see GitlabberSettings).
+    """
     settings = GitlabberSettings()
 
     run_gitlabber(
@@ -378,5 +427,10 @@ def cli(
 
 
 def main() -> None:
+    """Entry point for the gitlabber CLI application.
+    
+    This function is called when gitlabber is executed as a script
+    or module. It invokes the Typer application.
+    """
     app()
 

@@ -1,3 +1,10 @@
+"""Progress reporting for gitlabber operations.
+
+This module provides progress bar functionality using the Rich library
+for displaying progress during tree building and repository synchronization.
+It supports multiple concurrent progress bars and context manager patterns.
+"""
+
 from __future__ import annotations
 
 import time

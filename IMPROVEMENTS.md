@@ -721,8 +721,8 @@ class GitlabberGitError(GitlabberError):
 ### 5. Other Improvements
 
 #### 5.1 Documentation
-- [ ] Add module-level docstrings
-- [ ] Document all public APIs
+- [x] Add module-level docstrings
+- [x] Document all public APIs
 - [ ] Create `DEVELOPMENT.md`
 - [ ] Add architecture documentation
 
