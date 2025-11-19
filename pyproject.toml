@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "gitlabber"
-version = "2.0.1"
+version = "2.1.0"
 description = "A Gitlab clone/pull utility for backing up or cloning Gitlab groups"
 readme = "README.rst"
 requires-python = ">=3.11"

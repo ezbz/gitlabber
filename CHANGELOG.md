@@ -3,7 +3,7 @@
 <!--next-version-placeholder-->
 ## [Unreleased]
 
-## [2.0.1] - 2025-11-19
+## [2.1.0] - 2025-11-19
 
 ### Added
 - **Secure Token Storage**: Store GitLab tokens securely using OS-native keyring
@@ -304,8 +304,8 @@
 ### Fixed
 ### Security
 
-[unreleased]: https://github.com/ezbz/gitlabber/compare/v2.0.1...HEAD
-[2.0.1]: https://github.com/ezbz/gitlabber/compare/v2.0.0...v2.0.1
+[unreleased]: https://github.com/ezbz/gitlabber/compare/v2.1.0...HEAD
+[2.1.0]: https://github.com/ezbz/gitlabber/compare/v2.0.0...v2.1.0
 [2.0.0]: https://github.com/ezbz/gitlabber/compare/v1.2.8...v2.0.0
 [1.2.8]: https://github.com/ezbz/gitlabber/compare/v1.2.7...v1.2.8
 [1.2.7]: https://github.com/ezbz/gitlabber/compare/v1.2.6...v1.2.7
