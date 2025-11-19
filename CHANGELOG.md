@@ -3,7 +3,7 @@
 <!--next-version-placeholder-->
 ## [Unreleased]
 
-## [2.0.0] - 2025-01-XX
+## [2.0.0] - 2025-11-18
 
 ### Added
 - **Major Performance Feature**: Add `--api-concurrency` option for parallel API calls during tree building. This dramatically speeds up tree discovery for large GitLab instances with many groups and subgroups. Real-world performance improvements: **4-6x speedup** (e.g., 96s → 16-21s for instances with 21+ subgroups). The feature includes:
@@ -265,7 +265,19 @@
 ### Fixed
 ### Security
 
-[unreleased]: https://github.com/ezbz/gitlabber/compare/v1.1.8...HEAD
+[unreleased]: https://github.com/ezbz/gitlabber/compare/v2.0.1...HEAD
+[2.0.1]: https://github.com/ezbz/gitlabber/compare/v2.0.0...v2.0.1
+[2.0.0]: https://github.com/ezbz/gitlabber/compare/v1.2.8...v2.0.0
+[1.2.8]: https://github.com/ezbz/gitlabber/compare/v1.2.7...v1.2.8
+[1.2.7]: https://github.com/ezbz/gitlabber/compare/v1.2.6...v1.2.7
+[1.2.6]: https://github.com/ezbz/gitlabber/compare/v1.2.5...v1.2.6
+[1.2.5]: https://github.com/ezbz/gitlabber/compare/v1.2.4...v1.2.5
+[1.2.4]: https://github.com/ezbz/gitlabber/compare/v1.2.3...v1.2.4
+[1.2.3]: https://github.com/ezbz/gitlabber/compare/v1.2.2...v1.2.3
+[1.2.2]: https://github.com/ezbz/gitlabber/compare/v1.2.1...v1.2.2
+[1.2.1]: https://github.com/ezbz/gitlabber/compare/v1.2.0...v1.2.1
+[1.2.0]: https://github.com/ezbz/gitlabber/compare/v1.1.9...v1.2.0
+[1.1.9]: https://github.com/ezbz/gitlabber/compare/v1.1.8...v1.1.9
 [1.1.8]: https://github.com/ezbz/gitlabber/compare/v1.1.7...v1.1.8
 [1.1.7]: https://github.com/ezbz/gitlabber/compare/v1.1.6...v1.1.7
 [1.1.6]: https://github.com/ezbz/gitlabber/compare/v1.1.4...v1.1.6
