@@ -1,12 +1,10 @@
 """Comprehensive test utilities and helpers for gitlabber tests."""
-from typing import Any, Optional, Callable
+from typing import Any, Optional
 from unittest import mock
-from pathlib import Path
 from anytree import Node
 from gitlabber.method import CloneMethod
 from gitlabber.git import GitAction
 from gitlabber.config import GitlabberConfig, GitlabberSettings
-from pydantic_settings import SettingsConfigDict
 
 
 class MockGitRepo:

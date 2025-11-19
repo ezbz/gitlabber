@@ -107,7 +107,7 @@ def test_convert_archived_invalid():
 def test_cli_main_function():
     """Test main() function calls app()."""
     from unittest import mock
-    from gitlabber.cli import main, app
+    from gitlabber.cli import main
     
     with mock.patch('gitlabber.cli.app') as mock_app:
         main()

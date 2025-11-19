@@ -5,8 +5,6 @@ from gitlabber.archive import ArchivedResults
 import pytest
 from unittest import mock
 from gitlab.exceptions import GitlabGetError
-from typing import Any, cast
-from anytree import Node
 
 def test_load_tree(monkeypatch: pytest.MonkeyPatch) -> None:
     gl = gitlab_util.create_test_gitlab(monkeypatch)

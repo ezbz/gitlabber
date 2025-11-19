@@ -5,7 +5,7 @@ the project hierarchy from GitLab, filtering it, and synchronizing
 repositories to the local filesystem.
 """
 
-from typing import Optional, Any, Union
+from typing import Optional, Union
 from gitlab import Gitlab
 from gitlab.exceptions import GitlabAuthenticationError
 from anytree import Node, RenderTree

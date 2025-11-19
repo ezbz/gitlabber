@@ -66,9 +66,9 @@ def test_api_concurrency_speedup():
     speedup = sequential_time / parallel_time if parallel_time > 0 else 0
     
     # Log results for visibility
-    print(f"\n{'='*60}")
-    print(f"API Concurrency Performance Test Results")
-    print(f"{'='*60}")
+    print("\n" + "="*60)
+    print("API Concurrency Performance Test Results")
+    print("="*60)
     print(f"Group search: {group_search}")
     print(f"Sequential time (api_concurrency=1): {sequential_time:.2f}s")
     print(f"Parallel time (api_concurrency=5): {parallel_time:.2f}s")
@@ -157,7 +157,7 @@ def test_api_concurrency_with_rate_limiting():
     obj = json.loads(output)
     assert 'children' in obj, "Should successfully build tree even with high concurrency"
     
-    print(f"\n✓ Rate limiting works correctly with high concurrency (10)")
+    print("\n✓ Rate limiting works correctly with high concurrency (10)")
 
 
 def _measure_tree_build_time(args: list[str], timeout: int = 300) -> tuple[float, Dict[str, Any]]:
@@ -190,9 +190,9 @@ def test_api_concurrency_scaling():
     concurrency_levels = [1, 2, 3, 5, 10]
     results = {}
     
-    print(f"\n{'='*60}")
-    print(f"API Concurrency Scaling Test")
-    print(f"{'='*60}")
+    print("\n" + "="*60)
+    print("API Concurrency Scaling Test")
+    print("="*60)
     print(f"Group search: {group_search}")
     print(f"Testing concurrency levels: {concurrency_levels}\n")
     
@@ -214,7 +214,7 @@ def test_api_concurrency_scaling():
     
     # Calculate speedups relative to sequential (concurrency=1)
     baseline_time = results[1]['time']
-    print(f"\nSpeedup relative to sequential (api_concurrency=1):")
+    print("\nSpeedup relative to sequential (api_concurrency=1):")
     for concurrency in concurrency_levels[1:]:  # Skip baseline
         speedup = baseline_time / results[concurrency]['time']
         print(f"  api_concurrency={concurrency:2d}: {speedup:.2f}x")

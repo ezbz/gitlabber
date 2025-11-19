@@ -6,9 +6,7 @@ authentication and provides a no-op provider for testing.
 """
 
 from abc import ABC, abstractmethod
-from typing import Optional
 from gitlab import Gitlab
-from gitlab.exceptions import GitlabAuthenticationError
 
 class AuthProvider(ABC):
     """Interface for GitLab authentication providers."""

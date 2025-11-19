@@ -1,14 +1,11 @@
 import os
-import json
 import re
 from gitlabber import __version__ as VERSION
 import tests.gitlab_test_utils as gitlab_util
 import tests.io_test_util as io_util
 import pytest
 import coverage
-from typing import cast
 import sys
-import subprocess
 import importlib
 from io import StringIO
 from contextlib import contextmanager

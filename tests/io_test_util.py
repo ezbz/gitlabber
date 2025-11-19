@@ -1,10 +1,9 @@
 import os
 import sys
 import subprocess
-import sys
 from contextlib import contextmanager
 from io import StringIO
-from typing import List, Optional, Union, Any
+from typing import List, Optional
 
 
 @contextmanager

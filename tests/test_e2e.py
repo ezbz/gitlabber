@@ -1,11 +1,8 @@
 import os
-import json
-from gitlabber import __version__ as VERSION
-import tests.gitlab_test_utils as gitlab_util
+from typing import Dict, Any
 import tests.io_test_util as io_util
 import pytest
 import coverage
-from typing import Dict, Any, cast
 coverage.process_startup()
 
 
