@@ -33,6 +33,11 @@ Gitlabber clones or pulls all projects under a subset of groups / subgroups by b
   pip install -e .
   ```
 
+* Optional: Install with secure token storage support:
+  ```bash
+  pip install gitlabber[keyring]
+  ```
+
 * You'll need to create an [access token](https://docs.gitlab.com/ee/user/profile/personal_access_tokens.html) from GitLab with API scopes `read_repository` and `read_api` (or `api`, for GitLab versions <12.0)
 
 ## Quick Start
@@ -189,7 +194,15 @@ gitlabber --api-concurrency 10 -t <token> -u <url> .
 
 # Use both API and git concurrency for maximum performance
 gitlabber --api-concurrency 5 -c 10 -t <token> -u <url> .
+
+# Store token securely for future use (one-time setup)
+gitlabber --store-token -u https://gitlab.com
+
+# Use stored token (no -t flag needed)
+gitlabber -u https://gitlab.com .
 ```
+<｜tool▁call▁begin｜>
+run_terminal_cmd
 
 ## Common Use Cases
 
