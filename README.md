@@ -57,6 +57,34 @@ Arguments can be provided via the CLI arguments directly or via environment vari
 | include  | -i   | `GITLABBER_INCLUDE` |
 | exclude  | -x   | `GITLABBER_EXCLUDE` |
 
+### Secure Token Storage
+
+Gitlabber supports secure token storage using OS-native keyring (Keychain on macOS, Secret Service on Linux, Windows Credential Manager). This allows you to store your GitLab token securely and avoid passing it via CLI or environment variables.
+
+**Token Resolution Priority:**
+1. CLI argument (`-t/--token`) - highest priority
+2. Stored token (from secure storage)
+3. Environment variable (`GITLAB_TOKEN`)
+
+**Usage:**
+```bash
+# Install keyring (optional, for secure storage)
+pip install gitlabber[keyring]
+
+# Store token securely (one-time setup)
+gitlabber --store-token -u https://gitlab.com
+Enter token: [hidden input]
+Token stored securely in keyring for https://gitlab.com ✓
+
+# Use stored token automatically (no -t flag needed)
+gitlabber -u https://gitlab.com .
+
+# Override with CLI token if needed
+gitlabber -t <token> -u https://gitlab.com .
+```
+
+**Note:** If keyring is not installed, gitlabber falls back to environment variables or CLI arguments (current behavior).
+
 To view the tree run the command with your includes/excludes and the `-p` flag. It will print your tree like so:
 
 ```bash
@@ -85,7 +113,7 @@ root [http://gitlab.my.com]
 
 ```bash
 usage: gitlabber [-h] [-t token] [-T] [-u url] [--verbose] [-p] [--print-format {json,yaml,tree}] [-n {name,path}] [-m {ssh,http}]
-                [-a {include,exclude,only}] [-i csv] [-x csv] [-c N] [--api-concurrency N] [-r] [-F] [-d] [-s] [-g term] [-U] [-o options] [--version]
+                [-a {include,exclude,only}] [-i csv] [-x csv] [-c N] [--api-concurrency N] [-r] [-F] [-d] [-s] [-g term] [-U] [-o options] [--version] [--store-token]
                 [dest]
 
 Gitlabber - clones or pulls entire groups/projects tree from gitlab
@@ -126,6 +154,7 @@ options:
 -o options, --git-options options
                         provide additional options as csv for the git command
 --version             print the version
+--store-token         store token securely in OS keyring (requires keyring package)
 ```
 
 ### Examples
