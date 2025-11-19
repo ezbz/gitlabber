@@ -21,15 +21,29 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python ${{ matrix.python }}
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python }}
+        cache: 'pip'
+    - name: Cache pip dependencies
+      uses: actions/cache@v4
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt', '**/pyproject.toml') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install flake8 pytest pytest-cov pytest-integration
+        pip install flake8 pytest pytest-cov pytest-integration mypy ruff
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-        pip install -e .
+        pip install -e ".[test]"
+    - name: Lint with ruff
+      run: |
+        ruff check . --output-format=github
+    - name: Type check with mypy
+      run: |
+        mypy gitlabber/ --ignore-missing-imports || true
     - name: Lint with flake8
       run: |
         # stop the build if there are Python syntax errors or undefined names

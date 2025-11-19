@@ -1,6 +1,5 @@
-from typing import Any, Optional, cast
+from typing import Optional, cast
 import pytest
-import json
 from unittest import mock
 from anytree import Node
 from gitlabber import gitlab_tree

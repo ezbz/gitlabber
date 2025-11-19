@@ -4,7 +4,6 @@ from unittest import mock
 import pytest
 from gitlabber.method import CloneMethod
 from gitlabber.auth import NoAuthProvider
-from gitlabber.config import GitlabberSettings
 
 
 # Test constants

@@ -1,9 +1,7 @@
 """Tests for configuration classes."""
 
-import pytest
 from gitlabber.config import GitlabberSettings, GitlabberConfig
 from gitlabber.method import CloneMethod
-from gitlabber.naming import FolderNaming
 
 
 def test_settings_split_csv_none():

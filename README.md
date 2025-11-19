@@ -1,8 +1,9 @@
 # Gitlabber
 
-[![Python App](https://github.com/ezbz/gitlabber/actions/workflows/python-app.yml/badge.svg?branch=master)](https://github.com/ezbz/gitlabber/actions/workflows/python-app.yml)
+[![Python App](https://github.com/ezbz/gitlabber/actions/workflows/python-app.yml/badge.svg?branch=main)](https://github.com/ezbz/gitlabber/actions/workflows/python-app.yml)
 [![codecov](https://codecov.io/gh/ezbz/gitlabber/branch/main/graph/badge.svg)](https://codecov.io/gh/ezbz/gitlabber)
 [![PyPI version](https://badge.fury.io/py/gitlabber.svg)](https://badge.fury.io/py/gitlabber)
+[![PyPI downloads](https://img.shields.io/pypi/dm/gitlabber)](https://pypi.org/project/gitlabber/)
 [![License](https://img.shields.io/pypi/l/gitlabber.svg)](https://pypi.python.org/pypi/gitlabber/)
 [![Python versions](https://img.shields.io/pypi/pyversions/gitlabber)](https://pypi.python.org/pypi/gitlabber/)
 [![Documentation Status](https://readthedocs.org/projects/gitlabber/badge/?version=latest&style=plastic)](https://app.readthedocs.org/projects/gitlabber/)
@@ -33,6 +34,11 @@ Gitlabber clones or pulls all projects under a subset of groups / subgroups by b
   pip install -e .
   ```
 
+* Optional: Install with secure token storage support:
+  ```bash
+  pip install gitlabber[keyring]
+  ```
+
 * You'll need to create an [access token](https://docs.gitlab.com/ee/user/profile/personal_access_tokens.html) from GitLab with API scopes `read_repository` and `read_api` (or `api`, for GitLab versions <12.0)
 
 ## Quick Start
@@ -56,6 +62,34 @@ Arguments can be provided via the CLI arguments directly or via environment vari
 | naming   | -n   | `GITLABBER_FOLDER_NAMING` |
 | include  | -i   | `GITLABBER_INCLUDE` |
 | exclude  | -x   | `GITLABBER_EXCLUDE` |
+
+### Secure Token Storage
+
+Gitlabber supports secure token storage using OS-native keyring (Keychain on macOS, Secret Service on Linux, Windows Credential Manager). This allows you to store your GitLab token securely and avoid passing it via CLI or environment variables.
+
+**Token Resolution Priority:**
+1. CLI argument (`-t/--token`) - highest priority
+2. Stored token (from secure storage)
+3. Environment variable (`GITLAB_TOKEN`)
+
+**Usage:**
+```bash
+# Install keyring (optional, for secure storage)
+pip install gitlabber[keyring]
+
+# Store token securely (one-time setup)
+gitlabber --store-token -u https://gitlab.com
+Enter token: [hidden input]
+Token stored securely in keyring for https://gitlab.com ✓
+
+# Use stored token automatically (no -t flag needed)
+gitlabber -u https://gitlab.com .
+
+# Override with CLI token if needed
+gitlabber -t <token> -u https://gitlab.com .
+```
+
+**Note:** If keyring is not installed, gitlabber falls back to environment variables or CLI arguments (current behavior).
 
 To view the tree run the command with your includes/excludes and the `-p` flag. It will print your tree like so:
 
@@ -85,7 +119,7 @@ root [http://gitlab.my.com]
 
 ```bash
 usage: gitlabber [-h] [-t token] [-T] [-u url] [--verbose] [-p] [--print-format {json,yaml,tree}] [-n {name,path}] [-m {ssh,http}]
-                [-a {include,exclude,only}] [-i csv] [-x csv] [-c N] [--api-concurrency N] [-r] [-F] [-d] [-s] [-g term] [-U] [-o options] [--version]
+                [-a {include,exclude,only}] [-i csv] [-x csv] [-c N] [--api-concurrency N] [-r] [-F] [-d] [-s] [-g term] [-U] [-o options] [--version] [--store-token]
                 [dest]
 
 Gitlabber - clones or pulls entire groups/projects tree from gitlab
@@ -126,6 +160,7 @@ options:
 -o options, --git-options options
                         provide additional options as csv for the git command
 --version             print the version
+--store-token         store token securely in OS keyring (requires keyring package)
 ```
 
 ### Examples
@@ -160,7 +195,15 @@ gitlabber --api-concurrency 10 -t <token> -u <url> .
 
 # Use both API and git concurrency for maximum performance
 gitlabber --api-concurrency 5 -c 10 -t <token> -u <url> .
+
+# Store token securely for future use (one-time setup)
+gitlabber --store-token -u https://gitlab.com
+
+# Use stored token (no -t flag needed)
+gitlabber -u https://gitlab.com .
 ```
+<｜tool▁call▁begin｜>
+run_terminal_cmd
 
 ## Common Use Cases
 

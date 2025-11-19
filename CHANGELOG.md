@@ -3,7 +3,46 @@
 <!--next-version-placeholder-->
 ## [Unreleased]
 
-## [2.0.0] - 2025-01-XX
+## [2.0.1] - 2025-11-19
+
+### Added
+- **Secure Token Storage**: Store GitLab tokens securely using OS-native keyring
+  - macOS: Keychain
+  - Linux: Secret Service API (GNOME Keyring, KWallet)
+  - Windows: Windows Credential Manager
+- **Automatic Token Retrieval**: Tokens are automatically retrieved from secure storage if no CLI token is provided
+- **Token Resolution Priority**: CLI → Stored → Environment Variable
+- **`--store-token` CLI Flag**: Store tokens securely in OS keyring (requires `keyring` package)
+- **Docker Testing Infrastructure**: Test on Ubuntu environment matching CI
+  - `Dockerfile.test` for Ubuntu/Python 3.11 testing environment
+  - `docker-compose.test.yml` for easy test execution
+  - `scripts/test-docker.sh` helper script
+- **Comprehensive Token Storage Documentation**: Added usage examples and best practices to README files
+- **Docker Testing Documentation**: Added guide to `DEVELOPMENT.md` for running tests in Docker
+
+### Changed
+- Token resolution now includes secure storage as a source (automatic fallback)
+- Updated GitHub Actions workflow:
+  - Use `actions/setup-python@v5` (from v2)
+  - Use `actions/checkout@v4` (from v3)
+  - Added pip caching with `actions/cache@v4` for faster builds
+  - Added `ruff` linting step
+  - Added `mypy` type checking step
+  - Install test dependencies with `[test]` extra
+
+### Fixed
+- Fixed all previously skipped CLI tests (`test_version_option`, `test_missing_token_error`, `test_missing_url_error`, `test_missing_dest_error`, `test_print_tree`, `test_sync_tree`)
+- Fixed all previously skipped integration tests (`test_help`, `test_version`)
+- Fixed environment isolation issues that caused CI test failures
+- Fixed token resolution to properly check secure storage before falling back to environment variables
+- Fixed all ruff linting errors (unused imports, f-strings without placeholders, equality comparisons)
+
+### Security
+- Tokens stored encrypted at rest by OS keyring
+- Graceful fallback to environment variables if keyring unavailable
+- No breaking changes to existing security practices
+
+## [2.0.0] - 2025-11-18
 
 ### Added
 - **Major Performance Feature**: Add `--api-concurrency` option for parallel API calls during tree building. This dramatically speeds up tree discovery for large GitLab instances with many groups and subgroups. Real-world performance improvements: **4-6x speedup** (e.g., 96s → 16-21s for instances with 21+ subgroups). The feature includes:
@@ -265,7 +304,19 @@
 ### Fixed
 ### Security
 
-[unreleased]: https://github.com/ezbz/gitlabber/compare/v1.1.8...HEAD
+[unreleased]: https://github.com/ezbz/gitlabber/compare/v2.0.1...HEAD
+[2.0.1]: https://github.com/ezbz/gitlabber/compare/v2.0.0...v2.0.1
+[2.0.0]: https://github.com/ezbz/gitlabber/compare/v1.2.8...v2.0.0
+[1.2.8]: https://github.com/ezbz/gitlabber/compare/v1.2.7...v1.2.8
+[1.2.7]: https://github.com/ezbz/gitlabber/compare/v1.2.6...v1.2.7
+[1.2.6]: https://github.com/ezbz/gitlabber/compare/v1.2.5...v1.2.6
+[1.2.5]: https://github.com/ezbz/gitlabber/compare/v1.2.4...v1.2.5
+[1.2.4]: https://github.com/ezbz/gitlabber/compare/v1.2.3...v1.2.4
+[1.2.3]: https://github.com/ezbz/gitlabber/compare/v1.2.2...v1.2.3
+[1.2.2]: https://github.com/ezbz/gitlabber/compare/v1.2.1...v1.2.2
+[1.2.1]: https://github.com/ezbz/gitlabber/compare/v1.2.0...v1.2.1
+[1.2.0]: https://github.com/ezbz/gitlabber/compare/v1.1.9...v1.2.0
+[1.1.9]: https://github.com/ezbz/gitlabber/compare/v1.1.8...v1.1.9
 [1.1.8]: https://github.com/ezbz/gitlabber/compare/v1.1.7...v1.1.8
 [1.1.7]: https://github.com/ezbz/gitlabber/compare/v1.1.6...v1.1.7
 [1.1.6]: https://github.com/ezbz/gitlabber/compare/v1.1.4...v1.1.6

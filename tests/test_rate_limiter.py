@@ -1,10 +1,7 @@
 """Tests for rate limiting functionality."""
 
-import time
 import threading
-from unittest.mock import patch, MagicMock
-
-import pytest
+from unittest.mock import patch
 
 from gitlabber.rate_limiter import RateLimitedExecutor
 
