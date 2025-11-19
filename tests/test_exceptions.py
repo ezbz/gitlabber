@@ -1,6 +1,5 @@
 """Tests for exception handling and error formatting."""
 
-import pytest
 from gitlabber.exceptions import (
     GitlabberError,
     GitlabberConfigError,

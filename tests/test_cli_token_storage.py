@@ -4,7 +4,7 @@ import pytest
 from unittest import mock
 from typer.testing import CliRunner
 from gitlabber import cli
-from gitlabber.token_storage import TokenStorage, TokenStorageError
+from gitlabber.token_storage import TokenStorageError
 
 runner = CliRunner()
 
