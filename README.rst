@@ -54,6 +54,12 @@ Installation Methods
       cd gitlabber
       pip install -e .
 
+* Optional: Install with secure token storage support:
+
+  .. code-block:: bash
+
+      pip install gitlabber[keyring]
+
 * You'll need to create an `access token <https://docs.gitlab.com/ee/user/profile/personal_access_tokens.html>`_ from GitLab with API scopes `read_repository`
   and ``read_api`` (or ``api``, for GitLab versions <12.0)
 
@@ -89,6 +95,34 @@ Usage
     | exclude          | -x               | `GITLABBER_EXCLUDE`       |
     +------------------+------------------+---------------------------+
 
+* **Secure Token Storage**: Gitlabber supports secure token storage using OS-native keyring (Keychain on macOS, Secret Service on Linux, Windows Credential Manager). This allows you to store your GitLab token securely and avoid passing it via CLI or environment variables.
+
+  **Token Resolution Priority:**
+  
+  1. CLI argument (``-t/--token``) - highest priority
+  2. Stored token (from secure storage)
+  3. Environment variable (``GITLAB_TOKEN``)
+
+  **Usage:**
+
+  .. code-block:: bash
+
+      # Install keyring (optional, for secure storage)
+      pip install gitlabber[keyring]
+
+      # Store token securely (one-time setup)
+      gitlabber --store-token -u https://gitlab.com
+      Enter token: [hidden input]
+      Token stored securely in keyring for https://gitlab.com ✓
+
+      # Use stored token automatically (no -t flag needed)
+      gitlabber -u https://gitlab.com .
+
+      # Override with CLI token if needed
+      gitlabber -t <token> -u https://gitlab.com .
+
+  **Note:** If keyring is not installed, gitlabber falls back to environment variables or CLI arguments (current behavior).
+
 * To view the tree run the command with your includes/excludes and the ``-p`` flag. It will print your tree like so:
 
     .. code-block:: bash
@@ -119,7 +153,7 @@ Usage
 .. code-block:: bash
 
     usage: gitlabber [-h] [-t token] [-T] [-u url] [--verbose] [-p] [--print-format {json,yaml,tree}] [-n {name,path}] [-m {ssh,http}]
-                    [-a {include,exclude,only}] [-i csv] [-x csv] [-c N] [--api-concurrency N] [-r] [-F] [-d] [-s] [-g term] [-U] [-o options] [--version]
+                    [-a {include,exclude,only}] [-i csv] [-x csv] [-c N] [--api-concurrency N] [-r] [-F] [-d] [-s] [-g term] [-U] [-o options] [--version] [--store-token]
                     [dest]
 
     Gitlabber - clones or pulls entire groups/projects tree from gitlab
@@ -160,6 +194,7 @@ Usage
     -o options, --git-options options
                             provide additional options as csv for the git command (e.g., --depth=1). See: clone/multi_options https://gitpython.readthedocs.io/en/stable/reference.html#
     --version             print the version
+    --store-token         store token securely in OS keyring (requires keyring package)
 
     examples:
 
@@ -194,6 +229,12 @@ Usage
         use both API and git concurrency for maximum performance
         # API concurrency speeds up tree discovery, git concurrency speeds up cloning
         gitlabber --api-concurrency 5 -c 10 -t <token> -u <url> .
+
+        store token securely for future use (one-time setup)
+        gitlabber --store-token -u https://gitlab.com
+
+        use stored token (no -t flag needed)
+        gitlabber -u https://gitlab.com .
 
         **Performance Results:**
         * Sequential (``--api-concurrency 1``): ~96 seconds
