@@ -3,6 +3,45 @@
 <!--next-version-placeholder-->
 ## [Unreleased]
 
+## [2.0.1] - 2025-01-XX
+
+### Added
+- **Secure Token Storage**: Store GitLab tokens securely using OS-native keyring
+  - macOS: Keychain
+  - Linux: Secret Service API (GNOME Keyring, KWallet)
+  - Windows: Windows Credential Manager
+- **Automatic Token Retrieval**: Tokens are automatically retrieved from secure storage if no CLI token is provided
+- **Token Resolution Priority**: CLI → Stored → Environment Variable
+- **`--store-token` CLI Flag**: Store tokens securely in OS keyring (requires `keyring` package)
+- **Docker Testing Infrastructure**: Test on Ubuntu environment matching CI
+  - `Dockerfile.test` for Ubuntu/Python 3.11 testing environment
+  - `docker-compose.test.yml` for easy test execution
+  - `scripts/test-docker.sh` helper script
+- **Comprehensive Token Storage Documentation**: Added usage examples and best practices to README files
+- **Docker Testing Documentation**: Added guide to `DEVELOPMENT.md` for running tests in Docker
+
+### Changed
+- Token resolution now includes secure storage as a source (automatic fallback)
+- Updated GitHub Actions workflow:
+  - Use `actions/setup-python@v5` (from v2)
+  - Use `actions/checkout@v4` (from v3)
+  - Added pip caching with `actions/cache@v4` for faster builds
+  - Added `ruff` linting step
+  - Added `mypy` type checking step
+  - Install test dependencies with `[test]` extra
+
+### Fixed
+- Fixed all previously skipped CLI tests (`test_version_option`, `test_missing_token_error`, `test_missing_url_error`, `test_missing_dest_error`, `test_print_tree`, `test_sync_tree`)
+- Fixed all previously skipped integration tests (`test_help`, `test_version`)
+- Fixed environment isolation issues that caused CI test failures
+- Fixed token resolution to properly check secure storage before falling back to environment variables
+- Fixed all ruff linting errors (unused imports, f-strings without placeholders, equality comparisons)
+
+### Security
+- Tokens stored encrypted at rest by OS keyring
+- Graceful fallback to environment variables if keyring unavailable
+- No breaking changes to existing security practices
+
 ## [2.0.0] - 2025-11-18
 
 ### Added
