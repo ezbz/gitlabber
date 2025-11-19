@@ -1,8 +1,9 @@
 # Gitlabber
 
-[![Python App](https://github.com/ezbz/gitlabber/actions/workflows/python-app.yml/badge.svg?branch=master)](https://github.com/ezbz/gitlabber/actions/workflows/python-app.yml)
+[![Python App](https://github.com/ezbz/gitlabber/actions/workflows/python-app.yml/badge.svg?branch=main)](https://github.com/ezbz/gitlabber/actions/workflows/python-app.yml)
 [![codecov](https://codecov.io/gh/ezbz/gitlabber/branch/main/graph/badge.svg)](https://codecov.io/gh/ezbz/gitlabber)
 [![PyPI version](https://badge.fury.io/py/gitlabber.svg)](https://badge.fury.io/py/gitlabber)
+[![PyPI downloads](https://img.shields.io/pypi/dm/gitlabber)](https://pypi.org/project/gitlabber/)
 [![License](https://img.shields.io/pypi/l/gitlabber.svg)](https://pypi.python.org/pypi/gitlabber/)
 [![Python versions](https://img.shields.io/pypi/pyversions/gitlabber)](https://pypi.python.org/pypi/gitlabber/)
 [![Documentation Status](https://readthedocs.org/projects/gitlabber/badge/?version=latest&style=plastic)](https://app.readthedocs.org/projects/gitlabber/)
