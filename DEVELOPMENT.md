@@ -258,6 +258,60 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed setup instructions.
 - **Unit Tests:** Test individual functions/classes in isolation
 - **Integration Tests:** Test component interactions
 - **E2E Tests:** Test full workflows (marked with `@pytest.mark.slow_integration_test`)
+- **Docker Tests:** Test on Ubuntu environment matching CI (see below)
+
+#### Docker Testing (Ubuntu/CI Environment)
+
+Gitlabber includes Docker-based testing to ensure tests pass in the same Ubuntu environment used by CI. This is particularly useful for:
+- Reproducing CI failures locally
+- Testing on different operating systems
+- Ensuring cross-platform compatibility
+
+**Prerequisites:**
+- Docker and Docker Compose installed
+- Docker daemon running
+
+**Quick Start:**
+```bash
+# Build the test image
+docker-compose -f docker-compose.test.yml build
+
+# Run all tests in Docker
+docker-compose -f docker-compose.test.yml run --rm test
+
+# Run specific tests
+docker-compose -f docker-compose.test.yml run --rm test python -m pytest tests/test_cli.py -v
+
+# Use the helper script
+./scripts/test-docker.sh
+```
+
+**Docker Setup Files:**
+- `Dockerfile.test`: Ubuntu-based image with Python 3.11 (matching CI)
+- `docker-compose.test.yml`: Docker Compose configuration for easy test execution
+- `scripts/test-docker.sh`: Helper script to run tests in Docker
+- `.dockerignore`: Excludes unnecessary files from Docker build
+
+**What Gets Tested:**
+The Docker environment matches GitHub Actions CI (Ubuntu latest, Python 3.11), ensuring:
+- Tests that pass locally also pass in CI
+- Environment-specific issues are caught early
+- Cross-platform compatibility is verified
+
+**Example: Fixing CI Failures**
+If tests fail in CI but pass locally (e.g., on macOS), you can reproduce the issue:
+
+```bash
+# Run the failing test in Docker
+docker-compose -f docker-compose.test.yml run --rm test \
+    python -m pytest tests/test_cli.py::test_version_option -xvs
+
+# Fix the issue and verify
+docker-compose -f docker-compose.test.yml run --rm test \
+    python -m pytest tests/test_cli.py -v
+```
+
+**Note:** The Docker test environment uses Python 3.11 on Ubuntu, matching the CI matrix. All previously skipped tests (due to CI failures) have been fixed and verified to pass in this Docker environment.
 
 #### Running E2E Tests
 
@@ -327,7 +381,8 @@ Speedup: 3.67x
 - [ ] Type hints added
 - [ ] Docstrings added for public APIs
 - [ ] No linter errors
-- [ ] All tests pass
+- [ ] All tests pass locally
+- [ ] Tests pass in Docker (Ubuntu environment) if making platform-specific changes
 
 ## Debugging
 
@@ -397,11 +452,21 @@ The codebase has evolved through several refactorings:
 2. **Refactored:** Separated tree building, filtering, and git operations
 3. **Current:** Functional filtering, better separation of concerns, improved testability
 
+### Testing Infrastructure Evolution
+
+1. **Initial:** Basic unit tests with mocks
+2. **Enhanced:** Added integration tests and E2E tests
+3. **Current:** Docker-based testing for CI environment parity
+   - All previously skipped tests (due to CI failures) have been fixed
+   - Docker setup ensures tests pass in both local and CI environments
+   - Cross-platform compatibility verified
+
 Future improvements may include:
 - Async API support
 - Caching for API responses
 - Plugin system for custom filters
 - Better error recovery
+- Additional Docker test environments (different Python versions, OS variants)
 
 ## Additional Resources
 
