@@ -1,4 +1,4 @@
-.. image:: https://github.com/ezbz/gitlabber/actions/workflows/python-app.yml/badge.svg?branch=master
+.. image:: https://github.com/ezbz/gitlabber/actions/workflows/python-app.yml/badge.svg?branch=main
     :target: https://github.com/ezbz/gitlabber/actions/workflows/python-app.yml
 
 .. image:: https://codecov.io/gh/ezbz/gitlabber/branch/main/graph/badge.svg
@@ -6,6 +6,9 @@
   
 .. image:: https://badge.fury.io/py/gitlabber.svg
     :target: https://badge.fury.io/py/gitlabber
+
+.. image:: https://img.shields.io/pypi/dm/gitlabber
+    :target: https://pypi.org/project/gitlabber/
   
 .. image:: https://img.shields.io/pypi/l/gitlabber.svg
     :target: https://pypi.python.org/pypi/gitlabber/
@@ -33,57 +36,95 @@ Installation
 ------------
 
 System Requirements
-~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~
 * Python 3.11 or higher
 * Git 2.0 or higher
 * Network access to GitLab instance
 
 Installation Methods
-~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~
 * PyPI (recommended):
+
   .. code-block:: bash
+
       pip install gitlabber
 
 * From source:
+
   .. code-block:: bash
+
       git clone https://github.com/ezbz/gitlabber.git
       cd gitlabber
       pip install -e .
+
+* Optional: Install with secure token storage support:
+
+  .. code-block:: bash
+
+      pip install gitlabber[keyring]
 
 * You'll need to create an `access token <https://docs.gitlab.com/ee/user/profile/personal_access_tokens.html>`_ from GitLab with API scopes `read_repository`
   and ``read_api`` (or ``api``, for GitLab versions <12.0)
 
 Quick Start
 -----------
-    .. code-block:: bash
-        # Install gitlabber
-        pip install gitlabber
 
-        # Clone all your GitLab projects
-        gitlabber -t <your-token> -u <gitlab-url> .
+.. code-block:: bash
+
+    # Install gitlabber
+    pip install gitlabber
+
+    # Clone all your GitLab projects
+    gitlabber -t <your-token> -u <gitlab-url> .
 
 Usage
 -----
 
 * Arguments can be provided via the CLI arguments directly or via environment variables:
 
-    +---------------+---------------+---------------------------+
-    | Argument      | Flag          | Environment Variable      |
-    +===============+===============+===========================+
-    | token         | -t            | `GITLAB_TOKEN`            |
-    +---------------+---------------+---------------------------+
-    | url           | -u            | `GITLAB_URL`              |
-    +---------------+---------------+---------------------------+
-    | method        | -m            | `GITLABBER_CLONE_METHOD`  |
-    +---------------+---------------+---------------------------+
-    | naming        | -n            | `GITLABBER_FOLDER_NAMING` |
-    +---------------+---------------+---------------------------+
-    | include       | -i            | `GITLABBER_INCLUDE`       |
-    +---------------+---------------+---------------------------+
-    | exclude       | -x            | `GITLABBER_EXCLUDE`       |
-    +---------------+---------------+---------------------------+
-    | fail-fast     | --fail-fast   | *(none)*                  |
-    +---------------+---------------+---------------------------+
+    +------------------+------------------+---------------------------+
+    | Argument         | Flag             | Environment Variable      |
+    +==================+==================+===========================+
+    | token            | -t               | `GITLAB_TOKEN`            |
+    +------------------+------------------+---------------------------+
+    | url              | -u               | `GITLAB_URL`              |
+    +------------------+------------------+---------------------------+
+    | method           | -m               | `GITLABBER_CLONE_METHOD`  |
+    +------------------+------------------+---------------------------+
+    | naming           | -n               | `GITLABBER_FOLDER_NAMING` |
+    +------------------+------------------+---------------------------+
+    | include          | -i               | `GITLABBER_INCLUDE`       |
+    +------------------+------------------+---------------------------+
+    | exclude          | -x               | `GITLABBER_EXCLUDE`       |
+    +------------------+------------------+---------------------------+
+
+* **Secure Token Storage**: Gitlabber supports secure token storage using OS-native keyring (Keychain on macOS, Secret Service on Linux, Windows Credential Manager). This allows you to store your GitLab token securely and avoid passing it via CLI or environment variables.
+
+  **Token Resolution Priority:**
+  
+  1. CLI argument (``-t/--token``) - highest priority
+  2. Stored token (from secure storage)
+  3. Environment variable (``GITLAB_TOKEN``)
+
+  **Usage:**
+
+  .. code-block:: bash
+
+      # Install keyring (optional, for secure storage)
+      pip install gitlabber[keyring]
+
+      # Store token securely (one-time setup)
+      gitlabber --store-token -u https://gitlab.com
+      Enter token: [hidden input]
+      Token stored securely in keyring for https://gitlab.com ✓
+
+      # Use stored token automatically (no -t flag needed)
+      gitlabber -u https://gitlab.com .
+
+      # Override with CLI token if needed
+      gitlabber -t <token> -u https://gitlab.com .
+
+  **Note:** If keyring is not installed, gitlabber falls back to environment variables or CLI arguments (current behavior).
 
 * To view the tree run the command with your includes/excludes and the ``-p`` flag. It will print your tree like so:
 
@@ -104,6 +145,8 @@ Usage
 
 * Include/Exclude patterns do not work at the API level but work on the results returned from the API, for large Gitlab installations this can take a lot of time, if you need to reduce the amound of API calls for such projects use the ``--group-search`` parameter to search only for the top level groups the interest you using the `Gitlab Group Search API <https://docs.gitlab.com/ee/api/groups.html#search-for-group>`_ which allows you to do a partial like query for a Group's path or name
 
+* **Performance optimization**: For large GitLab instances with many groups and projects, use the ``--api-concurrency`` option to dramatically speed up tree building. This enables parallel API calls (default: 5 concurrent requests) which can provide **4-6x speedup** in real-world scenarios. For example, building a tree with 21 subgroups and 21 projects can be reduced from ~96 seconds (sequential) to ~16-21 seconds (with ``--api-concurrency 5-10``). The ``-c/--concurrency`` option controls parallel git operations (cloning/pulling), while ``--api-concurrency`` controls parallel API calls (fetching groups/projects). Both can be tuned independently based on your needs.
+
 * Cloning vs Pulling: when running Gitlabber consecutively with the same parameters, it will scan the local tree structure; if the project directory exists and is a valid git repository (has .git folder in it) Gitlabber will perform a git pull in the directory, otherwise the project directory will be created and the GitLab project will be cloned into it.
 
 * Cloning submodules: use the ``-r`` flag to recurse git submodules, uses the ``--recursive`` for cloning and utilizes `GitPython's smart update method <https://github.com/gitpython-developers/GitPython/blob/20f4a9d49b466a18f1af1fdfb480bc4520a4cdc2/git/objects/submodule/root.py#L67>`_ for updating cloned repositories
@@ -113,7 +156,7 @@ Usage
 .. code-block:: bash
 
     usage: gitlabber [-h] [-t token] [-T] [-u url] [--verbose] [-p] [--print-format {json,yaml,tree}] [-n {name,path}] [-m {ssh,http}]
-                    [-a {include,exclude,only}] [-i csv] [-x csv] [-r] [-F] [-d] [-s] [-g term] [-U] [-o options] [--version]
+                    [-a {include,exclude,only}] [-i csv] [-x csv] [-c N] [--api-concurrency N] [-r] [-F] [-d] [-s] [-g term] [-U] [-o options] [--version] [--store-token]
                     [dest]
 
     Gitlabber - clones or pulls entire groups/projects tree from gitlab
@@ -142,6 +185,9 @@ Usage
                             comma delimited list of glob patterns of paths to projects or groups to clone/pull
     -x csv, --exclude csv
                             comma delimited list of glob patterns of paths to projects or groups to exclude from clone/pull
+    -c N, --concurrency N
+                            number of concurrent git operations (default: 1)
+    --api-concurrency N    number of concurrent API calls for tree building (default: 5)
     -r, --recursive       clone/pull git submodules recursively
     -F, --use-fetch       clone/fetch git repository (mirrored repositories)
     -s, --include-shared  include shared projects in the results
@@ -151,6 +197,7 @@ Usage
     -o options, --git-options options
                             provide additional options as csv for the git command (e.g., --depth=1). See: clone/multi_options https://gitpython.readthedocs.io/en/stable/reference.html#
     --version             print the version
+    --store-token         store token securely in OS keyring (requires keyring package)
 
     examples:
 
@@ -178,30 +225,54 @@ Usage
         perform a shallow clone of the git repositories
         gitlabber -o "\-\-depth=1," .
 
+        speed up tree building for large GitLab instances with parallel API calls (4-6x faster)
+        # Real-world example: 96s → 16-21s for instances with many subgroups/projects
+        gitlabber --api-concurrency 10 -t <token> -u <url> .
+
+        use both API and git concurrency for maximum performance
+        # API concurrency speeds up tree discovery, git concurrency speeds up cloning
+        gitlabber --api-concurrency 5 -c 10 -t <token> -u <url> .
+
+        store token securely for future use (one-time setup)
+        gitlabber --store-token -u https://gitlab.com
+
+        use stored token (no -t flag needed)
+        gitlabber -u https://gitlab.com .
+
+        **Performance Results:**
+        * Sequential (``--api-concurrency 1``): ~96 seconds
+        * With ``--api-concurrency 5``: ~21 seconds (**4.6x speedup**)
+        * With ``--api-concurrency 10``: ~16 seconds (**6x speedup**)
+
+        *Note: Actual speedup depends on your GitLab instance structure (number of groups, subgroups, and projects). Instances with many nested subgroups benefit most from higher concurrency values.*
+
 Common Use Cases
 ----------------
 
 Clone Specific Groups
 ---------------------
 
-    .. code-block:: bash
-        # Clone only projects from a specific group
-        gitlabber -i '/MyGroup/**' .
+.. code-block:: bash
+
+    # Clone only projects from a specific group
+    gitlabber -i '/MyGroup/**' .
 
 Exclude Archived Projects
 -------------------------
 
-    .. code-block:: bash
-        # Clone all non-archived projects
-        gitlabber -a exclude .
+.. code-block:: bash
+
+    # Clone all non-archived projects
+    gitlabber -a exclude .
 
 Debugging
 ---------
 * You can use the ``--verbose`` flag to print Gitlabber debug messages
 * For more verbose GitLab messages, you can get the `GitPython <https://gitpython.readthedocs.io/en/stable>`_ module to print more debug messages by setting the environment variable:
 
-    .. code-block:: bash
-        export GIT_PYTHON_TRACE='full'
+.. code-block:: bash
+
+    export GIT_PYTHON_TRACE='full'
 
 Troubleshooting
 ---------------
