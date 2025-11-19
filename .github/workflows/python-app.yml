@@ -52,13 +52,14 @@ jobs:
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
     - name: Test with pytest
       run: |
-        pytest --cov --junitxml=junit.xml
-    - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v5
-      with:
-        token: ${{ secrets.CODECOV_TOKEN }}
-    - name: Upload test results to Codecov
-      if: ${{ !cancelled() }}
-      uses: codecov/test-results-action@v1
-      with:
-        token: ${{ secrets.CODECOV_TOKEN }}
+        pytest 
+  # --cov --junitxml=junit.xml
+  # - name: Upload coverage to Codecov
+  #   uses: codecov/codecov-action@v5
+  #   with:
+  #     token: ${{ secrets.CODECOV_TOKEN }}
+  # - name: Upload test results to Codecov
+  #   if: ${{ !cancelled() }}
+  #   uses: codecov/test-results-action@v1
+  #   with:
+  #     token: ${{ secrets.CODECOV_TOKEN }}
