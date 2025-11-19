@@ -23,6 +23,7 @@ from .format import PrintFormat
 from .gitlab_tree import GitlabTree
 from .method import CloneMethod
 from .naming import FolderNaming
+from .token_storage import TokenStorage, TokenStorageError
 
 logging.basicConfig(
     level=logging.INFO,
@@ -140,6 +141,57 @@ def _require(value: Optional[str], message: str) -> str:
     return value
 
 
+def _resolve_token(
+    cli_token: Optional[str],
+    url: str,
+    settings: GitlabberSettings,
+) -> str:
+    """Resolve token from various sources in priority order.
+    
+    Priority:
+    1. CLI argument (-t/--token) - highest priority
+    2. Stored token (from secure storage)
+    3. Environment variable (GITLAB_TOKEN) - from settings
+    
+    Args:
+        cli_token: Token from CLI argument
+        url: GitLab instance URL
+        settings: Settings loaded from environment variables
+        
+    Returns:
+        Resolved token string
+        
+    Raises:
+        typer.Exit: If no token found
+    """
+    # 1. CLI token (highest priority)
+    if cli_token:
+        return cli_token
+    
+    # 2. Stored token (if available)
+    storage = TokenStorage()
+    if storage.is_available():
+        stored = storage.retrieve(url)
+        if stored:
+            return stored
+    
+    # 3. Environment variable (current behavior)
+    if settings.token:
+        return settings.token
+    
+    # 4. Error - no token found
+    from .exceptions import format_error_with_suggestion
+    error_msg, suggestion = format_error_with_suggestion(
+        'config_missing',
+        "Please specify a valid token with -t/--token or the GITLAB_TOKEN environment variable.",
+        {}
+    )
+    typer.secho(error_msg, err=True)
+    if suggestion:
+        typer.secho(f"\n💡 {suggestion}", err=True)
+    raise typer.Exit(1)
+
+
 def run_gitlabber(
     *,
     dest: Optional[str],
@@ -202,14 +254,13 @@ def run_gitlabber(
     Raises:
         typer.Exit: If required parameters are missing or tree is empty
     """
-    token_value = _require(
-        token or settings.token,
-        "Please specify a valid token with -t/--token or the GITLAB_TOKEN environment variable.",
-    )
     url_value = _require(
         url or settings.url,
         "Please specify a valid gitlab base url with -u/--url or the GITLAB_URL environment variable.",
     )
+    
+    # Resolve token with priority: CLI -> Stored -> Env var
+    token_value = _resolve_token(token, url_value, settings)
     if not print_tree_only and dest is None and not user_projects:
         typer.secho(
             "Please specify a destination for the gitlab tree.",
@@ -439,6 +490,11 @@ def cli(
         is_eager=True,
         help="Print version and exit",
     ),
+    store_token: bool = typer.Option(
+        False,
+        "--store-token",
+        help="Store token securely in OS keyring (requires keyring package)",
+    ),
 ) -> None:
     """Main CLI command for gitlabber.
     
@@ -453,6 +509,37 @@ def cli(
         sys.exit(0)
     
     settings = GitlabberSettings()
+    
+    # Handle token storage
+    if store_token:
+        url_value = url or settings.url
+        if not url_value:
+            typer.secho(
+                "Error: URL required for storing token. Use -u/--url or GITLAB_URL.",
+                err=True,
+            )
+            raise typer.Exit(1)
+        
+        # Get token from CLI or prompt
+        token_to_store = token
+        if not token_to_store:
+            token_to_store = typer.prompt("Enter token", hide_input=True)
+        
+        try:
+            storage = TokenStorage()
+            if not storage.is_available():
+                typer.secho(
+                    "Error: keyring not available. Install with: pip install keyring",
+                    err=True,
+                )
+                raise typer.Exit(1)
+            storage.store(url_value, token_to_store)
+            typer.echo(f"Token stored securely in keyring for {url_value} ✓")
+        except TokenStorageError as e:
+            typer.secho(f"Error: {str(e)}", err=True)
+            raise typer.Exit(1)
+        return  # Exit after storing
+    
     include_shared_value = not exclude_shared
 
     run_gitlabber(

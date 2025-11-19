@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "gitlabber"
-version = "2.0.0"
+version = "2.0.1"
 description = "A Gitlab clone/pull utility for backing up or cloning Gitlab groups"
 readme = "README.rst"
 requires-python = ">=3.11"
@@ -43,6 +43,9 @@ test = [
     "pytest",
     "pytest-cov",
     "pytest-integration",
+]
+keyring = [
+    "keyring>=24.0.0",
 ]
 
 [project.urls]
