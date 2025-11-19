@@ -42,7 +42,7 @@ System Requirements
 * Network access to GitLab instance
 
 Installation Methods
-~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~
 * PyPI (recommended):
   .. code-block:: bash
       pip install gitlabber
