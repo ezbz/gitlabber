@@ -537,7 +537,7 @@ def cli(
         except TokenStorageError as e:
             typer.secho(f"Error: {str(e)}", err=True)
             raise typer.Exit(1)
-        return  # Exit after storing
+        raise typer.Exit(0)  # Exit after storing
     
     include_shared_value = not exclude_shared
 
