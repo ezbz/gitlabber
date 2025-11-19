@@ -3,7 +3,7 @@
 <!--next-version-placeholder-->
 ## [Unreleased]
 
-## [2.0.1] - 2025-01-XX
+## [2.0.1] - 2025-11-19
 
 ### Added
 - **Secure Token Storage**: Store GitLab tokens securely using OS-native keyring

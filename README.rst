@@ -1,4 +1,4 @@
-.. image:: https://github.com/ezbz/gitlabber/actions/workflows/python-app.yml/badge.svg?branch=master
+.. image:: https://github.com/ezbz/gitlabber/actions/workflows/python-app.yml/badge.svg?branch=main
     :target: https://github.com/ezbz/gitlabber/actions/workflows/python-app.yml
 
 .. image:: https://codecov.io/gh/ezbz/gitlabber/branch/main/graph/badge.svg
@@ -6,6 +6,9 @@
   
 .. image:: https://badge.fury.io/py/gitlabber.svg
     :target: https://badge.fury.io/py/gitlabber
+
+.. image:: https://img.shields.io/pypi/dm/gitlabber
+    :target: https://pypi.org/project/gitlabber/
   
 .. image:: https://img.shields.io/pypi/l/gitlabber.svg
     :target: https://pypi.python.org/pypi/gitlabber/
@@ -33,7 +36,7 @@ Installation
 ------------
 
 System Requirements
-~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~
 * Python 3.11 or higher
 * Git 2.0 or higher
 * Network access to GitLab instance
