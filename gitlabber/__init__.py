@@ -5,4 +5,4 @@ while maintaining the directory structure. It supports filtering, progress
 tracking, and various configuration options.
 """
 
-__version__ = '2.0.1'
+__version__ = '2.1.0'
