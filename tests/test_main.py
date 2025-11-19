@@ -1,12 +1,11 @@
 """Tests for __main__.py module execution."""
 
 from unittest import mock
-import pytest
 
 
 def test_main_module_execution():
     """Test that __main__.py can be executed."""
-    with mock.patch('gitlabber.cli.main') as mock_main:
+    with mock.patch('gitlabber.cli.main'):
         # Import and execute the module
         import gitlabber.__main__
         # The main() call happens at import time, so we need to check it was called

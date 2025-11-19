@@ -145,7 +145,7 @@ def test_get_ca_path(monkeypatch):
     del os.environ['CURL_CA_BUNDLE']
 
     result = gitlab_tree.GitlabTree.get_ca_path()
-    assert result == True
+    assert result
 
 def test_shared_included(monkeypatch):
     gl = gitlab_util.create_test_gitlab_with_shared(monkeypatch, with_shared=True)
