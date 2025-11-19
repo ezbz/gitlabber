@@ -41,7 +41,7 @@ pygments==2.19.1
     #   accessible-pygments
     #   pydata-sphinx-theme
     #   sphinx
-requests==2.32.2
+requests==2.32.4
     # via sphinx
 roman-numerals-py==3.1.0
     # via sphinx
