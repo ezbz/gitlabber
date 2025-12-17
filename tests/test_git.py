@@ -357,8 +357,8 @@ def test_git_action_collector_mirror_implies_use_fetch():
     
     # Create a simple tree with one project
     root = Node("root", type="root", root_path="")
-    project = Node(type="project", name="test_project", 
-                   root_path="/test_project", url="test_url", parent=root)
+    Node(type="project", name="test_project", 
+         root_path="/test_project", url="test_url", parent=root)
     
     # Test: mirror=True, use_fetch=False - should result in use_fetch=True
     collector = GitActionCollector(
