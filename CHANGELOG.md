@@ -3,6 +3,23 @@
 <!--next-version-placeholder-->
 ## [Unreleased]
 
+## [2.1.1] - 2025-12-17
+
+### Fixed
+- **Fixed `--use-fetch` creating bare repositories**: The `--use-fetch` flag now correctly creates normal repositories with a working tree, instead of bare mirror repositories. This fixes the regression introduced in PR #100 where `--use-fetch` was incorrectly using `--mirror` during clone operations.
+- **Added `--mirror` flag for backup use cases**: Introduced a new `--mirror` flag specifically for creating bare mirror repositories (for backup purposes). The `--mirror` flag automatically uses `fetch` instead of `pull` for updates, preserving the original backup functionality while fixing the `--use-fetch` behavior.
+
+### Changed
+- **Separated concerns between `--use-fetch` and `--mirror`**: 
+  - `--use-fetch`: Creates normal repositories with working tree, uses `fetch` instead of `pull` for updates
+  - `--mirror`: Creates bare mirror repositories for backups, automatically uses `fetch` for updates
+- Updated documentation to clarify the difference between the two flags
+
+### Added
+- Comprehensive test coverage for all flag combinations to ensure `--use-fetch` and `--mirror` work correctly together without conflicts
+
+Fixes [#158](https://github.com/ezbz/gitlabber/issues/158)
+
 ## [2.1.0] - 2025-11-19
 
 ### Added
