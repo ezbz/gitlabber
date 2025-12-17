@@ -211,6 +211,7 @@ def run_gitlabber(
     exclude: Optional[str],
     recursive: bool,
     use_fetch: bool,
+    mirror: bool,
     include_shared: bool,
     group_search: Optional[str],
     user_projects: bool,
@@ -244,6 +245,7 @@ def run_gitlabber(
         exclude: Comma-separated glob patterns to exclude
         recursive: Clone submodules recursively
         use_fetch: Use git fetch instead of pull
+        mirror: Create bare mirror repositories (implies use_fetch)
         include_shared: Include shared projects
         group_search: Search term for filtering groups at API level
         user_projects: Fetch only user personal projects
@@ -295,6 +297,7 @@ def run_gitlabber(
             "recursive": recursive,
             "include_shared": include_shared,
             "use_fetch": use_fetch,
+            "mirror": mirror,
             "hide_token": hide_token,
             "user_projects": user_projects,
             "group_search": group_search,
@@ -318,6 +321,7 @@ def run_gitlabber(
         disable_progress=verbose,
         include_shared=include_shared,
         use_fetch=use_fetch,
+        mirror=mirror,
         hide_token=hide_token,
         user_projects=user_projects,
         group_search=group_search,
@@ -458,7 +462,7 @@ def cli(
         False,
         "-F",
         "--use-fetch",
-        help="Use git fetch instead of pull (mirrored repositories)",
+        help="Use git fetch instead of pull for updates (normal repositories with working tree)",
     ),
     exclude_shared: bool = typer.Option(
         False,
@@ -494,6 +498,11 @@ def cli(
         False,
         "--store-token",
         help="Store token securely in OS keyring (requires keyring package)",
+    ),
+    mirror: bool = typer.Option(
+        False,
+        "--mirror",
+        help="Create bare mirror repositories (for backups, automatically uses fetch)",
     ),
 ) -> None:
     """Main CLI command for gitlabber.
@@ -560,6 +569,7 @@ def cli(
         exclude=exclude,
         recursive=recursive,
         use_fetch=use_fetch,
+        mirror=mirror,
         include_shared=include_shared_value,
         group_search=group_search,
         user_projects=user_projects,
