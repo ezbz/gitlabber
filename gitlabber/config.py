@@ -80,6 +80,7 @@ class GitlabberConfig(BaseModel):
     disable_progress: bool = False
     include_shared: bool = True
     use_fetch: bool = False
+    mirror: bool = False
     hide_token: bool = False
     user_projects: bool = False
     group_search: Optional[str] = None

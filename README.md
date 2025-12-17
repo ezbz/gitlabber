@@ -152,7 +152,8 @@ options:
                         number of concurrent git operations (default: 1)
 --api-concurrency N    number of concurrent API calls for tree building (default: 5)
 -r, --recursive       clone/pull git submodules recursively
--F, --use-fetch       clone/fetch git repository (mirrored repositories)
+-F, --use-fetch       use git fetch instead of pull for updates (normal repositories with working tree)
+--mirror              create bare mirror repositories (for backups, automatically uses fetch)
 -s, --include-shared  include shared projects in the results
 -g term, --group-search term
                         only include groups matching the search term, filtering done at the API level
@@ -202,8 +203,6 @@ gitlabber --store-token -u https://gitlab.com
 # Use stored token (no -t flag needed)
 gitlabber -u https://gitlab.com .
 ```
-<｜tool▁call▁begin｜>
-run_terminal_cmd
 
 ## Common Use Cases
 

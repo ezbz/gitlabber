@@ -26,6 +26,7 @@ class GitAction:
     use_fetch: bool = False
     hide_token: bool = False
     git_options: Optional[str] = None
+    mirror: bool = False # New parameter
 
 
 class GitRepository:
@@ -68,7 +69,7 @@ class GitRepository:
         multi_options: list[str] = []
         if action.recursive:
             multi_options.append('--recursive')
-        if action.use_fetch:
+        if action.mirror:  # New parameter
             multi_options.append('--mirror')
         if action.git_options:
             multi_options += action.git_options.split(',')
@@ -132,13 +133,15 @@ class GitRepository:
             GitlabberGitError: If pull operation fails
         """
         log.debug("updating existing project %s", action.path)
-        operation = 'fetching' if action.use_fetch else 'pulling'
+        # Mirror implies use_fetch, so check both
+        should_fetch = action.use_fetch or action.mirror
+        operation = 'fetching' if should_fetch else 'pulling'
         progress_bar.show_progress_detailed(action.node.name, 'project', operation)
         
         try:
             if repo is None:
                 repo = git.Repo(action.path)
-            if not action.use_fetch:
+            if not should_fetch:
                 repo.remotes.origin.pull()
             else:
                 repo.remotes.origin.fetch()
@@ -226,6 +229,7 @@ class GitActionCollector:
         dest: str,
                  recursive: bool = False,
                  use_fetch: bool = False,
+                 mirror: bool = False,
                  hide_token: bool = False,
         git_options: Optional[str] = None
     ):
@@ -235,12 +239,14 @@ class GitActionCollector:
             dest: Destination directory for repositories
             recursive: Whether to clone recursively
             use_fetch: Whether to use git fetch instead of pull
+            mirror: Whether to create bare mirror repositories
             hide_token: Whether to hide token in URLs
             git_options: Additional git options as comma-separated string
         """
         self.dest = Path(dest)
         self.recursive = recursive
         self.use_fetch = use_fetch
+        self.mirror = mirror
         self.hide_token = hide_token
         self.git_options = git_options
 
@@ -272,9 +278,11 @@ class GitActionCollector:
             path_str = str(path)
             
             if child.is_leaf:
+                # Mirror implies use_fetch (mirrors should always use fetch)
+                effective_use_fetch = self.use_fetch or self.mirror
                 actions.append(GitAction(
                     child, path_str, self.recursive, 
-                    self.use_fetch, self.hide_token, self.git_options
+                    effective_use_fetch, self.hide_token, self.git_options, self.mirror
                 ))
             
             if not child.is_leaf:
@@ -307,6 +315,7 @@ class GitSyncManager:
         dest: str,
         recursive: bool = False,
         use_fetch: bool = False,
+        mirror: bool = False,
         hide_token: bool = False,
         git_options: Optional[str] = None
     ) -> None:
@@ -317,6 +326,7 @@ class GitSyncManager:
             dest: Destination directory
             recursive: Whether to clone recursively
             use_fetch: Whether to use git fetch instead of pull
+            mirror: Whether to create bare mirror repositories
             hide_token: Whether to hide token in URLs
             git_options: Additional git options as comma-separated string
         """
@@ -324,7 +334,7 @@ class GitSyncManager:
             self.progress_bar.init_progress(len(root.leaves))
 
         collector = GitActionCollector(
-            dest, recursive, use_fetch, hide_token, git_options
+            dest, recursive, use_fetch, mirror, hide_token, git_options
         )
         actions = collector.collect(root)
 
@@ -343,6 +353,7 @@ def sync_tree(
               disable_progress: bool = False,
               recursive: bool = False,
               use_fetch: bool = False,
+              mirror: bool = False,
               hide_token: bool = False,
     git_options: Optional[str] = None
 ) -> None:
@@ -356,11 +367,12 @@ def sync_tree(
         disable_progress: Whether to disable progress reporting
         recursive: Whether to clone recursively
         use_fetch: Whether to use git fetch instead of pull
+        mirror: Whether to create bare mirror repositories
         hide_token: Whether to hide token in URLs
         git_options: Additional git options as comma-separated string
     """
     manager = GitSyncManager(concurrency, disable_progress)
-    manager.sync(root, dest, recursive, use_fetch, hide_token, git_options)
+    manager.sync(root, dest, recursive, use_fetch, mirror, hide_token, git_options)
 
 
 def get_git_actions(
@@ -368,6 +380,7 @@ def get_git_actions(
     dest: str,
     recursive: bool,
     use_fetch: bool,
+    mirror: bool,
     hide_token: bool,
     git_options: Optional[str] = None
 ) -> list[GitAction]:
@@ -378,13 +391,14 @@ def get_git_actions(
         dest: Destination directory
         recursive: Whether to clone recursively
         use_fetch: Whether to use git fetch instead of pull
+        mirror: Whether to create bare mirror repositories
         hide_token: Whether to hide token in URLs
         git_options: Additional git options as comma-separated string
         
     Returns:
         List of GitAction objects to execute
     """
-    collector = GitActionCollector(dest, recursive, use_fetch, hide_token, git_options)
+    collector = GitActionCollector(dest, recursive, use_fetch, mirror, hide_token, git_options)
     return collector.collect(root)
 
 
