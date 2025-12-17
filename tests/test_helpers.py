@@ -31,6 +31,7 @@ class MockGitRepo:
         mock_git = mock.Mock()
         mock_repo_instance = mock.Mock()
         mock_repo_instance.remotes.origin.pull = mock.Mock()
+        mock_repo_instance.remotes.origin.fetch = mock.Mock()
         if pull_side_effect:
             mock_repo_instance.remotes.origin.pull.side_effect = pull_side_effect
         mock_repo_instance.submodule_update = mock.Mock()
@@ -42,7 +43,8 @@ class MockGitRepo:
         
         # Mock is_git_repo behavior
         if is_git_repo:
-            mock_git.Repo.side_effect = lambda p: mock_repo_instance if p == path else mock.Mock()
+            # Return the same mock_repo_instance for any path when is_git_repo=True
+            mock_git.Repo.side_effect = lambda p: mock_repo_instance
         else:
             mock_git.Repo.side_effect = lambda p: mock.Mock()
             
@@ -286,6 +288,8 @@ class TreeBuilder:
         path: str,
         url: Optional[str] = None,
         recursive: bool = False,
+        use_fetch: bool = False,
+        mirror: bool = False,
         git_options: Optional[str] = None,
     ) -> GitAction:
         """Create a GitAction from a node.
@@ -295,6 +299,8 @@ class TreeBuilder:
             path: Destination path
             url: Repository URL (sets node.url if provided)
             recursive: Whether to clone recursively
+            use_fetch: Whether to use fetch instead of pull
+            mirror: Whether to create bare mirror repository
             git_options: Additional git options
             
         Returns:
@@ -306,6 +312,8 @@ class TreeBuilder:
             node=node,
             path=path,
             recursive=recursive,
+            use_fetch=use_fetch,
+            mirror=mirror,
             git_options=git_options,
         )
 

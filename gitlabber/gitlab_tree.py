@@ -45,6 +45,7 @@ class GitlabTree:
                  disable_progress: bool = False,
                  include_shared: bool = True,
                  use_fetch: bool = False,
+                 mirror: bool = False,
                  hide_token: bool = False,
                  user_projects: bool = False,
                  group_search: Optional[str] = None,
@@ -69,6 +70,7 @@ class GitlabTree:
             disable_progress: Whether to disable progress bar (used if config not provided)
             include_shared: Whether to include shared projects (used if config not provided)
             use_fetch: Whether to use git fetch instead of pull (used if config not provided)
+            mirror: Whether to create bare mirror repositories (used if config not provided)
             hide_token: Whether to hide token in URLs (used if config not provided)
             user_projects: Whether to fetch only user projects (used if config not provided)
             group_search: Search term for filtering groups (used if config not provided)
@@ -98,6 +100,7 @@ class GitlabTree:
             disable_progress = config.disable_progress
             include_shared = config.include_shared
             use_fetch = config.use_fetch
+            mirror = config.mirror
             hide_token = config.hide_token
             user_projects = config.user_projects
             group_search = config.group_search
@@ -175,6 +178,7 @@ class GitlabTree:
         self.token = token
         self.include_shared = include_shared
         self.use_fetch = use_fetch
+        self.mirror = mirror
         self.hide_token = hide_token
         self.user_projects = user_projects
         self.group_search = group_search
@@ -308,7 +312,7 @@ class GitlabTree:
                      len(self.root.descendants) - len(self.root.leaves), len(self.root.leaves))
             sync_tree(self.root, dest, concurrency=self.concurrency,
                      disable_progress=self.disable_progress, recursive=self.recursive,
-                     use_fetch=self.use_fetch, hide_token=self.hide_token,
+                     use_fetch=self.use_fetch, mirror=self.mirror, hide_token=self.hide_token,
                      git_options=self.git_options)
         except GitlabberGitError:
             # Re-raise git errors as-is
