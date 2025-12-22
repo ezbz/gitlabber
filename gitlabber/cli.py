@@ -118,6 +118,8 @@ def config_logging(verbose: bool, print_mode: bool) -> None:
         os.environ["GIT_PYTHON_TRACE"] = "full"
     else:
         logging.getLogger().setLevel(logging.INFO)
+        # Suppress urllib3 connection pool warnings unless verbose mode is enabled
+        logging.getLogger("urllib3.connectionpool").setLevel(logging.ERROR)
 
 
 def _version_callback(value: bool) -> None:
