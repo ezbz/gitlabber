@@ -3,6 +3,20 @@
 <!--next-version-placeholder-->
 ## [Unreleased]
 
+## [2.1.2] - 2026-09-26
+
+### Security
+- **Upgraded GitPython to 3.1.62** to address multiple advisories (command injection via git option bypasses, RCE via git-config injection, arbitrary file read/write/overwrite, path traversal)
+- **Upgraded urllib3 to 2.8.0** to address decompression-bomb and cross-origin header forwarding advisories
+- Upgraded documentation build dependencies (soupsieve, idna, Pygments, requests, Jinja2)
+
+### Changed
+- `urllib3` is no longer pinned to `2.5.0`; now requires `urllib3>=2.7.0`
+- Minimum `GitPython` version raised to `3.1.59`
+- Upgraded python-gitlab to 8.5.0, rich to 15.0.0, typer to 0.27.2, pydantic to 2.13.5, pydantic-settings to 2.15.0
+- Pinned ruff lint rule selection to the classic defaults so new ruff releases don't break CI
+- Suppress urllib3 connection pool warnings unless verbose mode is enabled
+
 ## [2.1.1] - 2025-12-17
 
 ### Fixed

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "gitlabber"
-version = "2.1.1"
+version = "2.1.2"
 description = "A Gitlab clone/pull utility for backing up or cloning Gitlab groups"
 readme = "README.rst"
 requires-python = ">=3.11"
@@ -101,3 +101,6 @@ exclude_lines = [
     "class .*\\bProtocol\\):",
     "@(abc\\.)?abstractmethod",
 ]
+[tool.ruff.lint]
+# Pin to ruff's classic default rule set; newer ruff releases expand the defaults
+select = ["E4", "E7", "E9", "F"]
